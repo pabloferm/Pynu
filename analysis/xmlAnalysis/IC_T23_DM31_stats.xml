@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Analysis>
+
+<!--Anything common to a given neutrino source-->
+<!-- Atmospheric neutrinos -->
+	<NeutrinoSource name="Atmospheric">
+		<status name='status'> 1 </status>
+		<systematic name='FluxNormalization'>
+			<status> 0 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+		</systematic>
+		<systematic name='FluxNormalization_Below1GeV'>
+			<status> 0 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+		</systematic>
+		<systematic name='FluxNormalization_Above1GeV'>
+			<status> 0 </status>
+			<sigma> 0.15 </sigma>
+			<nominal> 1.0 </nominal>
+		</systematic>
+		<systematic name='Nu-Nubar Double Ratio'>
+			<status> 0 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+		</systematic>
+	</NeutrinoSource>
+
+
+	<Detector name="H2O">
+		<status name='status'> 1 </status>
+		<systematic name='O16CrossSection'>
+			<status> 0 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+		</systematic>
+	</Detector>
+
+<!--Anything common to a given neutrino experiment-->
+<!-- SuperK -->
+	<NeutrinoExperiment name="Super-Kamiokande">
+		<status name='status'> 0 </status>
+		<simulation filename='../Simulation/SuperK/data/output/combined.hdf5'> </simulation>
+		<exposure> 20 </exposure>  <!-- years -->
+		<systematic name='EnergyScale'>
+			<status> 0 </status>
+			<sigma> 0.03 </sigma>
+			<nominal> 1.0 </nominal>
+		</systematic>
+		<systematic name='Decay-eEfficiency'>
+			<status> 0 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+		</systematic>
+	</NeutrinoExperiment>
+<!-- IceCube Upgrade -->
+	<NeutrinoExperiment name="IceCube-Upgrade">
+		<status name='status'> 1 </status>
+		<simulation filename='../Simulation/IceCubeUpgrade/data/neutrino_mc.csv'> </simulation>
+		<exposure> 3 </exposure>  <!-- years -->
+		<systematic name='EnergyScale'>
+			<status> 0 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+		</systematic>
+		<systematic name='Track-Shower Separation'>
+			<status> 0 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+		</systematic>
+	</NeutrinoExperiment>
+
+
+<!--Anything common to a given neutrino physics scenario-->
+	<NeutrinoPhysics name="Three Flavour">
+		<status name="status"> 1 </status>
+		<flavours> 3 </flavours>
+		<parameters>
+			<Sin2Theta12>
+				<points> 1 </points>
+				<min> 0.304 </min>
+				<max> 0.304 </max>
+				<best> 0.304 </best>
+			</Sin2Theta12>
+			<Sin2Theta13>
+				<points> 1 </points>
+				<min> 0.022 </min>
+				<max> 0.022 </max>
+				<best> 0.022 </best>
+			</Sin2Theta13>
+			<Sin2Theta23>
+				<points> 25 </points>
+				<min> 0.305 </min>
+				<max> 0.705 </max>
+				<best> 0.572 </best>
+			</Sin2Theta23>
+			<dCP>
+				<points> 1 </points>
+				<min> 4.014 </min>
+				<max> 4.014 </max>
+				<best> 4.014 </best>
+			</dCP>
+			<Dm221>
+				<points> 1 </points>
+				<min> 7.42e-5 </min>
+				<max> 7.42e-5 </max>
+				<best> 7.42e-5 </best>
+			</Dm221>
+			<Dm231>
+				<points> 21 </points>
+				<min> 2.0e-3 </min>
+				<max> 3.0e-3 </max>
+				<best> 2.5e-3 </best>
+			</Dm231>
+			<Ordering>
+				<normal> 1 </normal>
+				<inverted> 0 </inverted>
+				<best> normal </best>
+			</Ordering>
+		</parameters>
+	</NeutrinoPhysics>
+
+</Analysis>
