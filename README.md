@@ -1,4 +1,6 @@
-# AtmNuCombination
+![Pynu Logo](/resources/pynu_logo.png)
+
+# Pynu
 
 For the time being the code is contained under the src folder and structured in Analysis and Simulation folders.
 
