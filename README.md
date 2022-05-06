@@ -1,4 +1,4 @@
-![Pynu Logo](/resources/pynu_logo.png)
+<img src="/resources/pynu_logo.png" width="200" />
 
 # Pynu
 
