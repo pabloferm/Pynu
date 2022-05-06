@@ -35,20 +35,9 @@ In order to run some examples and get familiar with the code, the src/Analysis/r
     -o [OUTFILE], --outfile [OUTFILE]  
                           Analysis output file  
     --multi               Option for running the analysis with multiprocessing (recommended locally)  
-    --cluster             Option for submitting jobs to a cluster  
+    --cluster             Option for submitting jobs to a cluster
+    --mcmc                Option for Markov Chain sampling over paraeter space
 ```
 
   
 The results of the analysis are saved in <output_file> as a text file of columns (by deafult the output file is out.dat). If no running mode (--multi or --cluster) is specified it will run sequentially the list of points from the xml file.   
-
-### Plotting
-Further, these output files can be plotted using src/Analysis/PlotGlobalSens.py. Some examples are shown in src/Analysis/plot_example.sh.
-```
-
-python3 PlotGlobalSens.py <experiment> <output_file> [output_file2]
-
-```
-
-In order to run src/Analysis/PlotGlobalSens.py, one should specify the experiment: SK, IC or IC+SK.
-
-The option of providing a second analysis output file is only for the cases when one wants to add the output of two separate analyses but with the same parameter grid.

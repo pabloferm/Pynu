@@ -398,15 +398,15 @@
 <!-- IceCube Upgrade -->
 	<NeutrinoExperiment name="IceCube-Upgrade">
 		<status name='status'> 1 </status>
-		<simulation filename='../Simulation/IceCubeUpgrade/data/neutrino_mc.csv'> </simulation>
+		<simulation filename='/home/pablofer/Pheno/Atmospherics/AtmNuCombination/src/Simulation/IceCubeUpgrade/data/neutrino_mc.csv'> </simulation>
 		<exposure> 5 </exposure>  <!-- years -->
 		<systematic name='IceAbsorption'>
-			<status> 1 </status>
+			<status> 0 </status>
 			<sigma> 0.1 </sigma>
 			<nominal> 1.0 </nominal>
 		</systematic>
 		<systematic name='IceScattering'>
-			<status> 1 </status>
+			<status> 0 </status>
 			<sigma> 0.1 </sigma>
 			<nominal> 1.0 </nominal>
 		</systematic>
@@ -416,22 +416,22 @@
 			<nominal> 0 </nominal>
 		</systematic>
 		<systematic name='OptEffHeadon'>
-			<status> 1 </status>
+			<status> 0 </status>
 			<sigma> 1000 </sigma>
 			<nominal> 0 </nominal>
 		</systematic>
 		<systematic name='OptEffLateral'>
-			<status> 1 </status>
+			<status> 0 </status>
 			<sigma> 10 </sigma>
 			<nominal> 25 </nominal>
 		</systematic>
 		<systematic name='OptEffOverall'>
-			<status> 1 </status>
+			<status> 0 </status>
 			<sigma> 0.1 </sigma>
 			<nominal> 1.0 </nominal>
 		</systematic>
 		<systematic name='CoinFraction'>
-			<status> 1 </status>
+			<status> 0 </status>
 			<sigma> 0.1 </sigma>
 			<nominal> 0 </nominal>
 		</systematic>
