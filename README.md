@@ -1,4 +1,4 @@
-<img src="/resources/pynu_logo.png" width="200" />
+<img src="/resources/pynu_logo.png" width="150" />
 
 # Pynu
 
@@ -30,10 +30,12 @@ In order to run some examples and get familiar with the code, the src/Analysis/r
   
   optional arguments:  
     -h, --help            show this help message and exit  
-    -p [POINT], --point [POINT]  
                           Specify analysis point to run. Only if 'cluster' option is enabled  
-    -o [OUTFILE], --outfile [OUTFILE]  
-                          Analysis output file  
+    -o [OUTFILE]
+    --outfile [OUTFILE]   Analysis output file  
+    -p [POINT]
+    --point [POINT]       If not specified, the code runs over all points in xml file 
+
     --multi               Option for running the analysis with multiprocessing (recommended locally)  
     --cluster             Option for submitting jobs to a cluster
     --mcmc                Option for Markov Chain sampling over paraeter space

@@ -16,6 +16,7 @@ class Reader:
 		self.Source = source
 		self.Exposure = exposure
 		self.FewEntries = None
+		self.Physics = 0 # list of physics parameters grid
 
 		if self.Experiment == 'Super-Kamiokande' or self.Experiment == 'SK':
 			self.Detector = 'Water'

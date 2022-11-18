@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Analysis>
+
+<!--Anything common to a given neutrino source-->
+
+<!-- Atmospheric neutrinos -->
+	<NeutrinoSource name="Atmospheric">
+		<status> 1 </status>
+        <nuisance name='FluxNormalization_Below1GeV'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='FluxNormalization_Above1GeV'>
+			<status> 1 </status>
+			<sigma> 0.15 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<physics name='FlavorRatio'>
+			<points> 20 </points>
+			<min> 0.65 </min>
+			<max> 1.25 </max>
+			<true> 1.0 </true>
+		</physics>
+		<nuisance name='FluxTilt'>
+			<status> 1 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 0.0 </nominal>
+		</nuisance>
+		<nuisance name='NuNuBarRatio'>
+			<status> 1 </status>
+			<sigma> 0.02 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='FlavorRatio'>
+			<status> 1 </status>
+			<sigma> 0.05 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='ZenithFluxUp'>
+			<status> 1 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 0.0 </nominal>
+		</nuisance>
+		<nuisance name='ZenithFluxDown'>
+			<status> 1 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 0.0 </nominal>
+		</nuisance>
+	</NeutrinoSource>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+
+<!--Anything common to a given detector type-->
+
+<!-- Water-Cherenkov -->
+	<NeutrinoTarget name="Water">
+		<status> 1 </status>
+		<nuisance name='XSecNuTau'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='NCoverCC'>
+			<status> 1 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='NCHad'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='DIS'>
+			<status> 1 </status>
+			<sigma> 0.05 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>		
+		<nuisance name='CCQE'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='CCQENuBarNu'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='CCQEMuE'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='CC1Pi_Pi0Pi'>
+			<status> 1 </status>
+			<sigma> 0.4 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='CC1Pi_NuBarNuE'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='CC1Pi_NuBarNuMu'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='CC1PiProduction'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='CohPiProduction'>
+			<status> 1 </status>
+			<sigma> 1.0 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='AxialMass'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>	
+	</NeutrinoTarget>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+
+<!--Anything common to a given neutrino experiment-->
+
+<!-- HyperK -->
+	<NeutrinoExperiment name="Hyper-Kamiokande">
+		<status> 0 </status>
+		<source name='Atmospheric'>
+			<status> 1 </status>
+			<MCfiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
+				<status> 1 </status>
+			</MCfile>
+			<Datafile name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
+				<status> 0 </status>
+			</Datafile>
+			<exposure> 5 </exposure> <!-- years-->
+		</source>
+		<source name='Accelerator'>
+			<status> 1 </status>
+			<MCfile name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
+				<status> 1 </status>
+			</MCfile>
+			<datafile name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
+				<status> 0 </status>
+			</datafile>
+			<exposure> 1e21 </exposure> <!-- POT-->
+		</source>
+ 		<nuisance name='SKEnergyScale'>
+			<status> 1 </status>
+			<sigma> 0.03 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 		<nuisance name='FCPCSeparation'>
+			<status> 1 </status>
+			<sigma> 0.06 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 		<nuisance name='FCReduction'>
+			<status> 1 </status>
+			<sigma> 0.003 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 		<nuisance name='FiducialVolume'>
+			<status> 1 </status>
+			<sigma> 0.02 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 	</NeutrinoExperiment>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+ <!-- HyperK with H-neutron tagging -->
+	<NeutrinoExperiment name="HyperK_Htag">
+		<status> 0 </status>
+		<simulation filename='../Simulation/HyperK/data/output/SK_Htag/combined.hdf5'> </simulation>
+		<exposure> 6.897 </exposure>  <!-- years of SK4 up to 2017 paper and ~8 until full Gd-phase -->
+		<nuisance name='SKIV_SKEnergyScale'>
+			<status> 1 </status>
+			<sigma> 0.02 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 		<nuisance name='SKIV_FCPCSeparation'>
+			<status> 1 </status>
+			<sigma> 0.0002 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 		<nuisance name='SKIV_FiducialVolume'>
+			<status> 1 </status>
+			<sigma> 0.02 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 		<nuisance name='SKIV_FCReduction'>
+			<status> 1 </status>
+			<sigma> 0.013 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- IceCube-Upgrade -->
+<!-- IceCube Upgrade -->
+	<NeutrinoExperiment name="IceCube-Upgrade">
+		<status> 1 </status>
+		<simulation filename='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'> </simulation>
+		<exposure> 5 </exposure>  <!-- years -->
+		<nuisance name='IceAbsorption'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='IceScattering'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='OptEffHeadon'>
+			<status> 1 </status>
+			<sigma> 1000 </sigma>
+			<nominal> 0 </nominal>
+		</nuisance>
+		<nuisance name='OptEffLateral'>
+			<status> 1 </status>
+			<sigma> 10 </sigma>
+			<nominal> 25 </nominal>
+		</nuisance>
+		<nuisance name='OptEffOverall'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='CoinFraction'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 0 </nominal>
+		</nuisance>
+	</NeutrinoExperiment>
+
+
+<!--Anything common to a SINGLE given neutrino physics scenario-->
+	<NeutrinoOscillations name="3-Osc"> <!-- 3+1-Osc, LV, NSI -->
+		<status> 1 </status>
+		<flavours> 3 </flavours>
+		<fixed name='Sin2Theta12'>
+			<value> 0.304 </value>
+		</fixed>
+		<nuisance name='Sin2Theta13'>
+			<sigma> 0.005 </sigma>
+			<nominal> 0.022 </nominal>
+		</nuisance>
+		<physics name='Sin2Theta23'>
+			<points> 20 </points>
+			<min> 0.305 </min>
+			<max> 0.705 </max>
+			<true> 0.517 </true>
+		</physics>
+		<fixed name='Dm221'>
+			<value> 7.42e-5 </value>
+		</fixed>
+		<physics name='dCP'>
+			<points> 1 </points>
+			<min> 4.14 </min>
+			<max> 4.14 </max>
+			<true> 4.14 </true>
+		</physics>
+		<physics name='Dm231'>
+			<points> 21 </points>
+			<min> 2.0e-3 </min>
+			<max> 3.0e-3 </max>
+			<true> 2.5e-3 </true>
+		</physics>
+		<physics name='Ordering'>
+			<normal> 1 </normal>
+			<inverted> 1 </inverted>
+			<true> normal </true>
+		</physics>
+	</NeutrinoOscillations>
+
+</Analysis>
