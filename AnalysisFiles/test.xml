@@ -11,6 +11,11 @@
 			<sigma> 0.25 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
+		<nuisance name='MuEFlux'>
+			<status> 1 </status>
+			<sigma> 0.05 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
 		<physics name='FlavorRatio'>
 			<points> 20 </points>
 			<min> 0.65 </min>
@@ -77,16 +82,15 @@
 			<status> 1 </status>
 			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
 				<status> 1 </status>
-				<mcyears> 5 </mcyears>
 			</MCFiles>
 			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
 				<status> 1 </status>
-				<mcyears> 5 </mcyears>
 			</MCFiles>
 			<DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
 				<status> 0 </status>
 			</DataFiles>
 			<exposure> 5 </exposure> <!-- years-->
+			<MCexposure> 5 </MCexposure> <!-- This is total exposure of all the specified MC files-->
 		</source>
 		<nuisance name='IceAbsorption'>
 			<status> 1 </status>
@@ -109,6 +113,7 @@
 <!--Anything common to a SINGLE given neutrino physics scenario-->
 
 <!-- Pick one: 3-Osc, 3+N-Osc, LV, NSI -->
+<!-- Please, specify all non-zero parameters. If not specified, the missing parameters are assumed to be zero -->
 
 	<NeutrinoOscillations name="3-Osc"> 
 		<status> 1 </status>
@@ -145,8 +150,9 @@
 			<true> 2.5e-3 </true>
 		</physics>
 		<physics name='Ordering'>
-			<normal> 1 </normal>
-			<inverted> 1 </inverted>
+			<points> 2 </points>
+			<min> normal </min>
+			<max> inverted </max>
 			<true> normal </true>
 		</physics>
 	</NeutrinoOscillations>

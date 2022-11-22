@@ -30,6 +30,8 @@ class parseXML:
 		self.PhysTrueList = []
 		self.PhysGrid= {}
 		self.PhysGridList= []
+		self.PhysPoints= {}
+		self.PhysPointsList= []
 		self.PhysEdges = {}
 
 		# Fixed
@@ -39,27 +41,30 @@ class parseXML:
 		self.FixedValue = {}
 		self.FixedValueList = []
 
+		# Experiments
 		self.MCFiles = {}
 		self.MCyears = {}
 		self.DataFiles = {}
 		self.Exposure = {}
-
 		self.Experiments = {}
 
+		# Reading
 		self.readSources()
 		self.readDetectors()
 		self.readExperiments()
 		self.readOscillations()
 		self.CheckSources()
+		self.makePhysicsGrid()
+		
+		# Optional checks
+		if False:
+			self.CheckNuisance()
+			self.CheckPhysics()
+			self.CheckFixed()
 
 
 	def reader(self, item, atrib='name'):
 		itemList = []
-		# if item == 'NeutrinoExperiment':
-		# 	self.MCFiles = {}
-		# 	self.MCyears = {}
-		# 	self.DataFiles = {}
-		# 	self.Exposure = {}
 		for source in self.root.iter(item):
 			if atrib=='name':
 				if int(source.find('status').text):
@@ -74,67 +79,100 @@ class parseXML:
 								MCyears = []
 								Exposure = []
 								DataFiles = []
-								# self.MCFiles[src.attrib['name']] = []
-								# self.MCyears[src.attrib['name']] = []
-								# self.Exposure[src.attrib['name']] = []
-								# self.DataFiles[src.attrib['name']] = []
 								for fi in src.findall('MCFiles'):
 									if int(fi.find('status').text):
 										MCFiles.append(fi.attrib['name'])
-										MCyears.append(float(fi.find('mcyears').text))
 								for fi in src.findall('DataFiles'):
 									if int(fi.find('status').text):
 										DataFiles.append(fi.attrib['name'])										
 								Exposure.append(float(src.find('exposure').text))
-						self.Experiments[sname][src.attrib['name']] = {'MCFiles':MCFiles, 'MCyears': MCyears, 'DataFiles': DataFiles, 'Exposure': Exposure}
-
-
+								MCyears.append(float(src.find('MCexposure').text))
+						self.Experiments[sname][src.attrib['name']] = {'MCFiles':MCFiles, 'TotalMCexposure': MCyears, 'DataFiles': DataFiles, 'Exposure': Exposure}
 					self.Nuisance[sname] = []
-					self.NuisSigma[sname] = []
-					self.NuisNominal[sname] = []
+					self.NuisSigma[sname] = {}
+					self.NuisNominal[sname] = {}
 					for nuis in source.findall('nuisance'):
 						if int(nuis.find('status').text):
 							s = nuis.attrib['name']
 							if s == 'Ordering':
-								sys.exit('Neutrino mass ordering cannot be a nuisance parameter.')
+								sys.exit('Neutrino mass ordering cannot be a nuisance parameter. Please, test both ordering hypotheses.')
 							else:
-								self.NuisSigma[sname].append(float(nuis.find('sigma').text))
+								self.NuisSigma[sname][s] = float(nuis.find('sigma').text)
 								self.NuisSigmaList.append(float(nuis.find('sigma').text))
-								self.NuisNominal[sname].append(float(nuis.find('nominal').text))
+								self.NuisNominal[sname][s] = float(nuis.find('nominal').text)
 								self.NuisNominalList.append(float(nuis.find('nominal').text))
 								self.Nuisance[sname].append(s)
 								self.NuisanceList = np.append(self.NuisanceList,s)
-
 					self.Fixed[sname] = []
-					self.FixedValue[sname] = []
+					self.FixedValue[sname] = {}
 					for fix in source.findall('fixed'):
 						if int(fix.find('status').text):
 							s = fix.attrib['name']
 							if s == 'Ordering':
-								pass
+								self.FixedValue[sname][s] = fix.find('value').text
+								self.FixedValueList.append(fix.find('value').text)
+								self.Fixed[sname].append(s)
+								self.FixedList = np.append(self.FixedList,s)
 							else:
-								self.FixedValue[sname].append(float(fix.find('value').text))
+								self.FixedValue[sname][s] = float(fix.find('value').text)
 								self.FixedValueList.append(float(fix.find('value').text))
 								self.Fixed[sname].append(s)
 								self.FixedList = np.append(self.FixedList,s)
-
 					self.Physics[sname] = []
-					self.PhysTrue[sname] = []
-					self.PhysGrid[sname] = []
+					self.PhysTrue[sname] = {}
+					self.PhysPoints[sname] = []
 					self.PhysEdges[sname] = []
 					for phys in source.findall('physics'):
 						s = phys.attrib['name']
 						if s == 'Ordering':
-							pass
+							points = int(phys.find('points').text)
+							no = 0
+							io = 0
+							if 'norm' in phys.find('min').text or 'norm' in phys.find('max').text :
+								no = 1
+							if 'inv' in phys.find('min').text or 'inv' in phys.find('max').text :
+								io = 1
+							if io+no==2 and points==2:
+								self.PhysTrue[sname][s] = phys.find('true').text
+								self.PhysTrueList.append(phys.find('true').text)
+								self.PhysPoints[sname].append(2)
+								self.PhysPointsList.append(2)
+								self.PhysEdges[sname].append(['normal','inverted'])
+								self.Physics[sname].append(s)
+								self.PhysicsList = np.append(self.PhysicsList,s)
+							elif io+no==1 and points==1:
+								if io:
+									self.FixedValue[sname][s] = 'inverted'
+									self.FixedValueList.append('inverted')
+									self.Fixed[sname].append(s)
+									self.FixedList = np.append(self.FixedList,s)
+								elif no:
+									self.FixedValue[sname][s] = 'normal'
+									self.FixedValueList.append('normal')
+									self.Fixed[sname].append(s)
+									self.FixedList = np.append(self.FixedList,s)
+								print('Notice: Parameter '+str(s)+' has been moved to fixed.')
+							elif io+no==0 or points==0:
+								sys.exit('Please, specify a neutrino mass ordering')
+							else:
+								sys.exit('Please, take a look to the Ordering, something is not well defined.')
 						else:
-							self.PhysTrue[sname].append(float(phys.find('true').text))
-							self.PhysTrueList.append(float(phys.find('true').text))
-							self.PhysGrid[sname].append(float(phys.find('points').text))
-							self.PhysGridList.append(float(phys.find('points').text))
-							self.PhysEdges[sname].append([float(phys.find('min').text),float(phys.find('max').text)])
-							self.Physics[sname].append(s)
-							self.PhysicsList = np.append(self.PhysicsList,s)
-
+							if float(phys.find('min').text)==float(phys.find('max').text) or int(phys.find('points').text)<=1: # this parameter should be fixed
+								self.FixedValue[sname][s] = float(phys.find('true').text)
+								self.FixedValueList.append(float(phys.find('true').text))
+								self.Fixed[sname].append(s)
+								self.FixedList = np.append(self.FixedList,s)
+								print('Notice: Parameter '+str(s)+' has been moved to fixed.')
+							elif float(phys.find('min').text) ==float(phys.find('max').text):
+								sys.exit('Please, check parameter '+ str(s))
+							else:
+								self.PhysTrue[sname][s] = float(phys.find('true').text)
+								self.PhysTrueList.append(float(phys.find('true').text))
+								self.PhysPoints[sname].append(int(phys.find('points').text))
+								self.PhysPointsList.append(int(phys.find('points').text))
+								self.PhysEdges[sname].append([float(phys.find('min').text),float(phys.find('max').text)])
+								self.Physics[sname].append(s)
+								self.PhysicsList = np.append(self.PhysicsList,s)
 			else:
 				itemList.append(source.attrib[atrib])
 		return itemList
@@ -179,7 +217,6 @@ class parseXML:
 		for i in self.Experiments.keys():
 			for j in self.Experiments[i].keys():
 				sources2.append(j)
-
 		if collections.Counter(self.sources) == collections.Counter(sources2):
 			print('You have specified the following files for each experiment and source:')
 			for i in self.Experiments.keys():
@@ -192,76 +229,38 @@ class parseXML:
 					print('   + ' + str(self.Experiments[i][j]['DataFiles']))
 		else: 
 			sys.exit('You are missing some files for some sources or experiments. Please, check your xml file.')
+		print('====================================')
 
-	def readOscPar(self):
-		# 3-Osc, 3+N-Osc, LV, NSI
-		params_3f = ['Sin2Theta12','Sin2Theta13','Sin2Theta23','Dm221','Dm231','dCP','Ordering']
-		self.parameters = keys
-		self.OscParametersGrid  = {}
-		self.OscParametersEdges = {}
-		self.OscParametersTrue  = {}
-		for node in self.root.iter('NeutrinoPhysics'):
-			for phys in self.physics:
-				if node.attrib['name'] == phys:
-					self.neutrinos = int(node.find('flavours').text)
-					for key in keys:
-						par = node.find('parameters/'+key)
-						self.OscParametersGrid[key] = self.readOscParValues(par, key)
-						self.OscParametersEdges[key] = self.readOscParNominal(par, key)
-						self.OscParametersTrue[key] = self.readOscParTrueValue(par, key)
-
-	def readOscParValues(self, pars, key):
-		if key=='Ordering':
-			if int(pars.find('normal').text):
-				x = np.array(['normal'])
-				if int(pars.find('inverted').text):
-					x = np.append(x,'inverted')
-			else:
-				if int(pars.find('inverted').text):
-					x = np.array(['inverted'])
-			return x
-		else:
-			n = int(pars.find('points').text)
-			mini = float(pars.find('min').text)
-			maxi = float(pars.find('max').text)
-			return np.linspace(mini, maxi, n, endpoint = True)
-
-	def readOscParTrueValue(self, pars, key):
-		if key=='Ordering':
-			if 'normal' in str(pars.find('best').text).lower():
-				return 'normal'
-			else:
-				return 'inverted'
-		else:
-			return float(pars.find('best').text)
-
-	def readOscParNominal(self, pars, key):
-		if key=='Ordering':
-			if int(pars.find('normal').text):
-				x = np.array(['normal'])
-				if int(pars.find('inverted').text):
-					x = np.append(x,'inverted')
-			else:
-				if int(pars.find('inverted').text):
-					x = np.array(['inverted'])
-			return x
-		else:
-			n = int(pars.find('points').text)
-			mini = float(pars.find('min').text)
-			maxi = float(pars.find('max').text)
-			return np.array([mini, maxi])
+	def makePhysicsGrid(self):
+		for par in self.Physics:
+			self.PhysGrid[par] = {}
+			for j,item in enumerate(self.Physics[par]):
+				if item == 'Ordering':
+					self.PhysGrid[par][item] = np.array(self.PhysEdges[par][j])
+				else:
+					self.PhysGrid[par][item] = np.linspace(self.PhysEdges[par][j][0],self.PhysEdges[par][j][-1],self.PhysPoints[par][j])
 
 	def CheckNuisance(self):
-		nonuis = 0
 		print('List of Nuisance')
 		for source in self.Nuisance:
 			print(f' + From {source}: {self.Nuisance[source]}')
-			if len(self.NuisSigma[source]) > 0:
-				nonuis = nonuis + 1
-		print('====================================')
-		if nonuis==0:
-			self.NoNuis = 1
+		if len(self.NuisanceList) == 0:
+			self.StatsOnly = True
+			print('Stats. only analysis?!')
 		else:
-			self.NoNuis = 0
+			self.StatsOnly = False
+		print('====================================')
 
-	
+	def CheckPhysics(self):
+		print('List of Physics/Fit')
+		for source in self.Physics:
+			print(f' + From {source}: {self.Physics[source]}')
+		if len(self.PhysicsList) == 0:
+			sys.exit('I am done, you requested nothing to fit.')
+		print('====================================')
+
+	def CheckFixed(self):
+		print('List of Fixed')
+		for source in self.Fixed:
+			print(f' + From {source}: {self.Fixed[source]}')
+		print('====================================')

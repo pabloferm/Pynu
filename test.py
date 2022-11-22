@@ -6,12 +6,10 @@ test.readSources()
 test.readDetectors()
 test.readExperiments()
 test.readOscillations()
-
 print('Nuisance (marg) param.:')
 print(test.Nuisance)
+print(test.NuisanceList)
 print(test.NuisNominal)
-print(test.NuisNominalList)
-
 print('Fixed (model) param.:')
 print(test.Fixed)
 print(test.FixedValue)
