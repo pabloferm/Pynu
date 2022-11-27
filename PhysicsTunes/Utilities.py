@@ -2,6 +2,14 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import griddata
 
+def Selector():
+    pass
+
+def BetaParameters(m,s):
+    alpha = ((1-m)/s**2-1/m)*m**2
+    beta = alpha*(1/m-1)
+    return alpha,beta
+
 def ICUp(Ebin, Zbin, syst, cut=[]):
 
     hp_nue_cc = pd.read_csv("Systematics/hyperplanes_nue_cc.csv")

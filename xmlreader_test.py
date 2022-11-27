@@ -1,6 +1,11 @@
 import AnalysisReader as AR
 
 test = AR.parse()
+
+print(test.OscParameters)
+print(test.Flavors)
+for s in test.sources:
+    print(test.FixedValue[s])
 '''
 test.readSources()
 test.readDetectors()

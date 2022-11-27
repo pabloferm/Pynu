@@ -4,16 +4,17 @@ import numpy as np
 from itertools import product
 import argparse
 
-from Experiments import * # contains rd class to read and setup each experiment
-from AnalysisReader import * # contains parse class to read and setup the analysis
-from Analysis import * # import Sensitivity # Computes sensitivity
+import AnalysisReader as AR # contains parse class to read and setup the analysis
+import Experiments as Exp # contains rd class to read and setup each experiment
+import PhysicsTunes as PT # contains everything to modify your simulations to help figuring out what you have measured.
+# from Analysis import * # import Sensitivity # Computes sensitivity
 
 # Read arguments
 ############################
 input_arg = argparse.ArgumentParser()
-input_arg.add_argument("xml_file", type=str, nargs='?', default='xmlAnalysis/AnalysisTemplate.xml', help='Input analysis file in xml format.')
-input_arg.add_argument('-p', '--point', nargs='?', type=int, default=0, help='Specify analysis point to run. Only if \'cluster\' option is enabled.')
-input_arg.add_argument('-lp', '--list_of_points', nargs='?', type=list, default=0, help='Specify set of analysis points to run.')
+input_arg.add_argument("xml_file", type=str, nargs='?', default='AnalysisFiles/test.xml', help='Input analysis file in xml format.')
+input_arg.add_argument('-p', '--point', nargs='+', type=int, default=0, help='Specify analysis point or points (p0 p1 p2 p3) to run.')
+input_arg.add_argument('-rp', '--range_of_points', nargs='+', type=int, default=None, help='Specify range (start and end) of analysis points to run, p0 p3 = p0 p0+1 p0+2 ... p3-1 p3. Edges are included.')
 input_arg.add_argument('-o', '--outfile', nargs='?', type=str, default='out.dat', help='Analysis output file.')
 input_arg.add_argument("--multi", dest='multiproc', default=False, action='store_true', help='Option for running the analysis with multiprocessing (recommended locally).') 
 input_arg.add_argument("--cluster", dest='cluster', default=False, action='store_true', help='Option for submitting jobs to a cluster.')
@@ -25,11 +26,13 @@ args = input_arg.parse_args()
 multiproc = args.multiproc
 cluster = args.cluster
 markov = args.mcmc
-if cluster:
-	if args.point is None:
-		point=0
-	else:
-		point = args.point
+range_points = args.range_of_points
+points = 0
+if range_points == None:
+	points = np.unique(args.point)
+else:
+	points = np.arange(int(range_points[0]), 1+int(range_points[-1]))
+
 
 # Setup analysis files
 ############################
@@ -38,24 +41,42 @@ outfile = args.outfile # output
 
 # Setup analysis from xml file
 ############################
-an = parse(analysis_xml_file)
-an.readSources()
-an.readExperiments()
-an.readDetectors()
-an.readPhysics()
-an.readOscPar()
-an.CheckSystematics()
+an = AR.parse(analysis_xml_file, check=False)
 
-# Setup all experiments
+print(an.FixedValue)
+print(an.Experiments)
+print(an.OscScenario)
+
+
+# Setup all experiments and 
+# their physics tunes
 ############################
-mcList = {}
+
+ExperimentClasses = {}
+PhysicsTunesClasses = {}
+for exp in an.Experiments:
+	ExperimentClasses[exp] = {}
+	PhysicsTunesClasses[exp] = {}
+	for source in an.Experiments[exp]:
+		ExperimentClasses[exp][source] = Exp.Manager(exp, source, an.Experiments[exp][source])
+		PhysicsTunesClasses[exp][source] = {}
+		PhysicsTunesClasses[exp][source]['Osc'] = PT.Oscillations(an.OscScenario, source, an.Flavors, ExperimentClasses[exp][source])
+		PhysicsTunesClasses[exp][source]['Flux'] = PT.Flux(source, ExperimentClasses[exp][source])
+
+
+# I'm here
+
+# Setup oscillations to be accesible to all experiments
+# osc = PT.Oscillations(an.OscScenario)
+
+'''
+
 for s in an.sources:
 	for i,(exp,fil,t) in enumerate(zip(an.experiments,an.mcFiles,an.Exposure)):
 		mcList[exp] = rd(s,exp,t,fil)
 		mcList[exp].Binning()		
 		mcList[exp].InitialFlux() # Get unoscillated fluxes
 		mcList[exp].BFOscillator(an.neutrinos,**an.OscParametersBest) # Set best fit value oscillations
-
 
 # Write first line of output file
 ############################
@@ -96,7 +117,7 @@ if an.physics[0] == 'Three Flavour':
 			print('Analyzing with no systematics')
 
 		if markov:
-			''' Testing '''
+			# Testing 
 			import emcee
 			nwalkers = 2**4
 			ndim = len(an.OscParametersEdges) - 1
@@ -129,3 +150,4 @@ if an.physics[0] == 'Three Flavour':
 		for element in parametersGrid:
 			print(f'Processing {element}')
 			sensitivity(element[:-1], element[-1], an, mcList, outfile)
+'''

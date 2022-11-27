@@ -78,6 +78,7 @@
 <!-- IceCube Upgrade -->
 	<NeutrinoExperiment name="IceCube-Upgrade">
 		<status> 1 </status>
+		<target name="Water"> </target>
 		<source name='Atmospheric'>
 			<status> 1 </status>
 			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
@@ -117,7 +118,7 @@
 
 	<NeutrinoOscillations name="3-Osc"> 
 		<status> 1 </status>
-		<flavours> 3 </flavours>
+		<flavors> 3 </flavors>
 		<fixed name='Sin2Theta12'>
 			<status> 1 </status>
 			<value> 0.304 </value>

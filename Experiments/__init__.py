@@ -1,1 +1,1 @@
-from .MCReader import Reader as rd
+from .MCReader import Manager

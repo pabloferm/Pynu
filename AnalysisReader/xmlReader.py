@@ -4,7 +4,7 @@ import collections
 import numpy as np
 
 class parseXML:
-	def __init__(self, xmlfile='AnalysisFiles/test.xml'):
+	def __init__(self, xmlfile='AnalysisFiles/test.xml', check=False):
 		
 		# create element tree object
 		self.xmlfile = xmlfile
@@ -47,6 +47,13 @@ class parseXML:
 		self.DataFiles = {}
 		self.Exposure = {}
 		self.Experiments = {}
+		self.ExpTarget = {}
+
+		# Oscillation parameters
+		self.OscParameters = []
+		self.FluxParameters = []
+		self.XSectionParameters = []
+		self.DetectorParameters = []
 
 		# Reading
 		self.readSources()
@@ -57,7 +64,7 @@ class parseXML:
 		self.makePhysicsGrid()
 		
 		# Optional checks
-		if False:
+		if check:
 			self.CheckNuisance()
 			self.CheckPhysics()
 			self.CheckFixed()
@@ -65,19 +72,21 @@ class parseXML:
 
 	def reader(self, item, atrib='name'):
 		itemList = []
+		osc = item=='NeutrinoOscillations'
 		for source in self.root.iter(item):
 			if atrib=='name':
 				if int(source.find('status').text):
 					sname = source.attrib['name']
 					itemList.append(source.attrib[atrib])
-					if item == 'NeutrinoExperiment':
+					if item == 'NeutrinoOscillations':
+						self.Flavors = int(source.find('flavors').text)
+					elif item == 'NeutrinoExperiment':
 						self.Experiments[sname] = {}
+						self.ExpTarget[sname] = source.find('target').attrib['name']
 						for src in source.findall('source'):
 							if int(src.find('status').text):
 								self.Experiments[sname][src.attrib['name']] = {}
 								MCFiles = []
-								MCyears = []
-								Exposure = []
 								DataFiles = []
 								for fi in src.findall('MCFiles'):
 									if int(fi.find('status').text):
@@ -85,8 +94,8 @@ class parseXML:
 								for fi in src.findall('DataFiles'):
 									if int(fi.find('status').text):
 										DataFiles.append(fi.attrib['name'])										
-								Exposure.append(float(src.find('exposure').text))
-								MCyears.append(float(src.find('MCexposure').text))
+								Exposure = float(src.find('exposure').text)
+								MCyears = float(src.find('MCexposure').text)
 						self.Experiments[sname][src.attrib['name']] = {'MCFiles':MCFiles, 'TotalMCexposure': MCyears, 'DataFiles': DataFiles, 'Exposure': Exposure}
 					self.Nuisance[sname] = []
 					self.NuisSigma[sname] = {}
@@ -94,6 +103,7 @@ class parseXML:
 					for nuis in source.findall('nuisance'):
 						if int(nuis.find('status').text):
 							s = nuis.attrib['name']
+							if osc: self.OscParameters.append(s)
 							if s == 'Ordering':
 								sys.exit('Neutrino mass ordering cannot be a nuisance parameter. Please, test both ordering hypotheses.')
 							else:
@@ -108,6 +118,7 @@ class parseXML:
 					for fix in source.findall('fixed'):
 						if int(fix.find('status').text):
 							s = fix.attrib['name']
+							if osc: self.OscParameters.append(s)
 							if s == 'Ordering':
 								self.FixedValue[sname][s] = fix.find('value').text
 								self.FixedValueList.append(fix.find('value').text)
@@ -124,6 +135,7 @@ class parseXML:
 					self.PhysEdges[sname] = []
 					for phys in source.findall('physics'):
 						s = phys.attrib['name']
+						if osc: self.OscParameters.append(s)
 						if s == 'Ordering':
 							points = int(phys.find('points').text)
 							no = 0
@@ -186,10 +198,10 @@ class parseXML:
 		print('====================================')
 
 	def readDetectors(self):
-		self.detectors = self.reader('NeutrinoTarget')
+		self.targets = self.reader('NeutrinoTarget')
 		print('------------------------------------')
 		print('Neutrino targets considered:')
-		for s in self.detectors:
+		for s in self.targets:
 			print(' + ',s)
 		print('====================================')
 
@@ -209,7 +221,7 @@ class parseXML:
 		for i,s in enumerate(self.oscillations):
 			if i>0: sys.exit('*********************************************************\n** You have selected multiple oscillation scenarios. ****\n** Please restric to a SINGLE scenario which contains ***\n** all the parameters. **********************************\n*********************************************************')
 			print(' + ',s)
-		self.oscillations = self.oscillations[0]
+		self.OscScenario = self.oscillations[0]
 		print('====================================')
 
 	def CheckSources(self):
