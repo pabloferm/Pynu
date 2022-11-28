@@ -33,7 +33,6 @@ if range_points == None:
 else:
 	points = np.arange(int(range_points[0]), 1+int(range_points[-1]))
 
-
 # Setup analysis files
 ############################
 analysis_xml_file = args.xml_file # input
@@ -43,15 +42,9 @@ outfile = args.outfile # output
 ############################
 an = AR.parse(analysis_xml_file, check=False)
 
-print(an.FixedValue)
-print(an.Experiments)
-print(an.OscScenario)
-
-
 # Setup all experiments and 
 # their physics tunes
 ############################
-
 ExperimentClasses = {}
 PhysicsTunesClasses = {}
 for exp in an.Experiments:
@@ -63,11 +56,17 @@ for exp in an.Experiments:
 		PhysicsTunesClasses[exp][source]['Osc'] = PT.Oscillations(an.OscScenario, source, an.Flavors, ExperimentClasses[exp][source])
 		PhysicsTunesClasses[exp][source]['Flux'] = PT.Flux(source, ExperimentClasses[exp][source])
 
+# for model in an.Fixed:
+# 	print(model,value)
 
 # I'm here
+# 1. Let each experiment manage their own work (bining flux)
+	# 1.1. Set fixed PTs and send them to experiment (fixed)
+	# 1.2. Set nominal PTs and send them to experiment (nuisance)
+	# 1.3. Set true PTs and send them to experiment (fit)
+	# 1.4. Compute default wieghts of each experiment
 
-# Setup oscillations to be accesible to all experiments
-# osc = PT.Oscillations(an.OscScenario)
+
 
 '''
 

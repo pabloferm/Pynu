@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import sys
 import collections
 import numpy as np
+from .Distributions import Beta
 
 class parseXML:
 	def __init__(self, xmlfile='AnalysisFiles/test.xml', check=False):
@@ -68,7 +69,6 @@ class parseXML:
 			self.CheckNuisance()
 			self.CheckPhysics()
 			self.CheckFixed()
-
 
 	def reader(self, item, atrib='name'):
 		itemList = []
