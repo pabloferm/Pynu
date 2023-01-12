@@ -15,6 +15,7 @@ class PhysicsTunes:
 		if set_all:
 			""" Set the flux """
 			self.SetFlux()
+			self.SetXSection()
 
 	@property
 	def Experiment(self):
@@ -43,8 +44,9 @@ class PhysicsTunes:
 			sys.exit('{name} not found.')
 
 	def SetXSection(self):
-		pass
-		self.XSec = Manager(self._Experiment.Target)	
+		if self.Target == 'Water':
+			from .CrossSection.WaterXSection import WaterXSection
+			self.XSection = WaterXSection()	
 
 	def SetDetector(self):
 		pass
