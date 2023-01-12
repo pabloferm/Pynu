@@ -8,7 +8,6 @@ from PhysicsTunes import Tune
 # Atmospheric flux #
 ####################
 
-
 class AtmosphericFlux(Tune):
 		
 	def FluxNormalization(self, experiment, x):

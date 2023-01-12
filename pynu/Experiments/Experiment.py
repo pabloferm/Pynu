@@ -16,9 +16,11 @@ class Experiment:
 		self.Norm = self.FitExposure / self.TotalMCexposure
 		self.MCFiles = dict_of_details['MCFiles']
 		self.DataFiles = dict_of_details['DataFiles']
-		self.DataFit = False
+
 		if len(self.DataFiles) > 0: 
 			self.DataFit = True
+		else:
+			self.DataFit = False
 
 		self.Reader()
 

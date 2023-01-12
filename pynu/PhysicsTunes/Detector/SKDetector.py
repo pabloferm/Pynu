@@ -1,5 +1,9 @@
 import numpy as np
 
+import sys
+sys.path.append('../')
+from PhysicsTunes import Tune
+
 ####################
 # Super-Kamiokande #
 ####################

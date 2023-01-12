@@ -15,7 +15,10 @@ class PhysicsTunes:
 		if set_all:
 			""" Set the flux """
 			self.SetFlux()
+			""" Set the cross-section """
 			self.SetXSection()
+			""" Set the cross-section """
+			self.SetDetector()
 
 	@property
 	def Experiment(self):
@@ -26,12 +29,19 @@ class PhysicsTunes:
 		self._Experiment = experiment
 
 	def GetFlux(self, func_name, x):
-		return self.Flux.Get(func_name, self._Experiment, x)
+		return self.FluxTunes.Get(func_name, self._Experiment, x)
+
+	def GetXSection(self, func_name, x):
+		return self.XSectionTunes.Get(func_name, self._Experiment, x)
+
+	def GetDetector(self, func_name, x):
+		return self.DetectorTunes.Get(func_name, self._Experiment, x)
+
 
 	def SetFlux(self):
 		if self.Source == 'Atmospheric':
 			from .Flux.AtmoFlux import AtmosphericFlux
-			self.Flux = AtmosphericFlux()
+			self.FluxTunes = AtmosphericFlux()
 		elif self.Source == 'Solar':
 			pass
 		elif self.Source == 'Reactors':
@@ -46,11 +56,16 @@ class PhysicsTunes:
 	def SetXSection(self):
 		if self.Target == 'Water':
 			from .CrossSection.WaterXSection import WaterXSection
-			self.XSection = WaterXSection()	
+			self.XSectionTunes = WaterXSection()
+		else:
+			sys.exit('{name} not found.')
 
 	def SetDetector(self):
-		pass
-		self.Det = Manager(self._Experiment.Detector)
+		if self.Detector == 'IceCube-Upgrade':
+			from .Detector.ICUpDetector import ICUpgrade
+			self.DetectorTunes = ICUpgrade()
+		else:
+			sys.exit('{name} not found.')
 
 	def SetOscillations(self):
 		pass
