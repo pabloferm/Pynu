@@ -15,6 +15,13 @@ def Gaussian(x,m,s):
 def logGaussianPrior(x,m,s): # Actually, -2 ln(L/L0)
     return (x-m)**2/s**2
 
+def DifflogGaussianPrior(x,m,s): # Actually, -2 ln(L/L0)
+    return 2*(x-m)/s**2
+
 def logBetaPrior(x,m,s):
     a,b = BetaPar(m,s)
     return 2 * (a * log(m/x) + b * log((1-m) / (1-x)))
+
+def DifflogBetaPrior(x,m,s):
+    a,b = BetaPar(m,s)
+    return 2 * (- a/x + b/(1-x))

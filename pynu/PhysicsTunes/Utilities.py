@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import griddata
 
-def Selector():
+def Manager():
     pass
 
 def ICUp(Ebin, Zbin, syst, cut=[]):

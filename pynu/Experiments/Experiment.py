@@ -6,6 +6,10 @@ import numpy as np
 
 class Experiment:
 	def __init__(self, dict_of_details):
+		self.Detector = None
+		self.Target = None
+		self.Source = None
+		
 		self.TotalMCexposure = dict_of_details['TotalMCexposure']
 		self.FitExposure = dict_of_details['Exposure']
 		self.FewEntries = None
@@ -15,8 +19,6 @@ class Experiment:
 		self.DataFit = False
 		if len(self.DataFiles) > 0: 
 			self.DataFit = True
-		else:
-			print('Sensitivity study.')
 
 		self.Reader()
 
@@ -26,22 +28,37 @@ class Experiment:
 		self.Sample = 0
 		self.EnergyBins = []
 		self.CTBins = []
+		self.ExpectedWeight = 1
 
-	# def Detector(self):
+
+	def MCVariables(self):
+		pass
 
 	def Reader(self):
 		self.MC = {}
-		for f in self.MCFiles:
-			# print(f)
+		for i,f in enumerate(self.MCFiles):
 			newdata = reader(f)
-			self.MC =  {x: self.MC.get(x, 0) + newdata.get(x, 0) for x in set(self.MC).union(newdata)}
+			if i==0:
+				self.MC = newdata
+			else:
+				for key, value in newdata.items():
+					if key in self.MC:
+						self.MC[key] = np.append(self.MC[key],value)
+					else:
+						print('Warning: MC files have not the same variables, it may produce errors.')
 
 		if self.DataFit:
 			self.Data = {}
-			for f in self.DataFiles:
+			for i,f in enumerate(self.DataFiles):
 				newdata = reader(f)
-				self.Data =  {x: self.Data.get(x, 0) + newdata.get(x, 0) for x in set(self.Data).union(newdata)}
-
+				if i==0:
+					self.Data = newdata
+				else:
+					for key, value in newdata.items():
+						if key in self.Data:
+							self.Data[key] = np.append(self.Data[key],value)
+						else:
+							print('Warning: Data files have not the same variables, it may produce errors.')
 
 	# def Binning(self):
 	# 	pass
@@ -49,34 +66,78 @@ class Experiment:
 	# def MakeInitialFlux(self):
 	# 	pass
 
-	def wBinIt(self,array,shift_E=1, bias_E=0):
-		return self.BinIt(array*self.Weight*self.Norm,shift_E=shift_E, bias_E=bias_E)
 
-	def BinIt_1D(self, array, shift_E=1, bias_E=0): # 1D energy binning
+	def BinIt_MC_1D(self, array, shift_E=1, bias_E=0): # 1D energy binning
 		v = np.array([])
 		E = self.EReco * shift_E
 		for s, sample in enumerate(self.Samples):
 			cond = self.Sample==s
-			dummy_w = array[cond]
-			Obs, __ = np.histogram1d(E[cond], bins=self.EnergyBins[s], weights=dummy_w)
+			Obs, __ = np.histogram1d(E[cond], bins=self.EnergyBins[s], weights=dummy_w*self.Norm)
 			v = np.append(v,Obs)
-		v = v.reshape(-1)
-		if len(self.FewEntries) > 0:
-			v = v[self.FewEntries]
-		return v
+		return v.reshape(-1)
 
-	def BinIt_2D(self, array, shift_E=1, bias_E=0): # 2D energy and cos(angle) binning
+	def BinIt_MC_2D(self, array, shift_E=1, bias_E=0): # 2D energy and cos(angle) binning
 		v = np.array([])
 		E = self.EReco * shift_E
 		for s, sample in enumerate(self.Samples):
 			cond = self.Sample==s
-			dummy_w = array[cond]
-			Obs, __, __ = np.histogram2d(E[cond], self.CosThetaReco[cond], bins=(self.EnergyBins[s], self.CTBins[s]), weights=dummy_w)
+			Obs, __, __ = np.histogram2d(E[cond], self.CosThetaReco[cond], bins=(self.EnergyBins[s], self.CTBins[s]), weights=dummy_w*self.Norm)
 			v = np.append(v,Obs)
-		v = v.reshape(-1)
-		if len(self.FewEntries) > 0:
-			v = v[self.FewEntries]
-		return v
+		return v.reshape(-1)
 
-	def RemoveLowBins(self):
-		self.FewEntries = self.ExpectedBinned>4
+	def BinIt_Data_1D(self): # 1D energy binning
+		v = np.array([])
+		for s, sample in enumerate(self.Samples):
+			cond = self.dSample==s
+			Obs, __ = np.histogram1d(self.dEReco[cond], bins=self.EnergyBins[s])
+			v = np.append(v,Obs)
+		return v.reshape(-1)
+
+	def BinIt_Data_2D(self): # 2D energy and cos(angle) binning
+		v = np.array([])
+		for s, sample in enumerate(self.Samples):
+			cond = self.dSample==s
+			Obs, __, __ = np.histogram2d(self.dEReco[cond], self.dCosThetaReco[cond], bins=(self.EnergyBins[s], self.CTBins[s]))
+			v = np.append(v,Obs)
+		return v.reshape(-1)
+
+	def UpdateNominalWeights(self,w): # Contains all default weights of the analysis
+		self.NominalWeight *= w
+
+	def UpdateBaseWeights(self,w): # Contains all non-changing weights of the analysis, i.e. fixed
+		self.BaseWeight *= w
+
+	# def StartExpectedWeights(self): # Starts expected weights with fixed values
+	# 	self.ExpectedWeight = self.BaseWeight
+
+	def UpdateExpectedWeights(self,w): # Contains all non-changing weights of the analysis, i.e. fixed
+		self.ExpectedWeight *= w
+
+	def BinNominalWeights(self):
+		self.NominalBinned = self.BinMC(self.NominalWeight)
+
+	def BinExpectedWeights(self):
+		self.ExpectedBinned = self.BinMC(self.ExpectedWeight)
+
+	def SetObservedBinned(self):
+		if self.DataFit:
+			self.ObservedBinned = self.BinData()
+		else:
+			self.ObservedBinned = self.NominalBinned
+		self.FewEntries = self.ObservedBinned > 4
+
+	def GetObservedBinned(self):
+		if self.ObservedBinned.size == self.FewEntries.size:
+			return self.ObservedBinned[self.FewEntries]
+		else:
+			return self.ObservedBinned
+
+	def RemoveFewEntries(self, which):
+		if which == 'Observed':
+			self.ObservedBinned = self.ObservedBinned[self.FewEntries]
+		elif which == 'Nominal':
+			self.NominalBinned = self.NominalBinned[self.FewEntries]
+		elif which == 'Expected':
+			self.ExpectedBinned = self.ExpectedBinned[self.FewEntries]
+		else:
+			print('Warning: No valid item to remove entries with few bins, please select Observed, Nominal or Expected.')

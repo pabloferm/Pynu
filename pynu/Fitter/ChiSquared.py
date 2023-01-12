@@ -1,5 +1,4 @@
 import numpy as np
-from .PhysicsTunes import *
 	
 def Chi2StatsCombined(analysis, Obs, experiments):
 	""" Compute statistics only chi-squared """

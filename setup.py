@@ -1,7 +1,4 @@
 from setuptools import setup
-import os
-
-os.environ["PYNU"] = os.path.dirname(os.path.abspath(__name__))
 
 setup(
     name='pynu',

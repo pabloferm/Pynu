@@ -14,6 +14,5 @@ def Parameters(neutrino_flavors, **kwpars):
 		# At least...
 		parameters = {'Sin2Theta12':0, 'Sin2Theta13':0, 'Sin2Theta23':0, 'Dm221':0, 'Dm231':0, 'dCP':0, 'Ordering':'normal', 'Sin2Theta14':0, 'Sin2Theta24':0, 'Sin2Theta34':0, 'Dm241':0, 'dCP2':0}
 	for par, value in kwpars.items():
-		print(par, value)
 		parameters[par] = value
 	return parameters

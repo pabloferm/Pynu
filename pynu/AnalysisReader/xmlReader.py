@@ -64,6 +64,15 @@ class parseXML:
 		self.CheckSources()
 		self.makePhysicsGrid()
 		
+		self.OscNominalParameters = self.GetNominalValues(self.OscScenario)
+
+		self.wSyst = False
+		if len(self.NuisanceList) > 0 : self.wSyst = True
+
+		self.NumberOfPhys = len(self.PhysicsList)
+		self.NumberOfPhysPoints = np.prod(self.PhysPointsList)
+		self.NumberOfNuis = len(self.NuisanceList)
+
 		# Optional checks
 		if check:
 			self.CheckNuisance()
@@ -276,3 +285,7 @@ class parseXML:
 		for source in self.Fixed:
 			print(f' + From {source}: {self.Fixed[source]}')
 		print('====================================')
+
+	def GetNominalValues(self, keyw):
+		values = self.FixedValue[keyw] | self.NuisNominal[keyw] | self.PhysTrue[keyw]
+		return values

@@ -6,8 +6,8 @@ import pandas as pd
 import h5py
 
 
-def Manager(experiment, source, dict_of_details): #, dict_of_fixed, dict_of_true, dict_of_nominal):
-	if experiment in ['SK', 'SuperK', 'Super-Kamiokande']:
+def Manager(detector, source, dict_of_details): #, dict_of_fixed, dict_of_true, dict_of_nominal):
+	if detector in ['SK', 'SuperK', 'Super-Kamiokande']:
 		if source == 'Atmospheric':
 			from .SuperK_Atm import SuperK_Atm
 			return SuperK_Atm(dict_of_details)
@@ -20,9 +20,9 @@ def Manager(experiment, source, dict_of_details): #, dict_of_fixed, dict_of_true
 			# return SuperK_LBL(dict_of_details)
 			pass
 		else:
-			sys.exit('Source not found for '+experiment)
+			sys.exit('Source not found for '+detector)
 
-	elif experiment in ['HK', 'HyperK', 'Hyper-Kamiokande']:
+	elif detector in ['HK', 'HyperK', 'Hyper-Kamiokande']:
 		if source == 'Atmospheric':
 			from .HyperK_Atm import HyperK_Atm
 			return HyperK_Atm(dict_of_details)
@@ -35,14 +35,14 @@ def Manager(experiment, source, dict_of_details): #, dict_of_fixed, dict_of_true
 			# return HyperK_LBL(dict_of_details)
 			pass
 		else:
-			sys.exit('Source not found for '+experiment+'!!')
+			sys.exit('Source not found for '+detector+'!!')
 
-	elif experiment in ['ICUp', 'IceCube-Upgrade']:
+	elif detector in ['ICUp', 'IceCube-Upgrade']:
 		if source == 'Atmospheric':
 			from .ICUp_Atm import ICUp_Atm
 			return ICUp_Atm(dict_of_details)
 		else:
-			sys.exit('No valid source for '+experiment)
+			sys.exit('No valid source for '+detector)
 	else:
 		sys.exit('Experiment not found!!')
 

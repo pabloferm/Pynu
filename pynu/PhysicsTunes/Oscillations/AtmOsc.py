@@ -1,6 +1,7 @@
 import numpy as np
 import nuSQuIDS as nsq
 from math import asin, sqrt, pi
+from itertools import repeat
 from .Oscillations import Parameters
 
 ####################
@@ -17,7 +18,7 @@ class AtmosphericOscillations:
 		abs_error = 1e-4
 
 		E_nodes = 100
-		energy_nodes = nsq.logspace(exp.E_edges[0],exp.E_edges[1],E_nodes)
+		energy_nodes = nsq.logspace(exp.Etrue_min,exp.Etrue_max,E_nodes)
 		Z_nodes = 40
 		cth_nodes = nsq.linspace(exp.Z_edges[0],exp.Z_edges[1],Z_nodes)
 		self.Osc = nsq.nuSQUIDSAtm(cth_nodes,energy_nodes*self.units.GeV,self.neutrino_flavors,nsq.NeutrinoType.both,interactions)
@@ -28,6 +29,11 @@ class AtmosphericOscillations:
 		self.neutype = self.neutype.astype(np.uint32).tolist()
 		self.neuflavor = 0.5*np.abs(exp.nuPDG)-6
 		self.neuflavor = self.neuflavor.astype(np.uint32).tolist()
+
+	def UpdateParameters(self, **kwpars):
+		for par, value in kwpars.items():
+			self.parameters[par] = value
+		self.SetParameters(**self.parameters)
 		
 	def SetParameters(self, **kwpars):
 		parameters = Parameters(self.neutrino_flavors,**kwpars)
@@ -40,7 +46,7 @@ class AtmosphericOscillations:
 			s_dm = 'Dm2'+str(i+1)+'1'
 		if s_dm in parameters:
 			dm = parameters[s_dm]
-			if Ordering != 'normal' and s_dm == 'Dm231':
+			if 'inverted' in parameters['Ordering'] and s_dm == 'Dm231':
 				dm = parameters['Dm221'] - parameters['Dm231']
 			self.Osc.Set_SquareMassDifference(i,dm)
 		if 'dCP' in parameters:
@@ -56,6 +62,11 @@ class AtmosphericOscillations:
 		w = list(map(self.Osc.EvalFlavor, self.neuflavor, self.experiment.CosZTrue, self.experiment.ETrue*self.units.GeV, self.neutype, repeat(True)))
 		return np.array(w)
 
+	def BinnedOscillator(self):
+		w = self.Oscillator()
+		# return self.experiment.wBinIt(w) 
+		return self.experiment.wBinIt(w) - self.experiment.NominalBinned
+
 	def Sin2Theta13(self, x):
 		self.Osc.Set_MixingAngle(0,2,asin(sqrt(x)))
 		self.parameters['Sin2Theta13'] = x
@@ -66,7 +77,7 @@ class AtmosphericOscillations:
 		h1 = x-1e-2
 		w0 = self.Sin2Theta13(h0)
 		w1 = self.Sin2Theta13(h1)
-		dw = ((w0 - w1) / (h0 - h1)) / experiment.weightOscBF_binned
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
 		return dw
 
 	def Sin2Theta12(self, x):
@@ -79,7 +90,7 @@ class AtmosphericOscillations:
 		h1 = x-1e-2
 		w0 = self.Sin2Theta12(h0)
 		w1 = self.Sin2Theta12(h1)
-		dw = ((w0 - w1) / (h0 - h1)) / experiment.weightOscBF_binned
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
 		return dw
 
 	def Sin2Theta23(self, x):
@@ -92,7 +103,7 @@ class AtmosphericOscillations:
 		h1 = x-1e-2
 		w0 = self.Sin2Theta23(h0)
 		w1 = self.Sin2Theta23(h1)
-		dw = ((w0 - w1) / (h0 - h1)) / experiment.weightOscBF_binned
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
 		return dw
 
 	def dCP(self, x):
@@ -105,7 +116,7 @@ class AtmosphericOscillations:
 		h1 = x-1e-2
 		w0 = self.dCP(h0)
 		w1 = self.dCP(h1)
-		dw = ((w0 - w1) / (h0 - h1)) / experiment.weightOscBF_binned
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
 		return dw
 
 	def Dm221(self, x):
@@ -118,7 +129,7 @@ class AtmosphericOscillations:
 		h1 = x-1e-2
 		w0 = self.Dm221(h0)
 		w1 = self.Dm221(h1)
-		dw = ((w0 - w1) / (h0 - h1)) / experiment.weightOscBF_binned
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
 		return dw
 
 	def Dm231(self, x):
@@ -131,5 +142,5 @@ class AtmosphericOscillations:
 		h1 = x-1e-2
 		w0 = self.Dm231(h0)
 		w1 = self.Dm231(h1)
-		dw = ((w0 - w1) / (h0 - h1)) / experiment.weightOscBF_binned
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
 		return dw

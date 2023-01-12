@@ -11,7 +11,7 @@
 			<sigma> 0.25 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
-		<nuisance name='MuEFlux'>
+		<nuisance name='NuNuBarRatio'>
 			<status> 1 </status>
 			<sigma> 0.05 </sigma>
 			<nominal> 1.0 </nominal>
@@ -91,7 +91,7 @@
 				<status> 0 </status>
 			</DataFiles>
 			<exposure> 5 </exposure> <!-- years-->
-			<MCexposure> 5 </MCexposure> <!-- This is total exposure of all the specified MC files-->
+			<MCexposure> 10 </MCexposure> <!-- This is total exposure of all the specified MC files-->
 		</source>
 		<nuisance name='IceAbsorption'>
 			<status> 1 </status>
