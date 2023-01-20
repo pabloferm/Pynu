@@ -9,7 +9,7 @@ class PyNu:
 	def __init__(self, analysis_file, verbosity=False):
 
 		""" Set up basic analysis variables and structure to build full analysis """
-		self.analysis = AR.parse(analysis_file, check=verbosity)
+		self.Analysis = AR.parse(analysis_file, check=verbosity)
 
 		"""  """
 		self.PhysicsItems = ['Flux', 'XSec', 'Det', 'Osc']
@@ -48,9 +48,9 @@ class PyNu:
 		into a dictionary with keys 'detector_source' (e.g. HyperK+Atmospheric) """
 		""" Provides a dict of all experiments """
 		experiment = {}
-		for det in self.analysis.Experiments.keys():
-			for src in self.analysis.Experiments[det].keys():
-				details = self.analysis.Experiments[det][src]
+		for det in self.Analysis.Experiments.keys():
+			for src in self.Analysis.Experiments[det].keys():
+				details = self.Analysis.Experiments[det][src]
 				exp = det + '+' + src
 				experiment[exp] = Exp.Manager(det, src, details)
 		self.Experiments = experiment
@@ -62,7 +62,7 @@ class PyNu:
 		into a dictionary with keys 'detector+source' (e.g. HyperK+Atmospheric) """
 
 		for name, exp in self.Experiments.items():
-			self.PhysicsTunes[name] = PT(exp, set_all=True)
+			self.PhysicsTunes[name] = PT(exp, self.Analysis.OscScenario, self.Analysis.Flavors, set_all=True)
 			# print(self.PhysicsTunes[name].GetFlux('Diff_FluxNormalization', 1))
 
 

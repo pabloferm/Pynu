@@ -1,60 +1,59 @@
 import numpy as np
-import nuSQuIDS as nsq
 from math import asin, sqrt, pi
 from itertools import repeat
-from .Oscillations import Parameters
+from .Oscillations import Oscillator
+import nuSQuIDS as nsq
+
 
 ####################
 # Atmospheric flux #
 ####################
 
-class AtmosphericOscillations:
-	def __init__(self, scenario, neutrino_flavors, exp):
-		self.experiment = exp
-		self.neutrino_flavors = neutrino_flavors
-		self.units = nsq.Const()
-		interactions = False
-		rel_error = 1e-4
-		abs_error = 1e-4
+class AtmosphericOscillations(Oscillator):
+	def __init__(self, scenario, neutrino_flavors):
+		super().__init__(scenario, neutrino_flavors)
 
+
+
+	def SetUp(self, experiment):
 		E_nodes = 100
-		energy_nodes = nsq.logspace(exp.Etrue_min,exp.Etrue_max,E_nodes)
+		energy_nodes = nsq.logspace(experiment.Etrue_min,experiment.Etrue_max,E_nodes)
 		Z_nodes = 40
-		cth_nodes = nsq.linspace(exp.Z_edges[0],exp.Z_edges[1],Z_nodes)
+		cth_nodes = nsq.linspace(experiment.Z_edges[0],experiment.Z_edges[1],Z_nodes)
 		self.Osc = nsq.nuSQUIDSAtm(cth_nodes,energy_nodes*self.units.GeV,self.neutrino_flavors,nsq.NeutrinoType.both,interactions)
-		self.Osc.Set_rel_error(rel_error)
-		self.Osc.Set_abs_error(abs_error)
-		self.neutype = np.zeros(exp.NumberOfEvents)
-		self.neutype[exp.nuPDG<0] = 1
+		self.Osc.Set_rel_error(self.rel_error)
+		self.Osc.Set_abs_error(self.abs_error)
+		self.neutype = np.zeros(experiment.NumberOfEvents)
+		self.neutype[experiment.nuPDG<0] = 1
 		self.neutype = self.neutype.astype(np.uint32).tolist()
-		self.neuflavor = 0.5*np.abs(exp.nuPDG)-6
+		self.neuflavor = 0.5*np.abs(experiment.nuPDG)-6
 		self.neuflavor = self.neuflavor.astype(np.uint32).tolist()
 
-	def UpdateParameters(self, **kwpars):
-		for par, value in kwpars.items():
-			self.parameters[par] = value
-		self.SetParameters(**self.parameters)
+	# def UpdateParameters(self, **kwpars):
+	# 	for par, value in kwpars.items():
+	# 		self.parameters[par] = value
+	# 	self.SetParameters(**self.parameters)
 		
-	def SetParameters(self, **kwpars):
-		parameters = Parameters(self.neutrino_flavors,**kwpars)
-		for i in range(1,self.neutrino_flavors):
-			for j in range(i):
-				s_theta = 't'+str(j+1)+str(i+1)
-				if s_theta in parameters:
-					theta = parameters[s_theta]
-					self.Osc.Set_MixingAngle(j,i,asin(sqrt(theta)))
-			s_dm = 'Dm2'+str(i+1)+'1'
-		if s_dm in parameters:
-			dm = parameters[s_dm]
-			if 'inverted' in parameters['Ordering'] and s_dm == 'Dm231':
-				dm = parameters['Dm221'] - parameters['Dm231']
-			self.Osc.Set_SquareMassDifference(i,dm)
-		if 'dCP' in parameters:
-			self.Osc.Set_CPPhase(0,2,parameters['dCP'])
-		if self.neutrino_flavors > 3 and 'dCP2' in parameters:
-			self.Osc.Set_CPPhase(0,3,parameters['dCP2'])
+	# def SetParameters(self, **kwpars):
+	# 	parameters = Parameters(self.neutrino_flavors,**kwpars)
+	# 	for i in range(1,self.neutrino_flavors):
+	# 		for j in range(i):
+	# 			s_theta = 't'+str(j+1)+str(i+1)
+	# 			if s_theta in parameters:
+	# 				theta = parameters[s_theta]
+	# 				self.Osc.Set_MixingAngle(j,i,asin(sqrt(theta)))
+	# 		s_dm = 'Dm2'+str(i+1)+'1'
+	# 	if s_dm in parameters:
+	# 		dm = parameters[s_dm]
+	# 		if 'inverted' in parameters['Ordering'] and s_dm == 'Dm231':
+	# 			dm = parameters['Dm221'] - parameters['Dm231']
+	# 		self.Osc.Set_SquareMassDifference(i,dm)
+	# 	if 'dCP' in parameters:
+	# 		self.Osc.Set_CPPhase(0,2,parameters['dCP'])
+	# 	if self.neutrino_flavors > 3 and 'dCP2' in parameters:
+	# 		self.Osc.Set_CPPhase(0,3,parameters['dCP2'])
 
-		self.parameters = parameters
+	# 	self.parameters = parameters
 
 	def Oscillator(self):
 		self.Osc.Set_initial_state(self.experiment.InitialFlux,nsq.Basis.flavor)

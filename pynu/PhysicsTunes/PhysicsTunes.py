@@ -5,10 +5,13 @@
 
 class PhysicsTunes:
 	""" Contains all physics tunes of a given experiment """
-	def __init__(self, experiment, set_all=False):
+	def __init__(self, experiment, scenario, neutrino_flavors, set_all=False):
 		self.Detector = experiment.Detector
 		self.Target = experiment.Target
 		self.Source = experiment.Source
+
+		self.Scenario = scenario
+		self.NeutrinoFlavors = neutrino_flavors
 
 		self._Experiment = experiment
 
@@ -17,8 +20,10 @@ class PhysicsTunes:
 			self.SetFlux()
 			""" Set the cross-section """
 			self.SetXSection()
-			""" Set the cross-section """
+			""" Set the detector """
 			self.SetDetector()
+			""" Set the oscillations """
+			self.SetOscillations()
 
 	@property
 	def Experiment(self):
@@ -37,6 +42,8 @@ class PhysicsTunes:
 	def GetDetector(self, func_name, x):
 		return self.DetectorTunes.Get(func_name, self._Experiment, x)
 
+	def GetOscillations(self, func_name, x):
+		return self.OscillationTunes.Get(func_name, self._Experiment, x)
 
 	def SetFlux(self):
 		if self.Source == 'Atmospheric':
@@ -68,8 +75,11 @@ class PhysicsTunes:
 			sys.exit('{name} not found.')
 
 	def SetOscillations(self):
-		pass
-		self.Osc = Manager(self._Experiment.OscScenario)
+		if self.Source == 'Atmospheric':
+			from .Oscillations.AtmOsc import AtmosphericOscillations
+			self.OscillationTunes = AtmosphericOscillations(self.Scenario, self.NeutrinoFlavors)
+		else:
+			sys.exit('{name} not found.')
 
 
 

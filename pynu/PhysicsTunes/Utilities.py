@@ -43,7 +43,7 @@ def ICUp(Ebin, Zbin, syst, cut=[]):
         nuNC = values_NC[c]
 
         cz = Zbin[sample]
-        e = Ebi vgfn[sample]
+        e = Ebin[sample]
         zbin = cz[:-1] + np.diff(cz)/2
         ebin = e[:-1] + np.diff(e)/2
 
