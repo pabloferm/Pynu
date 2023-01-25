@@ -32,6 +32,8 @@ class Experiment:
 		self.CTBins = []
 		self.ExpectedWeight = 1
 
+	def Definition(self):
+		return {self.Detector:'Detector', self.Target:'XSection', self.Source:'Flux'}
 
 	def MCVariables(self):
 		pass
@@ -74,6 +76,7 @@ class Experiment:
 		E = self.EReco * shift_E
 		for s, sample in enumerate(self.Samples):
 			cond = self.Sample==s
+			dummy_w = array[cond]
 			Obs, __ = np.histogram1d(E[cond], bins=self.EnergyBins[s], weights=dummy_w*self.Norm)
 			v = np.append(v,Obs)
 		return v.reshape(-1)
@@ -83,6 +86,7 @@ class Experiment:
 		E = self.EReco * shift_E
 		for s, sample in enumerate(self.Samples):
 			cond = self.Sample==s
+			dummy_w = array[cond]
 			Obs, __, __ = np.histogram2d(E[cond], self.CosThetaReco[cond], bins=(self.EnergyBins[s], self.CTBins[s]), weights=dummy_w*self.Norm)
 			v = np.append(v,Obs)
 		return v.reshape(-1)
@@ -104,16 +108,16 @@ class Experiment:
 		return v.reshape(-1)
 
 	def UpdateNominalWeights(self,w): # Contains all default weights of the analysis
-		self.NominalWeight *= w
+		self.NominalWeight = w * self.NominalWeight
 
 	def UpdateBaseWeights(self,w): # Contains all non-changing weights of the analysis, i.e. fixed
-		self.BaseWeight *= w
+		self.BaseWeight = w * self.BaseWeight
 
 	# def StartExpectedWeights(self): # Starts expected weights with fixed values
 	# 	self.ExpectedWeight = self.BaseWeight
 
 	def UpdateExpectedWeights(self,w): # Contains all non-changing weights of the analysis, i.e. fixed
-		self.ExpectedWeight *= w
+		self.ExpectedWeight = w * self.ExpectedWeight
 
 	def BinNominalWeights(self):
 		self.NominalBinned = self.BinMC(self.NominalWeight)
@@ -125,6 +129,7 @@ class Experiment:
 		if self.DataFit:
 			self.ObservedBinned = self.BinData()
 		else:
+			self.BinNominalWeights()
 			self.ObservedBinned = self.NominalBinned
 		self.FewEntries = self.ObservedBinned > 4
 

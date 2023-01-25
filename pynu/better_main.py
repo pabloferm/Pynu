@@ -42,6 +42,7 @@ print(points)
 # Setup analysis from xml file
 ############################
 pynu = PyNu(args.xml_file, verbosity=False)
+print(pynu.Analysis.NuisNominal)
 
 pynu.SetUpExperiments()
 # print(pynu.Experiments)
@@ -49,4 +50,10 @@ pynu.SetUpExperiments()
 pynu.SetUpPhysicsTunes()
 # print(pynu.PhysicsTunes)
 
-# pynu.Set
+pynu.ApplyFixedWeights()
+pynu.ApplyNominalWeights()
+pynu.ApplyTrueWeights()
+
+pynu.SetUpObservedEvents()
+print(pynu.Observation)
+

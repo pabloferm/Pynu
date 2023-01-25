@@ -2,6 +2,7 @@ import sys
 sys.path.append('../')
 from PhysicsTunes import Tune
 import nuSQuIDS as nsq
+import numpy as np
 
 
 # General oscillator
@@ -15,6 +16,90 @@ class Oscillator(Tune):
 		self.interactions = False
 		self.rel_error = 1e-4
 		self.abs_error = 1e-4
+		self.E_nodes = 100
+		self.eps = 1e-2
+
+		self.Osc = None
+
+	def Oscillator(self):
+		sys.exit('Oscillator not defined.')
+
+	def Sin2Theta13(self, experiment, x):
+		self.Osc.Set_MixingAngle(0,2,asin(sqrt(x)))
+		self.Parameters['Sin2Theta13'] = x
+		return self.Oscillator()
+	def Diff_Sin2Theta13(self, experiment, x): # Numerical derivation
+		h0 = x*(1+self.eps)
+		h1 = x*(1-self.eps)
+		w0 = self.Sin2Theta13(h0)
+		w1 = self.Sin2Theta13(h1)
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
+		return dw
+
+	def Sin2Theta12(self, experiment, x):
+		self.Osc.Set_MixingAngle(0,1,asin(sqrt(x)))
+		self.Parameters['Sin2Theta12'] = x
+		w = self.Oscillator()
+		return self.experiment.Exp_wBinIt(w) / self.experiment.weightOscBF_binned - 1
+	def Diff_Sin2Theta12(self, experiment, x): # Numerical derivation
+		h0 = x*(1+self.eps)
+		h1 = x*(1-self.eps)
+		w0 = self.Sin2Theta12(h0)
+		w1 = self.Sin2Theta12(h1)
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
+		return dw
+
+	def Sin2Theta23(self, experiment, x):
+		self.Osc.Set_MixingAngle(1,2,asin(sqrt(x)))
+		self.Parameters['Sin2Theta23'] = x
+		w = self.Oscillator()
+		return self.experiment.Exp_wBinIt(w) / self.experiment.weightOscBF_binned - 1
+	def Diff_Sin2Theta23(self, experiment, x): # Numerical derivation
+		h0 = x*(1+self.eps)
+		h1 = x*(1-self.eps)
+		w0 = self.Sin2Theta23(h0)
+		w1 = self.Sin2Theta23(h1)
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
+		return dw
+
+	def dCP(self, experiment, x):
+		self.Osc.Set_CPPhase(0,2,x)
+		self.Parameters['dCP'] = x
+		w = self.Oscillator()
+		return self.experiment.Exp_wBinIt(w) / self.experiment.weightOscBF_binned - 1
+	def Diff_dCP(self, experiment, x): # Numerical derivation
+		h0 = x*(1+self.eps)
+		h1 = x*(1-self.eps)
+		w0 = self.dCP(h0)
+		w1 = self.dCP(h1)
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
+		return dw
+
+	def Dm221(self, experiment, x):
+		self.Osc.Set_SquareMassDifference(1,x)
+		self.Parameters['Dm221'] = x
+		w = self.Oscillator()
+		return self.experiment.Exp_wBinIt(w) / self.experiment.weightOscBF_binned - 1
+	def Diff_Dm221(self, experiment, x): # Numerical derivation
+		h0 = x*(1+self.eps)
+		h1 = x*(1-self.eps)
+		w0 = self.Dm221(h0)
+		w1 = self.Dm221(h1)
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
+		return dw
+
+	def Dm231(self, experiment, x):
+		self.Osc.Set_SquareMassDifference(2,x)
+		self.Parameters['Dm231'] = x
+		w = self.Oscillator()
+		return self.experiment.Exp_wBinIt(w) / self.experiment.weightOscBF_binned - 1
+	def Diff_Dm231(self, experiment, x): # Numerical derivation
+		h0 = x*(1+self.eps)
+		h1 = x*(1-self.eps)
+		w0 = self.Dm231(h0)
+		w1 = self.Dm231(h1)
+		dw = ((w0 - w1) / (h0 - h1)) / self.experiment.weightOscBF_binned
+		return dw
 
 	def Parameters(self, **kwpars):
 		if self.NeutrinoFlavors <= 3:
@@ -28,8 +113,8 @@ class Oscillator(Tune):
 
 	def UpdateParameters(self, **kwpars):
 		for par, value in kwpars.items():
-			self.parameters[par] = value
-		self.SetParameters(**self.parameters)
+			self.Parameters[par] = value
+		self.SetParameters(**self.Parameters)
 
 	def SetParameters(self, **kwpars):
 		parameters = Parameters(self.neutrino_flavors,**kwpars)
@@ -52,8 +137,12 @@ class Oscillator(Tune):
 
 		self.Parameters = parameters
 
+	def NSQNeutrinoType(self, experiment):
+		neutype = np.zeros(experiment.NumberOfEvents)
+		neutype[experiment.nuPDG<0] = 1
+		return neutype
 
-# def Oscillations(scenario, source, neutrino_flavors, experiment):
-# 	if source == 'Atmospheric':
-# 		from .AtmOsc import AtmosphericOscillations
-# 		return AtmosphericOscillations(scenario, neutrino_flavors, experiment)	
+	def NSQNeutrinoFlavor(self, experiment):
+		neuflavor = 0.5*np.abs(experiment.nuPDG)-6
+		neuflavor = neuflavor.astype(np.uint32).tolist()
+		return neuflavor

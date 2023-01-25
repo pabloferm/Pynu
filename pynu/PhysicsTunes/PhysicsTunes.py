@@ -33,6 +33,7 @@ class PhysicsTunes:
 	def Experiment(self, experiment):
 		self._Experiment = experiment
 
+
 	def GetFlux(self, func_name, x):
 		return self.FluxTunes.Get(func_name, self._Experiment, x)
 
@@ -44,6 +45,7 @@ class PhysicsTunes:
 
 	def GetOscillations(self, func_name, x):
 		return self.OscillationTunes.Get(func_name, self._Experiment, x)
+
 
 	def SetFlux(self):
 		if self.Source == 'Atmospheric':
@@ -77,7 +79,7 @@ class PhysicsTunes:
 	def SetOscillations(self):
 		if self.Source == 'Atmospheric':
 			from .Oscillations.AtmOsc import AtmosphericOscillations
-			self.OscillationTunes = AtmosphericOscillations(self.Scenario, self.NeutrinoFlavors)
+			self.OscillationTunes = AtmosphericOscillations(self.Scenario, self.NeutrinoFlavors, self._Experiment)
 		else:
 			sys.exit('{name} not found.')
 
@@ -96,3 +98,4 @@ class Tune:
 			return getattr(self,tune)(exp, x)
 		except:
 			print(tune + ' not found!!')
+			return 1
