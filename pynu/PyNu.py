@@ -56,27 +56,37 @@ class PyNu:
 		self.Experiments = experiment
 
 
-
 	def SetUpPhysicsTunes(self):
 		""" Loop over physics tunes specified in analysis file and store each of them
 		into a dictionary with keys 'detector+source' (e.g. HyperK+Atmospheric) """
-
 		for name, exp in self.Experiments.items():
 			self.PhysicsTunes[name] = PT(exp, self.Analysis.OscScenario, self.Analysis.Flavors, set_all=True)
 
 
-	def SetUpObservedEvents(self):
+	def StartExpectation(self):
+		for exp in self.Experiments.values():
+			exp.StartExpectedWeights()
+
+
+	def SetObservedEvents(self):
 		self.Observation = {}
 		for name, exp in self.Experiments.items():
 			exp.SetObservedBinned()
 			self.Observation[name] = exp.GetObservedBinned()
 
 
-	def ApplyFixedWeights(self):
+	def SetExpectedEvents(self):
+		self.Expectation = {}
+		for name, exp in self.Experiments.items():
+			exp.SetExpectedBinned()
+			self.Expectation[name] = exp.GetExpectedBinned()
+
+
+	def ApplyFixedWeights(self): # Nuisance parameters
 		for name, exp in self.Experiments.items():
 			for source in self.Analysis.Fixed:
-				if source in exp.Definition().keys():
-					tune_block = exp.Definition()[source]
+				if source in exp.Definition.keys():
+					tune_block = exp.Definition[source]
 					for tune in self.Analysis.Fixed[source]:
 						if tune_block == 'Flux':
 							w = self.PhysicsTunes[name].GetFlux(tune, self.Analysis.FixedValue[source][tune])
@@ -84,17 +94,18 @@ class PyNu:
 							w = self.PhysicsTunes[name].GetXSection(tune, self.Analysis.FixedValue[source][tune])
 						elif tune_block == 'Detector':
 							w = self.PhysicsTunes[name].GetDetector(tune, self.Analysis.FixedValue[source][tune])
+						elif tune_block == 'Osc':
+							self.PhysicsTunes[name].UpdateParameter(tune, self.Analysis.FixedValue[source][tune])
 
-						exp.UpdateNominalWeights(w)
 						exp.UpdateBaseWeights(w)
-						exp.UpdateExpectedWeights(w)
+						exp.UpdateObservedWeights(w)
 
 
 	def ApplyNominalWeights(self): # Nuisance parameters
 		for name, exp in self.Experiments.items():
 			for source in self.Analysis.Nuisance:
-				if source in exp.Definition().keys():
-					tune_block = exp.Definition()[source]
+				if source in exp.Definition.keys():
+					tune_block = exp.Definition[source]
 					for tune in self.Analysis.Nuisance[source]:
 						if tune_block == 'Flux':
 							w = self.PhysicsTunes[name].GetFlux(tune, self.Analysis.NuisNominal[source][tune])
@@ -102,15 +113,17 @@ class PyNu:
 							w = self.PhysicsTunes[name].GetXSection(tune, self.Analysis.NuisNominal[source][tune])
 						elif tune_block == 'Detector':
 							w = self.PhysicsTunes[name].GetDetector(tune, self.Analysis.NuisNominal[source][tune])
+						elif tune_block == 'Osc':
+							self.PhysicsTunes[name].UpdateParameter(tune, self.Analysis.NuisNominal[source][tune])
 
-						exp.UpdateNominalWeights(w)
+						exp.UpdateObservedWeights(w)
 
 
 	def ApplyTrueWeights(self): # Physics parameters
 		for name, exp in self.Experiments.items():
 			for source in self.Analysis.Physics:
-				if source in exp.Definition().keys():
-					tune_block = exp.Definition()[source]
+				if source in exp.Definition.keys():
+					tune_block = exp.Definition[source]
 					for tune in self.Analysis.Physics[source]:
 						if tune_block == 'Flux':
 							w = self.PhysicsTunes[name].GetFlux(tune, self.Analysis.PhysTrue[source][tune])
@@ -118,31 +131,56 @@ class PyNu:
 							w = self.PhysicsTunes[name].GetXSection(tune, self.Analysis.PhysTrue[source][tune])
 						elif tune_block == 'Detector':
 							w = self.PhysicsTunes[name].GetDetector(tune, self.Analysis.PhysTrue[source][tune])
+						elif tune_block == 'Osc':
+							self.PhysicsTunes[name].UpdateParameter(tune, self.Analysis.PhysTrue[source][tune])
 
-						exp.UpdateNominalWeights(w)
+						exp.UpdateObservedWeights(w)
 
 
-		# fluxes = []
-		# xsections = []
-		# detectors = []
-		# for exp in self.Experiments.values:
-		# 	fluxes.append(exp.Source)
-		# 	xsections.append(exp.Target)
-		# 	detectors.append(exp.Detector)		
-		# fluxes = [*set(fluxes)]
-		# xsections = [*set(xsections)]
-		# detectors = [*set(detectors)]
+	def ApplyPhysicsWeights(self, point):
+		for name, exp in self.Experiments.items():
+			for source in self.Analysis.Physics:
+				if source in exp.Definition.keys():
+					tune_block = exp.Definition[source]
+					for tune in self.Analysis.Physics[source]:
+						idx = self.Analysis.PhysicsList.index(tune)
+						if tune_block == 'Flux':
+							w = self.PhysicsTunes[name].GetFlux(tune, self.Analysis.FullPhysicsGrid[point][idx])
+						elif tune_block == 'XSection':
+							w = self.PhysicsTunes[name].GetXSection(tune, self.Analysis.FullPhysicsGrid[point][idx])
+						elif tune_block == 'Detector':
+							w = self.PhysicsTunes[name].GetDetector(tune, self.Analysis.FullPhysicsGrid[point][idx])
+						elif tune_block == 'Osc':
+							self.PhysicsTunes[name].UpdateParameter(tune, self.Analysis.FullPhysicsGrid[point][idx])
 
-		# for f in fluxes:
-		# 	self.Flux[f] = PT.GetFluxTunes(f)
+						exp.UpdateExpectedWeights(w)
+
+
+	def ApplySystematicsWeights(self, vector):
+		for name, exp in self.Experiments.items():
+			for source in self.Analysis.Physics:
+				if source in exp.Definition.keys():
+					tune_block = exp.Definition[source]
+					for tune in self.Analysis.Physics[source]:
+						idx = self.Analysis.PhysicsList.index(tune)
+						if tune_block == 'Flux':
+							w = self.PhysicsTunes[name].GetFlux(tune, vector[idx])
+						elif tune_block == 'XSection':
+							w = self.PhysicsTunes[name].GetXSection(tune, vector[idx])
+						elif tune_block == 'Detector':
+							w = self.PhysicsTunes[name].GetDetector(tune, vector[idx])
+						elif tune_block == 'Osc':
+							self.PhysicsTunes[name].UpdateParameter(tune, vector[idx])
+
+						exp.UpdateExpectedWeights(w)
+
+
+	def ApplyOscillations(self, Expectation=False): # Tag can be either "Nominal" or "Variable"
+		for name, exp in self.Experiments.items():
+			w = self.PhysicsTunes[name].OscillationTunes.Oscillator()
+			print(w)
+			if Expectation:
+				exp.UpdateExpectedWeights(w)
+			else:
+				exp.UpdateObservedWeights(w)
 		
-		# for xs in xsections:
-		# 	self.CrossSection[xs] = PT.GetXSectionTunes(xs)
-		
-		# for d in detectors:
-		# 	self.Detector[d] = PT.GetDetectorTunes(d)
-
-		# self.Oscillations[an.OscScenario] = PT.GetOscTunes(an.OscScenario)
-
-	# def GetFlux(self, exp, name):
-	# 	return self.Flux[exp.Source].Get(name)

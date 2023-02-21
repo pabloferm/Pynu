@@ -3,6 +3,7 @@ import sys
 import collections
 import numpy as np
 from .Distributions import Beta
+import itertools
 
 class parseXML:
 	def __init__(self, xmlfile='AnalysisFiles/test.xml', check=False):
@@ -16,7 +17,7 @@ class parseXML:
 		
 		# Nuisance / Nuisematics
 		self.disabledNuis = []
-		self.NuisanceList = np.array([])
+		self.NuisanceList = []
 		self.Nuisance = {}
 		self.NuisNominal = {}
 		self.NuisNominalList = []
@@ -25,7 +26,7 @@ class parseXML:
 
 		# Physics
 		self.disabledPhys = []
-		self.PhysicsList = np.array([])
+		self.PhysicsList = []
 		self.Physics = {}
 		self.PhysTrue = {}
 		self.PhysTrueList = []
@@ -37,7 +38,7 @@ class parseXML:
 
 		# Fixed
 		self.disabledFixed = []
-		self.FixedList = np.array([])
+		self.FixedList = []
 		self.Fixed = {}
 		self.FixedValue = {}
 		self.FixedValueList = []
@@ -63,6 +64,7 @@ class parseXML:
 		self.readOscillations()
 		self.CheckSources()
 		self.makePhysicsGrid()
+		self.CartesianPhysicsGrid()
 		
 		self.OscNominalParameters = self.GetNominalValues(self.OscScenario)
 
@@ -121,7 +123,7 @@ class parseXML:
 								self.NuisNominal[sname][s] = float(nuis.find('nominal').text)
 								self.NuisNominalList.append(float(nuis.find('nominal').text))
 								self.Nuisance[sname].append(s)
-								self.NuisanceList = np.append(self.NuisanceList,s)
+								self.NuisanceList.append(s)
 					self.Fixed[sname] = []
 					self.FixedValue[sname] = {}
 					for fix in source.findall('fixed'):
@@ -137,7 +139,7 @@ class parseXML:
 								self.FixedValue[sname][s] = float(fix.find('value').text)
 								self.FixedValueList.append(float(fix.find('value').text))
 								self.Fixed[sname].append(s)
-								self.FixedList = np.append(self.FixedList,s)
+								self.FixedList.append(s)
 					self.Physics[sname] = []
 					self.PhysTrue[sname] = {}
 					self.PhysPoints[sname] = []
@@ -160,18 +162,18 @@ class parseXML:
 								self.PhysPointsList.append(2)
 								self.PhysEdges[sname].append(['normal','inverted'])
 								self.Physics[sname].append(s)
-								self.PhysicsList = np.append(self.PhysicsList,s)
+								self.PhysicsList.append(s)
 							elif io+no==1 and points==1:
 								if io:
 									self.FixedValue[sname][s] = 'inverted'
 									self.FixedValueList.append('inverted')
 									self.Fixed[sname].append(s)
-									self.FixedList = np.append(self.FixedList,s)
+									self.FixedList.append(s)
 								elif no:
 									self.FixedValue[sname][s] = 'normal'
 									self.FixedValueList.append('normal')
 									self.Fixed[sname].append(s)
-									self.FixedList = np.append(self.FixedList,s)
+									self.FixedList.append(s)
 								print('Notice: Parameter '+str(s)+' has been moved to fixed.')
 							elif io+no==0 or points==0:
 								sys.exit('Please, specify a neutrino mass ordering')
@@ -182,7 +184,7 @@ class parseXML:
 								self.FixedValue[sname][s] = float(phys.find('true').text)
 								self.FixedValueList.append(float(phys.find('true').text))
 								self.Fixed[sname].append(s)
-								self.FixedList = np.append(self.FixedList,s)
+								self.FixedList.append(s)
 								print('Notice: Parameter '+str(s)+' has been moved to fixed.')
 							elif float(phys.find('min').text) ==float(phys.find('max').text):
 								sys.exit('Please, check parameter '+ str(s))
@@ -193,7 +195,7 @@ class parseXML:
 								self.PhysPointsList.append(int(phys.find('points').text))
 								self.PhysEdges[sname].append([float(phys.find('min').text),float(phys.find('max').text)])
 								self.Physics[sname].append(s)
-								self.PhysicsList = np.append(self.PhysicsList,s)
+								self.PhysicsList.append(s)
 			else:
 				itemList.append(source.attrib[atrib])
 		return itemList
@@ -260,6 +262,15 @@ class parseXML:
 					self.PhysGrid[par][item] = np.array(self.PhysEdges[par][j])
 				else:
 					self.PhysGrid[par][item] = np.linspace(self.PhysEdges[par][j][0],self.PhysEdges[par][j][-1],self.PhysPoints[par][j])
+
+	def CartesianPhysicsGrid(self):
+		v = []
+		for par in self.PhysGrid.keys():
+			for item, values in self.PhysGrid[par].items():
+				v.append(values)
+
+		self.FullPhysicsGrid = [*itertools.product(*v)]
+
 
 	def CheckNuisance(self):
 		print('List of Nuisance')

@@ -84,14 +84,14 @@
 			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
 				<status> 1 </status>
 			</MCFiles>
-			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
+<!-- 			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
 				<status> 1 </status>
-			</MCFiles>
+			</MCFiles> -->
 			<DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
 				<status> 0 </status>
 			</DataFiles>
 			<exposure> 5 </exposure> <!-- years-->
-			<MCexposure> 10 </MCexposure> <!-- This is total exposure of all the specified MC files-->
+			<MCexposure> 5 </MCexposure> <!-- This is total exposure of all the specified MC files-->
 		</source>
 <!-- 		<nuisance name='IceAbsorption'>
 			<status> 0 </status>

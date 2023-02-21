@@ -11,22 +11,25 @@ import nuSQuIDS as nsq
 
 class AtmosphericOscillations(Oscillator):
 	def __init__(self, scenario, neutrino_flavors, experiment):
-		super().__init__(scenario, neutrino_flavors)
+		super().__init__(scenario, neutrino_flavors, source='Atmospheric')
 
 		self.Z_nodes = 40
-		energy_nodes = nsq.logspace(experiment.Etrue_min,experiment.Etrue_max,self.E_nodes)
-		cth_nodes = nsq.linspace(experiment.Z_edges[0],experiment.Z_edges[1],self.Z_nodes)
+		self.energy_nodes = nsq.logspace(experiment.Etrue_min,experiment.Etrue_max,self.E_nodes)
+		self.cth_nodes = nsq.linspace(experiment.Z_edges[0],experiment.Z_edges[1],self.Z_nodes)
 
-		self.Osc = nsq.nuSQUIDSAtm(cth_nodes,energy_nodes*self.units.GeV,self.NeutrinoFlavors,nsq.NeutrinoType.both,self.interactions)
-		self.Osc.Set_rel_error(self.rel_error)
-		self.Osc.Set_abs_error(self.abs_error)
+		self.CosZTrue = experiment.CosZTrue
+		self.ETrue = experiment.ETrue
+
+		self.SetUpOscillator()
 
 		self.NSQneutype = self.NSQNeutrinoType(experiment)
 		self.NSQneuflavor = self.NSQNeutrinoFlavor(experiment)
 
+		self.InitialFlux = experiment.SetInitialFlux(self.energy_nodes, self.cth_nodes, neutrino_flavors)
+
 
 	def Oscillator(self):
-		self.Osc.Set_initial_state(self.experiment.InitialFlux,nsq.Basis.flavor)
+		self.Osc.Set_initial_state(self.InitialFlux,nsq.Basis.flavor)
 		self.Osc.EvolveState()
-		w = list(map(self.Osc.EvalFlavor, self.NSQneuflavor, self.experiment.CosZTrue, self.experiment.ETrue*self.units.GeV, self.NSQneutype, repeat(True)))
+		w = list(map(self.Osc.EvalFlavor, self.NSQneuflavor, self.CosZTrue, self.ETrue*self.units.GeV, self.NSQneutype, repeat(True)))
 		return np.array(w)

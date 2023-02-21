@@ -42,7 +42,8 @@ print(points)
 # Setup analysis from xml file
 ############################
 pynu = PyNu(args.xml_file, verbosity=False)
-print(pynu.Analysis.NuisNominal)
+print(pynu.Analysis.Physics)
+print(pynu.Analysis.PhysicsList)
 
 pynu.SetUpExperiments()
 # print(pynu.Experiments)
@@ -50,10 +51,16 @@ pynu.SetUpExperiments()
 pynu.SetUpPhysicsTunes()
 # print(pynu.PhysicsTunes)
 
+# Compute nominal weights for the analysis (aka Observation)
 pynu.ApplyFixedWeights()
 pynu.ApplyNominalWeights()
 pynu.ApplyTrueWeights()
+pynu.ApplyOscillations()
+pynu.SetObservedEvents()
+# print(pynu.Observation)
 
-pynu.SetUpObservedEvents()
-print(pynu.Observation)
-
+# Loop over specified points of analysis
+for p in points:
+# Compute weights at a given point of the physics grid (fixed part for nuisance minimisation)
+	pynu.StartExpectation()
+	pynu.ApplyPhysicsWeights(p)

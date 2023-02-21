@@ -14,8 +14,9 @@ class ICUp_Atm(Experiment):
 		self.Target = 'Water'
 		self.Source = 'Atmospheric'
 
+		self.Definition()
+
 		self.MCVariables()
-		self.SetInitialFlux()
 		self.Binning()
 
 		if self.DataFit: 
@@ -46,24 +47,16 @@ class ICUp_Atm(Experiment):
 		self.E_edges = [self.Erec_min,self.Erec_max]
 		self.Z_edges = [-1,1]
 
-		self.Norm *= 365*24*60*60*1e4 * self.FitExposure
+		self.Norm = 365*24*60*60*1e4 * self.FitExposure
 
 		self.NominalWeight = self.Weight
 		self.BaseWeight = self.Weight
 		self.ExpectedWeight = self.Weight
 
-	def SetInitialFlux(self):
-		flux = nuflux.makeFlux('IPhonda2014_spl_solmin')
-			
-		E_nodes = 100
-		energy_nodes = np.geomspace(self.Etrue_min,self.Etrue_max,E_nodes)
-		cth_min = -1.0
-		cth_max = 1.0
-		cth_nodes = 40
-		cth_nodes = np.linspace(cth_min,cth_max,cth_nodes)
-		neutrino_flavors = 3 # !!!!!! caution
 
-		#Initialize the flux
+	def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
+		flux = nuflux.makeFlux('IPhonda2014_spl_solmin')
+
 		AtmInitialFlux = np.zeros((len(cth_nodes),len(energy_nodes),2,neutrino_flavors))
 
 		for ic,nu_cos_zenith in enumerate(cth_nodes):
@@ -74,9 +67,7 @@ class ICUp_Atm(Experiment):
 				AtmInitialFlux[ic][ie][1][1] = flux.getFlux(nuflux.NuMuBar,nu_energy,nu_cos_zenith) # numu bar
 				AtmInitialFlux[ic][ie][0][2] = 0.  # nutau
 				AtmInitialFlux[ic][ie][1][2] = 0.  # nutau bar
-		self.energy_nodes = energy_nodes
-		self.cth_nodes = cth_nodes
-		self.InitialFlux = AtmInitialFlux
+		return AtmInitialFlux
 
 	def NEUTMode(self):
 		noNEUTmode = self.MC['interaction_type']
