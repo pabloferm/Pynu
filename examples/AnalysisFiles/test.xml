@@ -17,7 +17,7 @@
 			<nominal> 1.0 </nominal>
 		</nuisance>
 		<physics name='FlavorRatio'>
-			<points> 20 </points>
+			<points> 1 </points>
 			<min> 0.65 </min>
 			<max> 1.25 </max>
 			<true> 1.0 </true>
@@ -36,7 +36,7 @@
 			<nominal> 1.0 </nominal>
 		</nuisance>
 		<physics name='FlavorRatio'>
-			<points> 20 </points>
+			<points> 1 </points>
 			<min> 0.65 </min>
 			<max> 1.25 </max>
 			<true> 1.0 </true>
@@ -60,7 +60,7 @@
 			<nominal> 1.0 </nominal>
 		</nuisance>
 		<physics name='NCoverCC'>
-			<points> 10 </points>
+			<points> 1 </points>
 			<min> 0.85 </min>
 			<max> 1.15 </max>
 			<true> 1.0 </true>
@@ -126,8 +126,8 @@
 		</nuisance>
 		<physics name='Sin2Theta23'>
 			<points> 20 </points>
-			<min> 0.305 </min>
-			<max> 0.705 </max>
+			<min> 0.3 </min>
+			<max> 0.7 </max>
 			<true> 0.517 </true>
 		</physics>
 		<fixed name='Dm221'>
@@ -141,15 +141,15 @@
 			<true> 4.14 </true>
 		</physics>
 		<physics name='Dm231'>
-			<points> 21 </points>
-			<min> 2.0e-3 </min>
-			<max> 3.0e-3 </max>
+			<points> 1 </points>
+			<min> 2.5e-3 </min>
+			<max> 2.5e-3 </max>
 			<true> 2.5e-3 </true>
 		</physics>
 		<physics name='Ordering'>
-			<points> 2 </points>
+			<points> 1 </points>
 			<min> normal </min>
-			<max> inverted </max>
+			<max> normal </max>
 			<true> normal </true>
 		</physics>
 	</NeutrinoOscillations>

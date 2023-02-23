@@ -1,15 +1,8 @@
 import numpy as np
 	
-def Chi2StatsCombined(analysis, Obs, experiments):
+def Chi2StatsCombined(O, E):
 	""" Compute statistics only chi-squared """
-	X2 = 0
-	for exp in experiments.values():
-		# Binned tatistics
-		E = exp.weightOscBF_binned
-		O = Obs[exp.Experiment]
-		X2 += 2 * np.sum(E-O+O*np.log(O/E))	
-
-	return X2
+	return 2 * np.sum(E-O+O*np.log(O/E))
 
 
 def AnalyticPriorsBounds(analysis, Obs, experiments):
