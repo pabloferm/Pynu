@@ -7,12 +7,13 @@ import nuflux
 from .Experiment import Experiment
 
 class ICUp_Atm(Experiment):
-	def __init__(self, dict_of_details):
+	def __init__(self, dict_of_details, scenario):
 		super(ICUp_Atm, self).__init__( dict_of_details )
 
 		self.Detector = 'IceCube-Upgrade'
 		self.Target = 'Water'
 		self.Source = 'Atmospheric'
+		self.Scenario = scenario
 
 		self.Definition()
 

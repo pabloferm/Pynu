@@ -3,6 +3,7 @@ sys.path.append('../')
 from PhysicsTunes import Tune
 import nuSQuIDS as nsq
 import numpy as np
+from math import asin, sqrt
 
 
 # General oscillator
@@ -28,32 +29,25 @@ class Oscillator(Tune):
 		self.eps = 1e-2
 
 		self.ParameterLabels = None
-		self.Parameters = None
+		self.Parameters = parameters = {'Sin2Theta12':0, 'Sin2Theta13':0, 'Sin2Theta23':0, 'Dm221':0, 'Dm231':0, 'dCP':0, 'Ordering':'normal'}
 
 
 	def SetParameterLabels(self, **kwpars):
 		if self.ParameterLabels == None:
 			self.ParameterLabels = kwpars.items()
 		
-	def UpdateParameter(self, names, values):
-		for name,value in zip(names,values):
-			if name in self.ParameterLabels:
-				self.Parameters[name] = value
-			else:
-				sys.exit('There is something odd in the oscillation parameter declaration')
+	def UpdateParameter(self, name, value):
+		self.Parameters[name] = value
 		self.ApplyParameters()
 
-	def UpdateParameters(self, **kwpars):
-		if self.ParameterLabels == kwpars.items():
-			self.Parameters = kwpars
-			self.ApplyParameters()
-		else:
-			sys.exit('There is something odd in the oscillation parameter declaration')
+	def SetUpParameters(self, **kwpars):
+		self.Parameters = kwpars
+		self.ApplyParameters()
 
 	def ApplyParameters(self):
-		for i in range(1,self.neutrino_flavors):
+		for i in range(1,self.NeutrinoFlavors):
 			for j in range(i):
-				s_theta = 't'+str(j+1)+str(i+1)
+				s_theta = 'Sin2Theta'+str(j+1)+str(i+1)
 				if s_theta in self.Parameters:
 					theta = self.Parameters[s_theta]
 					self.Osc.Set_MixingAngle(j,i,asin(sqrt(theta)))
@@ -65,11 +59,13 @@ class Oscillator(Tune):
 			self.Osc.Set_SquareMassDifference(i,dm)
 		if 'dCP' in self.Parameters:
 			self.Osc.Set_CPPhase(0,2,self.Parameters['dCP'])
-		if self.neutrino_flavors > 3 and 'dCP2' in self.Parameters:
+		if self.NeutrinoFlavors > 3 and 'dCP2' in self.Parameters:
 			self.Osc.Set_CPPhase(0,3,self.Parameters['dCP2'])
+
 
 	def SetUpOscillator(self):
 		if self.Source == 'Atmospheric':
+			print('Atmospheric')
 			self.Osc = nsq.nuSQUIDSAtm(self.cth_nodes,self.energy_nodes*self.units.GeV,self.NeutrinoFlavors,nsq.NeutrinoType.both,self.interactions)
 		elif self.Source == 'Sun':
 			pass
@@ -80,8 +76,7 @@ class Oscillator(Tune):
 		self.Osc.Set_abs_error(self.abs_error)
 
 
-
-	def Oscillator(self):
+	def GetOscillations(self):
 		sys.exit('Oscillator not defined.')
 
 	def Sin2Theta13(self, experiment, x):

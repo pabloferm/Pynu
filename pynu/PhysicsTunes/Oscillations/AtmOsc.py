@@ -28,8 +28,11 @@ class AtmosphericOscillations(Oscillator):
 		self.InitialFlux = experiment.SetInitialFlux(self.energy_nodes, self.cth_nodes, neutrino_flavors)
 
 
-	def Oscillator(self):
+	def GetOscillations(self):
+		# print(self.Parameters)
 		self.Osc.Set_initial_state(self.InitialFlux,nsq.Basis.flavor)
 		self.Osc.EvolveState()
+		# print(self.Osc.Get_MixingAngle(1,2))
 		w = list(map(self.Osc.EvalFlavor, self.NSQneuflavor, self.CosZTrue, self.ETrue*self.units.GeV, self.NSQneutype, repeat(True)))
+		# print(w)
 		return np.array(w)

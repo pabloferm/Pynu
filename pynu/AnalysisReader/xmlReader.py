@@ -66,7 +66,7 @@ class parseXML:
 		self.makePhysicsGrid()
 		self.CartesianPhysicsGrid()
 		
-		self.OscNominalParameters = self.GetNominalValues(self.OscScenario)
+		self.OscNominalParameters = self.GetNominalValues(self.Scenario)
 
 		self.wSyst = False
 		if len(self.NuisanceList) > 0 : self.wSyst = True
@@ -232,7 +232,7 @@ class parseXML:
 		for i,s in enumerate(self.oscillations):
 			if i>0: sys.exit('*********************************************************\n** You have selected multiple oscillation scenarios. ****\n** Please restric to a SINGLE scenario which contains ***\n** all the parameters. **********************************\n*********************************************************')
 			print(' + ',s)
-		self.OscScenario = self.oscillations[0]
+		self.Scenario = self.oscillations[0]
 		print('====================================')
 
 	def CheckSources(self):

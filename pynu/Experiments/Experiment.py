@@ -9,6 +9,7 @@ class Experiment:
 		self.Detector = None
 		self.Target = None
 		self.Source = None
+		self.Scenario = None
 		
 		self.TotalMCexposure = dict_of_details['TotalMCexposure']
 		self.FitExposure = dict_of_details['Exposure']
@@ -34,7 +35,7 @@ class Experiment:
 		self.ExpectedWeight = 1
 
 	def Definition(self):
-		self.Definition = {self.Detector:'Detector', self.Target:'XSection', self.Source:'Flux'}
+		self.Definition = {self.Detector:'Detector', self.Target:'XSection', self.Source:'Flux', self.Scenario:'Osc'}
 
 	def MCVariables(self):
 		pass

@@ -17,7 +17,7 @@
 			<nominal> 1.0 </nominal>
 		</nuisance>
 		<physics name='FlavorRatio'>
-			<points> 1 </points>
+			<points> 20 </points>
 			<min> 0.65 </min>
 			<max> 1.25 </max>
 			<true> 1.0 </true>
