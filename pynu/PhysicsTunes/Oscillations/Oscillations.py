@@ -89,6 +89,7 @@ class Oscillator(Tune):
 		w0 = self.Sin2Theta13(h0)
 		w1 = self.Sin2Theta13(h1)
 		dw = ((w0 - w1) / (h0 - h1))
+		self.Parameters['Sin2Theta13'] = x
 		return dw
 
 	def Sin2Theta12(self, experiment, x):
@@ -101,6 +102,7 @@ class Oscillator(Tune):
 		w0 = self.Sin2Theta12(h0)
 		w1 = self.Sin2Theta12(h1)
 		dw = ((w0 - w1) / (h0 - h1))
+		self.Parameters['Sin2Theta12'] = x
 		return dw
 
 	def Sin2Theta23(self, experiment, x):
@@ -113,6 +115,7 @@ class Oscillator(Tune):
 		w0 = self.Sin2Theta23(h0)
 		w1 = self.Sin2Theta23(h1)
 		dw = ((w0 - w1) / (h0 - h1))
+		self.Parameters['Sin2Theta23'] = x
 		return dw
 
 	def dCP(self, experiment, x):
@@ -125,6 +128,7 @@ class Oscillator(Tune):
 		w0 = self.dCP(h0)
 		w1 = self.dCP(h1)
 		dw = ((w0 - w1) / (h0 - h1))
+		self.Parameters['dCP'] = x
 		return dw
 
 	def Dm221(self, experiment, x):
@@ -137,6 +141,7 @@ class Oscillator(Tune):
 		w0 = self.Dm221(h0)
 		w1 = self.Dm221(h1)
 		dw = ((w0 - w1) / (h0 - h1))
+		self.Parameters['Dm221'] = x
 		return dw
 
 	def Dm231(self, experiment, x):
@@ -149,6 +154,7 @@ class Oscillator(Tune):
 		w0 = self.Dm231(h0)
 		w1 = self.Dm231(h1)
 		dw = ((w0 - w1) / (h0 - h1))
+		self.Parameters['Dm231'] = x
 		return dw
 
 	def NSQNeutrinoType(self, experiment):

@@ -117,6 +117,9 @@ class Experiment:
 	def UpdateBaseWeights(self,w): # Contains all non-changing weights of the analysis, i.e. fixed
 		self.BaseWeight = w * self.BaseWeight
 
+	def UpdateBaseAndPhysicsWeights(self,w): # Contains all weights of the analysis except for those relative to nuisance parameters
+		self.BaseAndPhysicsWeight = w * self.BaseAndPhysicsWeight
+
 	def StartExpectedWeights(self): # Starts expected weights with fixed values
 		self.ExpectedWeight = self.BaseWeight
 

@@ -1,1 +1,2 @@
-from .Sensitivity import *
+# from .Sensitivity import *
+from .ChiSquared import *

@@ -8,6 +8,7 @@ import time
 from itertools import product
 
 
+
 print('=============================================================\n' +
 	'===================== Analysis setup ========================\n' +
 	'=============================================================')
@@ -21,7 +22,7 @@ parse.add_argument('-p', '--point', nargs='+', type=int, default=None,
 	help='Specify analysis point or points (p0 p1 p2 p3) to run.')
 parse.add_argument('-rp', '--range_of_points', nargs='+', type=int, default=None, 
 	help='Specify range (start and end) of analysis points to run, p0 p3 = p0 p0+1 p0+2 ... p3-1 p3. Edges are included.')
-parse.add_argument('-o', '--outfile', nargs='?', type=str, default='outfile.dat', 
+parse.add_argument('-o', '--outfile', nargs='?', type=str, default='outfile.hdf5', 
 	help='Analysis output file.')
 parse.add_argument("--multi", dest='multiproc', default=False, action='store_true', 
 	help='Option for running the analysis with multiprocessing (recommended locally).') 
@@ -48,36 +49,14 @@ elif args.range_of_points is not None and args.point is None:
 else: # run over all analysis points
 	points = range(0,pynu.Analysis.NumberOfPhysPoints)
 
-print(points)
-
-
-pynu.SetUpExperiments()
-# print(pynu.Experiments)
-
-pynu.SetUpPhysicsTunes()
-# print(pynu.PhysicsTunes)
-
-# Compute nominal weights for the analysis (aka Observation)
-pynu.ApplyFixedWeights()
-pynu.ApplyNominalWeights()
-pynu.ApplyTrueWeights()
-pynu.ApplyOscillations()
-pynu.SetObservedEvents()
-for key, val in pynu.Observation.items():
-	val0 = val[100]
+# Setup output file
+############################
+# if (args.cluster and (points[0]==0 or not os.path.isfile(args.outfile))) or not args.cluster or not os.path.isfile(args.outfile):
+# 	pynu.CreateOutFile(args.outfile)
 
 # Loop over specified points of analysis
 for p in points:
 	# Compute weights at a given point of the physics grid (fixed part for nuisance minimisation)
-	pynu.StartExpectation()
-	pynu.ApplyPhysicsWeights(p)
-	pynu.ApplyNuisanceWeights(pynu.Analysis.NuisNominalList)
-	pynu.ApplyOscillations(Expectation=True)
-	pynu.SetExpectedEvents()
-	for key, val in pynu.Expectation.items():
-		val = val[100]
-		print(val, val0)
-	# Compute chi2-value
-	# print(p, pynu.Sensitivity())
+	pynu.FitBinnedLLH(p)
 
 

@@ -1,11 +1,10 @@
-import h5py
-import numpy as np
-
 import AnalysisReader as AR # contains parse class to read and setup the analysis
 import Experiments as Exp # contains rd class to read and setup each experiment
 from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT # contains everything to modify your simulations to help figuring out what you have measured
 import Fitter as FT # does all the fitting calculations
 
+import h5py
+import numpy as np
 
 class PyNu:
 	""" Top class containing everything """
@@ -19,6 +18,38 @@ class PyNu:
 		""" Define dictionary for PhysicsTunes """
 		self.PhysicsTunes = {}
 
+		""" Start the analysis """
+		self.SetUpExperiments()
+		self.SetUpPhysicsTunes()
+		
+		""" Compute Observation """
+		self.ComputeBinnedObservation()
+
+
+	def ComputeBinnedObservation(self):
+		self.ApplyFixedWeights()
+		self.ApplyNominalWeights()
+		self.ApplyTrueWeights()
+		self.ApplyOscillations()
+		self.SetBinnedObservedEvents()
+		print(self.Observation)
+
+
+	def ComputeBinnedExpectation(self, point, nuisance_vector=None):
+		if nuisance_vector is None: nuisance_vector = self.Analysis.NuisNominalList
+		self.StartExpectation()
+		self.ApplyPhysicsWeights(point)
+		self.ApplyNuisanceWeights(nuisance_vector)
+		self.ApplyOscillations(Expectation=True)
+		self.SetBinnedExpectedEvents()
+		print(self.Expectation)
+		# self.WriteToOutFile(point)
+
+
+	def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
+		if nuisance_vector is None: nuisance_vector = self.Analysis.NuisNominalList
+		dW_W = self.GetDiffLogWeights(nuisance_vector)
+		Diff_Expectation = self.SetBinnedDiffExpectedEvents(dW_W)
 
 	def SetUpExperiments(self):
 		""" Loop over experiments specified in analysis file and store each of them
@@ -45,18 +76,28 @@ class PyNu:
 			exp.StartExpectedWeights()
 
 
-	def SetObservedEvents(self):
+	def SetBinnedObservedEvents(self):
 		self.Observation = {}
 		for name, exp in self.Experiments.items():
 			exp.SetObservedBinned()
 			self.Observation[name] = exp.GetObservedBinned()
 
 
-	def SetExpectedEvents(self):
+	def SetBinnedExpectedEvents(self):
 		self.Expectation = {}
 		for name, exp in self.Experiments.items():
 			exp.SetExpectedBinned()
 			self.Expectation[name] = exp.GetExpectedBinned()
+
+	def SetBinnedDiffExpectedEvents(self, dW_W):
+		dEdx = {}
+		for nuis, experiments in dW_W.items():
+			for exp, weights in experiments.items():
+				dEdx[nuis] = {exp : self.Experiments[exp].BinMC(weights * self.Experiments[exp].ExpectedWeight)}
+
+		# print(dEdx)
+		return dEdx
+
 
 
 	def ApplyFixedWeights(self): # Nuisance parameters
@@ -136,6 +177,35 @@ class PyNu:
 							exp.UpdateObservedWeights(w)
 							if tag == 'Fixed':
 								exp.UpdateBaseWeights(w)
+							# 	exp.UpdateBaseAndPhysicsWeights(w)
+							# elif tag == 'True' or tag == 'Physics':
+							# 	exp.UpdateBaseAndPhysicsWeights(w)
+
+
+
+	def GetDiffLogWeights(self, vector):
+		''' Computes the derivative with respect the nuisance parameter nuis '''
+		''' Returns a dict of nuis : experiment : partial of weight with respect to nuis over weight '''
+		dWoverW = {}
+
+		for source, nuisance_list in self.Analysis.Nuisance.items():
+			for name, exp in self.Experiments.items():
+				if source in exp.Definition.keys():
+					tune_block = exp.Definition[source]
+					for tune in self.Analysis.Nuisance[source]:
+						dWoverW[tune] = {name: 0}
+						idx = self.Analysis.NuisanceList.index(tune)
+						if tune_block == 'Flux':
+							dWoverW[tune][name] = self.PhysicsTunes[name].GetFlux('Diff_'+tune, vector[idx]) / self.PhysicsTunes[name].GetFlux(tune, vector[idx])
+						elif tune_block == 'XSection':
+							dWoverW[tune][name] = self.PhysicsTunes[name].GetXSection('Diff_'+tune, vector[idx]) / self.PhysicsTunes[name].GetXSection(tune, vector[idx])
+						elif tune_block == 'Detector':
+							dWoverW[tune][name] = self.PhysicsTunes[name].GetDetector('Diff_'+tune, vector[idx]) / self.PhysicsTunes[name].GetDetector(tune, vector[idx])
+						elif tune_block == 'Osc':
+							dWoverW[tune][name] = self.PhysicsTunes[name].GetOscillation('Diff_'+tune, vector[idx]) / self.PhysicsTunes[name].OscillationTunes.GetOscillations()
+
+		return dWoverW
+
 
 
 	def CreateOutFile(self, fname):
@@ -164,7 +234,7 @@ class PyNu:
 
 	def WriteToOutFile(self, point):
 		with h5py.File(self.outfile, 'r+') as hf:
-			hf['Analysis/Chi2 Stats. Only'][point] = self.Sensitivity()
+			# hf['Analysis/Chi2 Stats. Only'][point] = self.Sensitivity()
 			i = 0
 			for key in self.Analysis.Physics.keys():
 				for par in self.Analysis.Physics[key]:
@@ -172,10 +242,23 @@ class PyNu:
 					i =+ 1
 
 
+	def FitBinnedLLH(self, point):
+		""" Binned log-Likelihood fit assuming data is Poisson-distributed """
+		self.ComputeBinnedExpectation(point) # Nominal expectation
+		X2_stats = FT.ChiSquared.StatsOnly(self.Observation, self.Expectation) # Statistics only computation to start guiding the minimization
+
+		# Get Jacobian of expected events w.r.t. nuisance parameters
+		DiffExpectation = self.ComputeBinnedDiffExpectation()
+
+		# Analytic estimate for priors and bounds
+		AnalyticPrior, AnalyticDelta = FT.ChiSquared.AnalyticPriorsBounds(self.Observation, self.Expectation, DiffExpectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
+
+		# Combined chi^2 minimization
+		# tol = max(1e-4,np.sqrt(X2_stats)*1e-5)
+		# res = minimize(self.ChiSquaredFit, AnalyticPrior, args=(analysis, Obs, experiments), method='L-BFGS-B', jac=True, bounds=bounds, options={'disp' : False, 'ftol' : tol, 'gtol': 1e-03})
 
 
-
-	def Sensitivity(self):
+	def ChiSquaredFit(self, nuisance_vector):
 		X2 = 0
 		for exp in self.Observation.keys():
 			# Binned statistics

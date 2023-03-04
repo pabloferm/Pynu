@@ -52,6 +52,7 @@ class ICUp_Atm(Experiment):
 
 		self.NominalWeight = self.Weight
 		self.BaseWeight = self.Weight
+		self.BaseAndPhysicsWeight = self.Weight
 		self.ExpectedWeight = self.Weight
 
 

@@ -17,12 +17,6 @@ class sensitivity:
 		else:
 			self.OscNuis = False
 
-		# print(tunes)
-		# print(outfile)
-		# print(physics)
-		# print(sigma)
-		# print(nominal)
-
 	def SetPhysicsPoint(self, physics):
 		self.physics = physics
 		self.ApplyPhysics()

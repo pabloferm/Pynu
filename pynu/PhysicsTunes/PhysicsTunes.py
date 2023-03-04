@@ -23,7 +23,7 @@ class PhysicsTunes:
 			""" Set the detector """
 			self.SetDetector()
 			""" Set the oscillations """
-			self.SetOscillations()
+			self.SetOscillation()
 
 	@property
 	def Experiment(self):
@@ -43,7 +43,9 @@ class PhysicsTunes:
 	def GetDetector(self, func_name, x):
 		return self.DetectorTunes.Get(func_name, self._Experiment, x)
 
-	def GetOscillations(self, func_name, x):
+	def GetOscillation(self, func_name, x):
+		print('helo')
+		print(dir(self.OscillationTunes))
 		return self.OscillationTunes.Get(func_name, self._Experiment, x)
 
 
@@ -76,14 +78,13 @@ class PhysicsTunes:
 		else:
 			sys.exit('{name} not found.')
 
-	def SetOscillations(self):
+	def SetOscillation(self):
 		if self.Source == 'Atmospheric':
 			from .Oscillations.AtmOsc import AtmosphericOscillations
 			self.OscillationTunes = AtmosphericOscillations(self.Scenario, self.NeutrinoFlavors, self._Experiment)
+			dir(self.OscillationTunes)
 		else:
 			sys.exit('{name} not found.')
-
-
 
 
 
