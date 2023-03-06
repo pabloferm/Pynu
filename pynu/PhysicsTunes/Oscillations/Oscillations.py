@@ -82,25 +82,26 @@ class Oscillator(Tune):
 	def Sin2Theta13(self, experiment, x):
 		self.Osc.Set_MixingAngle(0,2,asin(sqrt(x)))
 		self.Parameters['Sin2Theta13'] = x
-		return self.Oscillator()
+		return self.GetOscillations()
 	def Diff_Sin2Theta13(self, experiment, x): # Numerical derivation
 		h0 = x*(1+self.eps)
 		h1 = x*(1-self.eps)
-		w0 = self.Sin2Theta13(h0)
-		w1 = self.Sin2Theta13(h1)
+		w0 = self.Sin2Theta13(experiment, h0)
+		w1 = self.Sin2Theta13(experiment, h1)
 		dw = ((w0 - w1) / (h0 - h1))
 		self.Parameters['Sin2Theta13'] = x
+		# print(dw)
 		return dw
 
 	def Sin2Theta12(self, experiment, x):
 		self.Osc.Set_MixingAngle(0,1,asin(sqrt(x)))
 		self.Parameters['Sin2Theta12'] = x
-		return self.Oscillator()
+		return self.GetOscillations()
 	def Diff_Sin2Theta12(self, experiment, x): # Numerical derivation
 		h0 = x*(1+self.eps)
 		h1 = x*(1-self.eps)
-		w0 = self.Sin2Theta12(h0)
-		w1 = self.Sin2Theta12(h1)
+		w0 = self.Sin2Theta12(experiment, h0)
+		w1 = self.Sin2Theta12(experiment, h1)
 		dw = ((w0 - w1) / (h0 - h1))
 		self.Parameters['Sin2Theta12'] = x
 		return dw
@@ -108,12 +109,12 @@ class Oscillator(Tune):
 	def Sin2Theta23(self, experiment, x):
 		self.Osc.Set_MixingAngle(1,2,asin(sqrt(x)))
 		self.Parameters['Sin2Theta23'] = x
-		return self.Oscillator()
+		return self.GetOscillations()
 	def Diff_Sin2Theta23(self, experiment, x): # Numerical derivation
 		h0 = x*(1+self.eps)
 		h1 = x*(1-self.eps)
-		w0 = self.Sin2Theta23(h0)
-		w1 = self.Sin2Theta23(h1)
+		w0 = self.Sin2Theta23(experiment, h0)
+		w1 = self.Sin2Theta23(experiment, h1)
 		dw = ((w0 - w1) / (h0 - h1))
 		self.Parameters['Sin2Theta23'] = x
 		return dw
@@ -121,12 +122,12 @@ class Oscillator(Tune):
 	def dCP(self, experiment, x):
 		self.Osc.Set_CPPhase(0,2,x)
 		self.Parameters['dCP'] = x
-		return self.Oscillator()
+		return self.GetOscillations()
 	def Diff_dCP(self, experiment, x): # Numerical derivation
 		h0 = x*(1+self.eps)
 		h1 = x*(1-self.eps)
-		w0 = self.dCP(h0)
-		w1 = self.dCP(h1)
+		w0 = self.dCP(experiment, h0)
+		w1 = self.dCP(experiment, h1)
 		dw = ((w0 - w1) / (h0 - h1))
 		self.Parameters['dCP'] = x
 		return dw
@@ -134,12 +135,12 @@ class Oscillator(Tune):
 	def Dm221(self, experiment, x):
 		self.Osc.Set_SquareMassDifference(1,x)
 		self.Parameters['Dm221'] = x
-		return self.Oscillator()
+		return self.GetOscillations()
 	def Diff_Dm221(self, experiment, x): # Numerical derivation
 		h0 = x*(1+self.eps)
 		h1 = x*(1-self.eps)
-		w0 = self.Dm221(h0)
-		w1 = self.Dm221(h1)
+		w0 = self.Dm221(experiment, h0)
+		w1 = self.Dm221(experiment, h1)
 		dw = ((w0 - w1) / (h0 - h1))
 		self.Parameters['Dm221'] = x
 		return dw
@@ -147,12 +148,12 @@ class Oscillator(Tune):
 	def Dm231(self, experiment, x):
 		self.Osc.Set_SquareMassDifference(2,x)
 		self.Parameters['Dm231'] = x
-		return self.Oscillator()
+		return self.GetOscillations()
 	def Diff_Dm231(self, experiment, x): # Numerical derivation
 		h0 = x*(1+self.eps)
 		h1 = x*(1-self.eps)
-		w0 = self.Dm231(h0)
-		w1 = self.Dm231(h1)
+		w0 = self.Dm231(experiment, h0)
+		w1 = self.Dm231(experiment, h1)
 		dw = ((w0 - w1) / (h0 - h1))
 		self.Parameters['Dm231'] = x
 		return dw

@@ -7,22 +7,24 @@ import h5py
 import numpy as np
 
 class PyNu:
-	""" Top class containing everything """
+	''' Top class containing everything '''
 	def __init__(self, analysis_file, verbosity=False):
+
+		__slots__ = ('verbosity', 'Analysis', 'PhysicsTunes', 'Experiments', 'Observation')
 
 		self.verbosity = verbosity
 
-		""" Set up basic analysis variables and structure to build full analysis """
+		''' Set up basic analysis variables and structure to build full analysis '''
 		self.Analysis = AR.parse(analysis_file, check=self.verbosity)
 
-		""" Define dictionary for PhysicsTunes """
+		''' Define dictionary for PhysicsTunes '''
 		self.PhysicsTunes = {}
 
-		""" Start the analysis """
+		''' Start the analysis '''
 		self.SetUpExperiments()
 		self.SetUpPhysicsTunes()
 		
-		""" Compute Observation """
+		''' Compute Observation '''
 		self.ComputeBinnedObservation()
 
 
@@ -32,7 +34,7 @@ class PyNu:
 		self.ApplyTrueWeights()
 		self.ApplyOscillations()
 		self.SetBinnedObservedEvents()
-		print(self.Observation)
+		# print(self.Observation)
 
 
 	def ComputeBinnedExpectation(self, point, nuisance_vector=None):
@@ -42,19 +44,20 @@ class PyNu:
 		self.ApplyNuisanceWeights(nuisance_vector)
 		self.ApplyOscillations(Expectation=True)
 		self.SetBinnedExpectedEvents()
-		print(self.Expectation)
+		# print(self.Expectation)
 		# self.WriteToOutFile(point)
 
 
 	def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
 		if nuisance_vector is None: nuisance_vector = self.Analysis.NuisNominalList
 		dW_W = self.GetDiffLogWeights(nuisance_vector)
-		Diff_Expectation = self.SetBinnedDiffExpectedEvents(dW_W)
+		return self.SetBinnedDiffExpectedEvents(dW_W)
+
 
 	def SetUpExperiments(self):
-		""" Loop over experiments specified in analysis file and store each of them
-		into a dictionary with keys 'detector_source' (e.g. HyperK+Atmospheric) """
-		""" Provides a dict of all experiments """
+		''' Loop over experiments specified in analysis file and store each of them
+		into a dictionary with keys 'detector_source' (e.g. HyperK+Atmospheric) '''
+		''' Provides a dict of all experiments '''
 		experiment = {}
 		for det in self.Analysis.Experiments.keys():
 			for src in self.Analysis.Experiments[det].keys():
@@ -65,8 +68,8 @@ class PyNu:
 
 
 	def SetUpPhysicsTunes(self):
-		""" Loop over physics tunes specified in analysis file and store each of them
-		into a dictionary with keys 'detector+source' (e.g. HyperK+Atmospheric) """
+		''' Loop over physics tunes specified in analysis file and store each of them
+		into a dictionary with keys 'detector+source' (e.g. HyperK+Atmospheric) '''
 		for name, exp in self.Experiments.items():
 			self.PhysicsTunes[name] = PT(exp, self.Analysis.Scenario, self.Analysis.Flavors, set_all=True)
 
@@ -89,43 +92,44 @@ class PyNu:
 			exp.SetExpectedBinned()
 			self.Expectation[name] = exp.GetExpectedBinned()
 
+
 	def SetBinnedDiffExpectedEvents(self, dW_W):
 		dEdx = {}
 		for nuis, experiments in dW_W.items():
 			for exp, weights in experiments.items():
-				dEdx[nuis] = {exp : self.Experiments[exp].BinMC(weights * self.Experiments[exp].ExpectedWeight)}
+				# Make it easier !!!
+				dEdx[nuis] = {exp : self.Experiments[exp].BinMC(weights * self.Experiments[exp].ExpectedWeight)[self.Experiments[exp].FewEntries]}
 
-		# print(dEdx)
 		return dEdx
 
 
 
 	def ApplyFixedWeights(self): # Nuisance parameters
-		if self.verbosity: print("Applying Fixed Weights")
+		if self.verbosity: print('Applying Fixed Weights')
 		self.ApplyWeights('Fixed')
 
 
 	def ApplyNominalWeights(self): # Nuisance parameters
-		if self.verbosity: print("Applying Nominal Nuisance Weights")
+		if self.verbosity: print('Applying Nominal Nuisance Weights')
 		self.ApplyWeights('Nominal')
 
 
 	def ApplyTrueWeights(self): # Physics parameters
-		if self.verbosity: print("Applying Physics True Weights")
+		if self.verbosity: print('Applying Physics True Weights')
 		self.ApplyWeights('True')
 
 
 	def ApplyPhysicsWeights(self, point): # Physics parameters
-		if self.verbosity: print("Applying Physics Point Weights")
+		if self.verbosity: print('Applying Physics Point Weights')
 		self.ApplyWeights('Physics', vector=self.Analysis.FullPhysicsGrid[point])
 
 
 	def ApplyNuisanceWeights(self, vector): # Physics parameters
-		if self.verbosity: print("Applying Nuisance Weights")
+		if self.verbosity: print('Applying Nuisance Weights')
 		self.ApplyWeights('Nuisance', vector=vector)
 
 
-	def ApplyOscillations(self, Expectation=False): # Tag can be either "Nominal" or "Variable"
+	def ApplyOscillations(self, Expectation=False): # Tag can be either 'Nominal' or 'Variable'
 		for name, exp in self.Experiments.items():
 			w = self.PhysicsTunes[name].OscillationTunes.GetOscillations()
 			if Expectation:
@@ -243,7 +247,7 @@ class PyNu:
 
 
 	def FitBinnedLLH(self, point):
-		""" Binned log-Likelihood fit assuming data is Poisson-distributed """
+		''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
 		self.ComputeBinnedExpectation(point) # Nominal expectation
 		X2_stats = FT.ChiSquared.StatsOnly(self.Observation, self.Expectation) # Statistics only computation to start guiding the minimization
 
@@ -256,14 +260,3 @@ class PyNu:
 		# Combined chi^2 minimization
 		# tol = max(1e-4,np.sqrt(X2_stats)*1e-5)
 		# res = minimize(self.ChiSquaredFit, AnalyticPrior, args=(analysis, Obs, experiments), method='L-BFGS-B', jac=True, bounds=bounds, options={'disp' : False, 'ftol' : tol, 'gtol': 1e-03})
-
-
-	def ChiSquaredFit(self, nuisance_vector):
-		X2 = 0
-		for exp in self.Observation.keys():
-			# Binned statistics
-			E = self. Expectation[exp]
-			O = self. Observation[exp]
-			# print(E, O)
-			X2 += FT.ChiSquared.Chi2StatsCombined(O, E)
-		return X2

@@ -4,8 +4,10 @@
 
 
 class PhysicsTunes:
-	""" Contains all physics tunes of a given experiment """
+	''' Contains all physics tunes of a given experiment '''
 	def __init__(self, experiment, scenario, neutrino_flavors, set_all=False):
+
+		__slots__ = ('Detector', 'Target', 'Source', 'Scenario', 'NeutrinoFlavors', '_Experiment')
 		self.Detector = experiment.Detector
 		self.Target = experiment.Target
 		self.Source = experiment.Source
@@ -16,13 +18,13 @@ class PhysicsTunes:
 		self._Experiment = experiment
 
 		if set_all:
-			""" Set the flux """
+			''' Set the flux '''
 			self.SetFlux()
-			""" Set the cross-section """
+			''' Set the cross-section '''
 			self.SetXSection()
-			""" Set the detector """
+			''' Set the detector '''
 			self.SetDetector()
-			""" Set the oscillations """
+			''' Set the oscillations '''
 			self.SetOscillation()
 
 	@property
@@ -44,8 +46,6 @@ class PhysicsTunes:
 		return self.DetectorTunes.Get(func_name, self._Experiment, x)
 
 	def GetOscillation(self, func_name, x):
-		print('helo')
-		print(dir(self.OscillationTunes))
 		return self.OscillationTunes.Get(func_name, self._Experiment, x)
 
 
@@ -82,19 +82,19 @@ class PhysicsTunes:
 		if self.Source == 'Atmospheric':
 			from .Oscillations.AtmOsc import AtmosphericOscillations
 			self.OscillationTunes = AtmosphericOscillations(self.Scenario, self.NeutrinoFlavors, self._Experiment)
-			dir(self.OscillationTunes)
 		else:
 			sys.exit('{name} not found.')
 
 
+#############################################################################
 
 class Tune:
-	""" Base class for physics tunes """
+	''' Base class for physics tunes '''
 	def __init__(self):
 		pass
 
 	def Get(self, tune, exp, x):
-		""" Get specific weights for a given experiment from tune evaluated at x """
+		''' Get specific weights for a given experiment from tune evaluated at x '''
 		try:
 			return getattr(self,tune)(exp, x)
 		except:

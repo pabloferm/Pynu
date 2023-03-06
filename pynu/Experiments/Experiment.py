@@ -66,12 +66,6 @@ class Experiment:
 						else:
 							print('Warning: Data files have not the same variables, it may produce errors.')
 
-	# def Binning(self):
-	# 	pass
-
-	# def MakeInitialFlux(self):
-	# 	pass
-
 
 	def BinIt_MC_1D(self, array, shift_E=1, bias_E=0): # 1D energy binning
 		v = np.array([])

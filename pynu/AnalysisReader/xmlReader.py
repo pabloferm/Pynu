@@ -7,6 +7,8 @@ import itertools
 
 class parseXML:
 	def __init__(self, xmlfile='AnalysisFiles/test.xml', check=False):
+
+		__slots__ = ('xmlfile', 'tree', 'root')
 		
 		# create element tree object
 		self.xmlfile = xmlfile
@@ -80,6 +82,107 @@ class parseXML:
 			self.CheckNuisance()
 			self.CheckPhysics()
 			self.CheckFixed()
+
+	def readSources(self):
+		self.sources = self.reader('NeutrinoSource')
+		print('------------------------------------')
+		print('Neutrino sources considered:')
+		for s in self.sources:
+			print(' + ',s)
+		print('====================================')
+
+	def readDetectors(self):
+		self.targets = self.reader('NeutrinoTarget')
+		print('------------------------------------')
+		print('Neutrino targets considered:')
+		for s in self.targets:
+			print(' + ',s)
+		print('====================================')
+
+	def readExperiments(self):
+		self.experiments = self.reader('NeutrinoExperiment')
+		print('------------------------------------')
+		print('Experiments considered:')
+		for s in self.experiments:
+			print(' + ',s)
+		print('====================================')
+		# print(f' + {self.Nuisance}')
+	
+	def readOscillations(self):
+		self.oscillations = self.reader('NeutrinoOscillations')
+		print('------------------------------------')
+		print('Oscillation scenario:')
+		for i,s in enumerate(self.oscillations):
+			if i>0: sys.exit('*********************************************************\n** You have selected multiple oscillation scenarios. ****\n** Please restric to a SINGLE scenario which contains ***\n** all the parameters. **********************************\n*********************************************************')
+			print(' + ',s)
+		self.Scenario = self.oscillations[0]
+		print('====================================')
+
+	def CheckSources(self):
+		sources2 = []
+		for i in self.Experiments.keys():
+			for j in self.Experiments[i].keys():
+				sources2.append(j)
+		if collections.Counter(self.sources) == collections.Counter(sources2):
+			print('You have specified the following files for each experiment and source:')
+			for i in self.Experiments.keys():
+				for j in self.Experiments[i].keys():
+					print(' - MC files for '+ j + ' in ' + i)	
+					print('   + ' + str(self.Experiments[i][j]['MCFiles']))
+			for i in self.Experiments.keys():
+				for j in self.Experiments[i].keys():
+					print(' - Data files for '+ j + ' in ' + i)	
+					print('   + ' + str(self.Experiments[i][j]['DataFiles']))
+		else: 
+			sys.exit('You are missing some files for some sources or experiments. Please, check your xml file.')
+		print('====================================')
+
+	def makePhysicsGrid(self):
+		for par in self.Physics:
+			self.PhysGrid[par] = {}
+			for j,item in enumerate(self.Physics[par]):
+				if item == 'Ordering':
+					self.PhysGrid[par][item] = np.array(self.PhysEdges[par][j])
+				else:
+					self.PhysGrid[par][item] = np.linspace(self.PhysEdges[par][j][0],self.PhysEdges[par][j][-1],self.PhysPoints[par][j])
+
+	def CartesianPhysicsGrid(self):
+		v = []
+		for par in self.PhysGrid.keys():
+			for item, values in self.PhysGrid[par].items():
+				v.append(values)
+
+		self.FullPhysicsGrid = [*itertools.product(*v)]
+
+
+	def CheckNuisance(self):
+		print('List of Nuisance')
+		for source in self.Nuisance:
+			print(f' + From {source}: {self.Nuisance[source]}')
+		if len(self.NuisanceList) == 0:
+			self.StatsOnly = True
+			print('Stats. only analysis?!')
+		else:
+			self.StatsOnly = False
+		print('====================================')
+
+	def CheckPhysics(self):
+		print('List of Physics/Fit')
+		for source in self.Physics:
+			print(f' + From {source}: {self.Physics[source]}')
+		if len(self.PhysicsList) == 0:
+			sys.exit('I am done, you requested nothing to fit.')
+		print('====================================')
+
+	def CheckFixed(self):
+		print('List of Fixed')
+		for source in self.Fixed:
+			print(f' + From {source}: {self.Fixed[source]}')
+		print('====================================')
+
+	def GetNominalValues(self, keyw):
+		values = self.FixedValue[keyw] | self.NuisNominal[keyw] | self.PhysTrue[keyw]
+		return values
 
 	def reader(self, item, atrib='name'):
 		itemList = []
@@ -200,103 +303,3 @@ class parseXML:
 				itemList.append(source.attrib[atrib])
 		return itemList
 
-	def readSources(self):
-		self.sources = self.reader('NeutrinoSource')
-		print('------------------------------------')
-		print('Neutrino sources considered:')
-		for s in self.sources:
-			print(' + ',s)
-		print('====================================')
-
-	def readDetectors(self):
-		self.targets = self.reader('NeutrinoTarget')
-		print('------------------------------------')
-		print('Neutrino targets considered:')
-		for s in self.targets:
-			print(' + ',s)
-		print('====================================')
-
-	def readExperiments(self):
-		self.experiments = self.reader('NeutrinoExperiment')
-		print('------------------------------------')
-		print('Experiments considered:')
-		for s in self.experiments:
-			print(' + ',s)
-		print('====================================')
-		# print(f' + {self.Nuisance}')
-	
-	def readOscillations(self):
-		self.oscillations = self.reader('NeutrinoOscillations')
-		print('------------------------------------')
-		print('Oscillation scenario:')
-		for i,s in enumerate(self.oscillations):
-			if i>0: sys.exit('*********************************************************\n** You have selected multiple oscillation scenarios. ****\n** Please restric to a SINGLE scenario which contains ***\n** all the parameters. **********************************\n*********************************************************')
-			print(' + ',s)
-		self.Scenario = self.oscillations[0]
-		print('====================================')
-
-	def CheckSources(self):
-		sources2 = []
-		for i in self.Experiments.keys():
-			for j in self.Experiments[i].keys():
-				sources2.append(j)
-		if collections.Counter(self.sources) == collections.Counter(sources2):
-			print('You have specified the following files for each experiment and source:')
-			for i in self.Experiments.keys():
-				for j in self.Experiments[i].keys():
-					print(' - MC files for '+ j + ' in ' + i)	
-					print('   + ' + str(self.Experiments[i][j]['MCFiles']))
-			for i in self.Experiments.keys():
-				for j in self.Experiments[i].keys():
-					print(' - Data files for '+ j + ' in ' + i)	
-					print('   + ' + str(self.Experiments[i][j]['DataFiles']))
-		else: 
-			sys.exit('You are missing some files for some sources or experiments. Please, check your xml file.')
-		print('====================================')
-
-	def makePhysicsGrid(self):
-		for par in self.Physics:
-			self.PhysGrid[par] = {}
-			for j,item in enumerate(self.Physics[par]):
-				if item == 'Ordering':
-					self.PhysGrid[par][item] = np.array(self.PhysEdges[par][j])
-				else:
-					self.PhysGrid[par][item] = np.linspace(self.PhysEdges[par][j][0],self.PhysEdges[par][j][-1],self.PhysPoints[par][j])
-
-	def CartesianPhysicsGrid(self):
-		v = []
-		for par in self.PhysGrid.keys():
-			for item, values in self.PhysGrid[par].items():
-				v.append(values)
-
-		self.FullPhysicsGrid = [*itertools.product(*v)]
-
-
-	def CheckNuisance(self):
-		print('List of Nuisance')
-		for source in self.Nuisance:
-			print(f' + From {source}: {self.Nuisance[source]}')
-		if len(self.NuisanceList) == 0:
-			self.StatsOnly = True
-			print('Stats. only analysis?!')
-		else:
-			self.StatsOnly = False
-		print('====================================')
-
-	def CheckPhysics(self):
-		print('List of Physics/Fit')
-		for source in self.Physics:
-			print(f' + From {source}: {self.Physics[source]}')
-		if len(self.PhysicsList) == 0:
-			sys.exit('I am done, you requested nothing to fit.')
-		print('====================================')
-
-	def CheckFixed(self):
-		print('List of Fixed')
-		for source in self.Fixed:
-			print(f' + From {source}: {self.Fixed[source]}')
-		print('====================================')
-
-	def GetNominalValues(self, keyw):
-		values = self.FixedValue[keyw] | self.NuisNominal[keyw] | self.PhysTrue[keyw]
-		return values

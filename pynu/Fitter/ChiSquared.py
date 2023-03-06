@@ -1,7 +1,8 @@
 import numpy as np
-	
+
+
 def StatsOnly(Observation_dict, Expectation_dict):
-	""" Compute statistics only binned chi-squared """
+	''' Compute statistics only binned chi-squared '''
 	X2 = 0
 	for O, E in zip(Observation_dict.values(), Expectation_dict.values()):
 		X2 += 2 * np.sum(E-O+O*np.log(O/E))
@@ -9,7 +10,7 @@ def StatsOnly(Observation_dict, Expectation_dict):
 
 
 def AnalyticPriorsBounds(Observation_dict, Expectation_dict, DiffExpectation_dict, NominalNuisance_list, SigmaNuisance_list):
-	""" First order analytic computation of values for parameters to be mariginalized """
+	''' First order analytic computation of values for parameters to be mariginalized '''
 	number_of_nuisance = len(NominalNuisance_list)
 	A = np.zeros(number_of_nuisance)
 	B = np.zeros(number_of_nuisance)
@@ -24,7 +25,7 @@ def AnalyticPriorsBounds(Observation_dict, Expectation_dict, DiffExpectation_dic
 
 	priors = mu + 0.5 * A / (B + 1/sig**2)
 
-	delta = np.minimum(np.abs(priors-mu), sig)
+	delta = np.minimum(2*np.abs(priors-mu), sig)
 	delta[delta==0] = sig[delta==0]
 
 	bounds = np.c_[priors - delta, priors + delta]
@@ -33,79 +34,40 @@ def AnalyticPriorsBounds(Observation_dict, Expectation_dict, DiffExpectation_dic
 	return priors, bounds
 
 
-# def AnalyticPriorsBounds(analysis, Obs, experiments):
-# 	""" First order analytic computation of values for parameters to be mariginalized """
-# 	priors = [0] * len(analysis.SystPrior)
-# 	A = [0] * len(analysis.SystPrior)
-# 	B = [0] * len(analysis.SystPrior)
-
+# def SystsCombined(syst, analysis, Obs, experiments):
+# 	''' Compute chi-squared value with systematics '''
+# 	JX2 = [0] * len(syst)
+# 	X2 = 0
 # 	# Experiments
 # 	for exp in experiments.values():
-# 		# Binned statistics
+# 		# Binned tatistics
 # 		E = exp.weightOscBF_binned
 # 		O = Obs[exp.Experiment]
-# 		OmE = O-E
 # 		#Systematics
 # 		usedSysts = []
-# 		dfdx = [0] * len(analysis.SystPrior)
+# 		dEdx = [0] * len(syst)
+# 		wSys = 0
+# 		dummywSys = 0
 # 		thisSyst = analysis.Systematics[exp.Experiment] + analysis.Systematics[exp.Source] + analysis.Systematics[exp.Detector]
 # 		for sys in thisSyst:
 # 			index = np.where(analysis.SystematicsList==sys)[0]
 # 			j = index[0]
-# 			dfdx[j] = globals()['Diff_'+sys](analysis.SystNominalList[j],exp)
+# 			xFij = globals()[sys](syst[j],exp)
+# 			wSys += xFij
+# 			dEdx[j] = E * globals()['Diff_'+sys](syst[j],exp)
 # 			usedSysts.append(j)
+# 		Es = E * (1 + wSys)
+# 		# Compute Chi^2
+# 		if np.any(Es<=0):
+# 			X2 = 1e6
+# 		else:
+# 			X2 += 2 * np.sum(Es-O+O*np.log(O/Es))
 # 		# Compute Jacobian of Chi^2
 # 		for i in usedSysts:
-# 			A[i] += np.sum(OmE * dfdx[i])
-# 			B[i] += np.sum(O * dfdx[i] * dfdx[i])
+# 			JX2[i] += 2 * np.sum((1-O/Es)*dEdx[i])
 # 	# Systematic's penalty terms
-# 	bnds = []
-# 	for i,(mu,sig) in enumerate(zip(analysis.SystNominalList,analysis.SystSigmaList)):
-# 		pr = mu + A[i] / (B[i] + 1/sig**2)
-# 		delta = min(np.abs(pr-mu), sig)
-# 		priors[i] = 0.5*(mu+pr)
-# 		if delta>0:
-# 			bnds.append((priors[i]-delta, priors[i]+delta))
-# 		else:
-# 			bnds.append((priors[i]-sig, priors[i]+sig))
-# 	return priors, tuple(bnds)
+# 	for i,(x,mu,sig) in enumerate(zip(syst,analysis.SystNominalList,analysis.SystSigmaList)):
+# 		X2 += ((x-mu) / sig)**2
+# 		JX2[i] += 2 * (x-mu) / sig**2
 
-
-
-def Chi2SystsCombined(syst, analysis, Obs, experiments):
-	""" Compute chi-squared value with systematics """
-	JX2 = [0] * len(syst)
-	X2 = 0
-	# Experiments
-	for exp in experiments.values():
-		# Binned tatistics
-		E = exp.weightOscBF_binned
-		O = Obs[exp.Experiment]
-		#Systematics
-		usedSysts = []
-		dEdx = [0] * len(syst)
-		wSys = 0
-		dummywSys = 0
-		thisSyst = analysis.Systematics[exp.Experiment] + analysis.Systematics[exp.Source] + analysis.Systematics[exp.Detector]
-		for sys in thisSyst:
-			index = np.where(analysis.SystematicsList==sys)[0]
-			j = index[0]
-			xFij = globals()[sys](syst[j],exp)
-			wSys += xFij
-			dEdx[j] = E * globals()['Diff_'+sys](syst[j],exp)
-			usedSysts.append(j)
-		Es = E * (1 + wSys)
-		# Compute Chi^2
-		if np.any(Es<=0):
-			X2 = 1e6
-		else:
-			X2 += 2 * np.sum(Es-O+O*np.log(O/Es))
-		# Compute Jacobian of Chi^2
-		for i in usedSysts:
-			JX2[i] += 2 * np.sum((1-O/Es)*dEdx[i])
-	# Systematic's penalty terms
-	for i,(x,mu,sig) in enumerate(zip(syst,analysis.SystNominalList,analysis.SystSigmaList)):
-		X2 += ((x-mu) / sig)**2
-		JX2[i] += 2 * (x-mu) / sig**2
-
-	return (X2,JX2)
+# 	return (X2,JX2)
