@@ -51,8 +51,8 @@ else: # run over all analysis points
 
 # Setup output file
 ############################
-# if (args.cluster and (points[0]==0 or not os.path.isfile(args.outfile))) or not args.cluster or not os.path.isfile(args.outfile):
-# 	pynu.CreateOutFile(args.outfile)
+if (args.cluster and (points[0]==0 or not os.path.isfile(args.outfile))) or not args.cluster or not os.path.isfile(args.outfile):
+	pynu.CreateOutFile(args.outfile)
 
 # Loop over specified points of analysis
 for p in points:

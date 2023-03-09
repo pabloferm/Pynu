@@ -219,6 +219,7 @@ class PyNu:
 				this = grp.create_group(key)
 				for par, val in self.Analysis.FixedValue[key].items():
 					this.create_dataset(par, data=[val], compression='gzip')
+
 			if self.Analysis.wSyst:
 				grp = hf.create_group('Nuisance Parameters')
 				for key in self.Analysis.Nuisance.keys():
@@ -226,43 +227,51 @@ class PyNu:
 					for par in self.Analysis.Nuisance[key]:
 						this.create_dataset(par, data=[0.0]*self.Analysis.NumberOfPhysPoints, compression='gzip')
 			grp = hf.create_group('Physics Parameters')
+
+			i = 0
 			for key in self.Analysis.Physics.keys():
 				this = grp.create_group(key)
 				for par in self.Analysis.Physics[key]:
-					this.create_dataset(par, data=[0.0]*self.Analysis.NumberOfPhysPoints, compression='gzip')
+					# this.create_dataset(par, data=[0.0]*self.Analysis.NumberOfPhysPoints, compression='gzip')
+					this.create_dataset(par, data=self.Analysis.FullPhysicsGrid[:][i], compression='gzip')
+					i =+ 1
+
 			grp = hf.create_group('Analysis')
 			grp.create_dataset('Chi2 Stats. Only', data=[0.0]*self.Analysis.NumberOfPhysPoints, compression='gzip')
 			if self.Analysis.wSyst: grp.create_dataset('Chi2 Systs.', data=[0.0]*self.Analysis.NumberOfPhysPoints, compression='gzip')
 
 
-	def WriteToOutFile(self, point):
+	def WriteToOutFile(self, point, block, item, value):
 		with h5py.File(self.outfile, 'r+') as hf:
-			# hf['Analysis/Chi2 Stats. Only'][point] = self.Sensitivity()
-			i = 0
-			for key in self.Analysis.Physics.keys():
-				for par in self.Analysis.Physics[key]:
-					hf['Physics Parameters/'+key+'/'+par][point] = self.Analysis.FullPhysicsGrid[point][i]
-					i =+ 1
+			try:
+				for par, val in zip(item,value):
+					source = self.Analysis.GetSourceOfTune(par)
+					hf[block+'/'+source+'/'+par][point] = val
+			except:
+				hf[block+'/'+item][point] = value
 
 
 	def FitBinnedLLH(self, point):
 		''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
 		self.ComputeBinnedExpectation(point) # Nominal expectation
 		X2_stats = FT.ChiSquaredStatsOnly(self.Observation, self.Expectation) # Statistics only computation to start guiding the minimization
-		X2_systs = FT.ChiSquared(self.Observation, self.Expectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList, self.Analysis.NuisDistributionList, self.Analysis.NuisNominalList)
+		self.WriteToOutFile(point, 'Analysis', 'Chi2 Stats. Only', X2_stats)
 
-		# Get Jacobian of expected events w.r.t. nuisance parameters
+		'''Get Jacobian of expected events w.r.t. nuisance parameters'''
 		self.ComputeBinnedDiffExpectation()
 
-		# Analytic estimate for priors and bounds
+		'''Analytic estimate for priors and bounds'''
 		AnalyticPrior, AnalyticBounds = FT.AnalyticPriorsBounds(self.Observation, self.Expectation, self.DiffExpectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
 
-		# Combined chi^2 minimization
+		'''Combined chi^2 minimization'''
 		tol = max(1e-4,np.sqrt(X2_stats)*1e-5)*0.1
 		res = minimize(self.ModelTester, AnalyticPrior, args=(point), method='L-BFGS-B', jac=True, bounds=AnalyticBounds, options={'disp' : False, 'ftol' : tol, 'gtol': 1e-03})
 
-		nuisance_postfit = ' '.join(map(str,res.x))
+		nuisance_postfit = res.x.tolist()
+		self.WriteToOutFile(point, 'Nuisance Parameters', self.Analysis.NuisanceList, nuisance_postfit)
+
 		X2_systs = res.fun
+		self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', X2_systs)
 
 		return - 0.5 * X2_systs
 
@@ -272,7 +281,7 @@ class PyNu:
 		self.ComputeBinnedExpectation(point, nuisance_vector=nuisance_vector) # Nominal expectation
 		self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
-		''' Get -2 ln(H/H0) ~ Chi2 '''
+		''' Get -2 ln(H/H0) ~ χ2 '''
 		Chi2 = FT.ChiSquared(self.Observation, self.Expectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList, self.Analysis.NuisDistributionList, nuisance_vector)
 		
 		''' The gradient of the above '''

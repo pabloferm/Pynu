@@ -186,6 +186,12 @@ class parseXML:
 		values = self.FixedValue[keyw] | self.NuisNominal[keyw] | self.PhysTrue[keyw]
 		return values
 
+	def GetSourceOfTune(self, tune):
+		for all_parameters in [self.Nuisance, self.Physics, self.Fixed]:
+			for source, pars in all_parameters.items():
+				if tune in pars: return source
+
+
 	def reader(self, item, atrib='name'):
 		itemList = []
 		osc = item=='NeutrinoOscillations'
