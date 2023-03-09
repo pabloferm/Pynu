@@ -5,6 +5,7 @@ import Fitter as FT # does all the fitting calculations
 
 import h5py
 import numpy as np
+from scipy.optimize import minimize
 
 class PyNu:
 	''' Top class containing everything '''
@@ -14,8 +15,10 @@ class PyNu:
 
 		self.verbosity = verbosity
 
+
 		''' Set up basic analysis variables and structure to build full analysis '''
 		self.Analysis = AR.parse(analysis_file, check=self.verbosity)
+
 
 		''' Define dictionary for PhysicsTunes '''
 		self.PhysicsTunes = {}
@@ -51,7 +54,7 @@ class PyNu:
 	def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
 		if nuisance_vector is None: nuisance_vector = self.Analysis.NuisNominalList
 		dW_W = self.GetDiffLogWeights(nuisance_vector)
-		return self.SetBinnedDiffExpectedEvents(dW_W)
+		self.DiffExpectation = self.SetBinnedDiffExpectedEvents(dW_W)
 
 
 	def SetUpExperiments(self):
@@ -181,10 +184,6 @@ class PyNu:
 							exp.UpdateObservedWeights(w)
 							if tag == 'Fixed':
 								exp.UpdateBaseWeights(w)
-							# 	exp.UpdateBaseAndPhysicsWeights(w)
-							# elif tag == 'True' or tag == 'Physics':
-							# 	exp.UpdateBaseAndPhysicsWeights(w)
-
 
 
 	def GetDiffLogWeights(self, vector):
@@ -249,14 +248,35 @@ class PyNu:
 	def FitBinnedLLH(self, point):
 		''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
 		self.ComputeBinnedExpectation(point) # Nominal expectation
-		X2_stats = FT.ChiSquared.StatsOnly(self.Observation, self.Expectation) # Statistics only computation to start guiding the minimization
+		X2_stats = FT.ChiSquaredStatsOnly(self.Observation, self.Expectation) # Statistics only computation to start guiding the minimization
+		X2_systs = FT.ChiSquared(self.Observation, self.Expectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList, self.Analysis.NuisDistributionList, self.Analysis.NuisNominalList)
 
 		# Get Jacobian of expected events w.r.t. nuisance parameters
-		DiffExpectation = self.ComputeBinnedDiffExpectation()
+		self.ComputeBinnedDiffExpectation()
 
 		# Analytic estimate for priors and bounds
-		AnalyticPrior, AnalyticDelta = FT.ChiSquared.AnalyticPriorsBounds(self.Observation, self.Expectation, DiffExpectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
+		AnalyticPrior, AnalyticBounds = FT.AnalyticPriorsBounds(self.Observation, self.Expectation, self.DiffExpectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
 
 		# Combined chi^2 minimization
-		# tol = max(1e-4,np.sqrt(X2_stats)*1e-5)
-		# res = minimize(self.ChiSquaredFit, AnalyticPrior, args=(analysis, Obs, experiments), method='L-BFGS-B', jac=True, bounds=bounds, options={'disp' : False, 'ftol' : tol, 'gtol': 1e-03})
+		tol = max(1e-4,np.sqrt(X2_stats)*1e-5)*0.1
+		res = minimize(self.ModelTester, AnalyticPrior, args=(point), method='L-BFGS-B', jac=True, bounds=AnalyticBounds, options={'disp' : False, 'ftol' : tol, 'gtol': 1e-03})
+
+		nuisance_postfit = ' '.join(map(str,res.x))
+		X2_systs = res.fun
+
+		return - 0.5 * X2_systs
+
+
+	def ModelTester(self, nuisance_vector, point):
+		''' Compute expected and its derivatives '''
+		self.ComputeBinnedExpectation(point, nuisance_vector=nuisance_vector) # Nominal expectation
+		self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
+
+		''' Get -2 ln(H/H0) ~ Chi2 '''
+		Chi2 = FT.ChiSquared(self.Observation, self.Expectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList, self.Analysis.NuisDistributionList, nuisance_vector)
+		
+		''' The gradient of the above '''
+		D_Chi2 = FT.ChiSquaredGradient(self.Observation, self.Expectation, self.DiffExpectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList, self.Analysis.NuisDistributionList, nuisance_vector)
+
+		return (Chi2, D_Chi2)
+

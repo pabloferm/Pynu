@@ -10,14 +10,16 @@
 			<status> 1 </status>
 			<sigma> 0.25 </sigma>
 			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
 		</nuisance>
 		<nuisance name='NuNuBarRatio'>
 			<status> 1 </status>
 			<sigma> 0.05 </sigma>
 			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
 		</nuisance>
 		<physics name='FlavorRatio'>
-			<points> 20 </points>
+			<points> 1 </points>
 			<min> 0.65 </min>
 			<max> 1.25 </max>
 			<true> 1.0 </true>
@@ -34,13 +36,14 @@
 			<status> 1 </status>
 			<sigma> 0.25 </sigma>
 			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
 		</nuisance>
-		<physics name='FlavorRatio'>
-			<points> 1 </points>
-			<min> 0.65 </min>
-			<max> 1.25 </max>
-			<true> 1.0 </true>
-		</physics>
+		<nuisance name='FlavorRatio'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
 		<fixed name='FluxTilt'>
 			<status> 1 </status>
 			<value> 1.2 </value>
@@ -58,6 +61,7 @@
 			<status> 1 </status>
 			<sigma> 0.25 </sigma>
 			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
 		</nuisance>
 		<physics name='NCoverCC'>
 			<points> 1 </points>
@@ -119,11 +123,16 @@
 			<status> 1 </status>
 			<value> 0.304 </value>
 		</fixed>
-		<nuisance name='Sin2Theta13'>
+<!-- 		<nuisance name='Sin2Theta13'>
 			<status> 1 </status>
 			<sigma> 0.005 </sigma>
 			<nominal> 0.022 </nominal>
-		</nuisance>
+			<distribution> normal </distribution>
+		</nuisance> -->
+		<fixed name='Sin2Theta13'>
+			<status> 1 </status>
+			<value> 0.022 </value>
+		</fixed>
 		<physics name='Sin2Theta23'>
 			<points> 20 </points>
 			<min> 0.3 </min>

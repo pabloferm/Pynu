@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import sys
 import collections
 import numpy as np
-from .Distributions import Beta
+# from .Distributions import Beta
 import itertools
 
 class parseXML:
@@ -25,6 +25,8 @@ class parseXML:
 		self.NuisNominalList = []
 		self.NuisSigma = {}
 		self.NuisSigmaList = []
+		self.NuisDistribution = {}
+		self.NuisDistributionList = []
 
 		# Physics
 		self.disabledPhys = []
@@ -214,6 +216,7 @@ class parseXML:
 					self.Nuisance[sname] = []
 					self.NuisSigma[sname] = {}
 					self.NuisNominal[sname] = {}
+					self.NuisDistribution[sname] = {}
 					for nuis in source.findall('nuisance'):
 						if int(nuis.find('status').text):
 							s = nuis.attrib['name']
@@ -225,6 +228,8 @@ class parseXML:
 								self.NuisSigmaList.append(float(nuis.find('sigma').text))
 								self.NuisNominal[sname][s] = float(nuis.find('nominal').text)
 								self.NuisNominalList.append(float(nuis.find('nominal').text))
+								self.NuisDistribution[sname][s] = str(nuis.find('distribution').text).strip()
+								self.NuisDistributionList.append(str(nuis.find('distribution').text).strip())
 								self.Nuisance[sname].append(s)
 								self.NuisanceList.append(s)
 					self.Fixed[sname] = []
