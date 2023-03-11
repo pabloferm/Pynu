@@ -38,7 +38,7 @@ In order to run some examples and get familiar with the code, the src/Analysis/r
 
     --multi               Option for running the analysis with multiprocessing (recommended locally)  
     --cluster             Option for submitting jobs to a cluster
-    --mcmc                Option for Markov Chain sampling over paraeter space
+    --mcmc                Option for Markov Chain sampling over parameter space
 ```
 
   

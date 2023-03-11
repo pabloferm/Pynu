@@ -16,7 +16,7 @@ f1 = h5py.File(infile, 'r')
 print(f1.keys())
 
 for key in f1.keys():
-#    print(key)
+    #    print(key)
     ds = f1[key]
     data = np.array(ds[()])
 #    print(data)
@@ -24,6 +24,5 @@ for key in f1.keys():
         plt.hist(np.hstack(data.flatten()))
     elif data.dtype != np.dtype('bool'):
         plt.hist(data, bins=100, density=True)
-    print('Histogram saved to ', key+'.png')
-    plt.savefig(key+'.png')
-
+    print('Histogram saved to ', key + '.png')
+    plt.savefig(key + '.png')

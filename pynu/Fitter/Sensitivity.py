@@ -2,43 +2,45 @@ from scipy.optimize import minimize
 import numpy as np
 from .ChiSquared import Chi2StatsCombined, AnalyticPriorsBounds, Chi2SystsCombined
 
+
 class sensitivity:
-	def __init__(self, tunes, outfile, sigma, nominal, Osc):
-		""" Compute physics weights and update Expected """
-		self.sigma = sigma
-		self.nominal = nominal
-		self.PTs = tunes
-		self.outfile = outfile
-		self.OscScenario = Osc
+    def __init__(self, tunes, outfile, sigma, nominal, Osc):
+        """ Compute physics weights and update Expected """
+        self.sigma = sigma
+        self.nominal = nominal
+        self.PTs = tunes
+        self.outfile = outfile
+        self.OscScenario = Osc
 
-		""" Are any oscillation parameters nuisance? """
-		if len(self.nominal[self.OscScenario].keys())>0:
-			self.OscNuis = True
-		else:
-			self.OscNuis = False
+        """ Are any oscillation parameters nuisance? """
+        if len(self.nominal[self.OscScenario].keys()) > 0:
+            self.OscNuis = True
+        else:
+            self.OscNuis = False
 
-	def SetPhysicsPoint(self, physics):
-		self.physics = physics
-		self.ApplyPhysics()
+    def SetPhysicsPoint(self, physics):
+        self.physics = physics
+        self.ApplyPhysics()
 
-	def ApplyPhysics(self):
-		""" Make oscillations for current point """
-		for val,s_array in self.PTs.items():
-			for item in s_array:
-				""" Oscillations: only apply new parameters """
-				item['Osc'].UpdateParameters(**physics[self.OscScenario])
-				if not self.OscNuis:
-					w = item['Osc'].Oscillator()
-					item['Osc'].experiment.UpdateExpectedWeights(w)
+    def ApplyPhysics(self):
+        """ Make oscillations for current point """
+        for val, s_array in self.PTs.items():
+            for item in s_array:
+                """ Oscillations: only apply new parameters """
+                item['Osc'].UpdateParameters(**physics[self.OscScenario])
+                if not self.OscNuis:
+                    w = item['Osc'].Oscillator()
+                    item['Osc'].experiment.UpdateExpectedWeights(w)
 
-				for var,value in an.FixedValue[ExperimentClasses[exp][source].Source].items():
-					for tune in ['Flux']: # ['Flux', 'XSec', 'Det']
-						w = getattr(item[tune],var)(value)
-						ExperimentClasses[exp][source].UpdateNominalWeights(w)
+                for var, value in an.FixedValue[ExperimentClasses[exp][source].Source].items(
+                ):
+                    for tune in ['Flux']:  # ['Flux', 'XSec', 'Det']
+                        w = getattr(item[tune], var)(value)
+                        ExperimentClasses[exp][source].UpdateNominalWeights(w)
+
+        pass
 
 
-
-		pass
 '''
 		pass
 
@@ -89,7 +91,7 @@ class sensitivity:
 			# Binned tatistics
 			E = exp.weightOscBF_binned
 			O = Obs[exp.Experiment]
-			X2 += 2 * np.sum(E-O+O*np.log(O/E))	
+			X2 += 2 * np.sum(E-O+O*np.log(O/E))
 
 		return X2
 
