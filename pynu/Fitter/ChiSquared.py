@@ -60,7 +60,8 @@ def NuisancePenalty(
         nuisance_vector):
     X2 = 0
     for mu, sig, dist, nuis in zip(
-            NominalNuisance_list, SigmaNuisance_list, DistNuisance_list, nuisance_vector):
+            NominalNuisance_list, SigmaNuisance_list, DistNuisance_list,
+            nuisance_vector):
         if 'normal' in dist:
             X2 += logGaussianPrior(nuis, mu, sig)
         elif dist == 'beta':

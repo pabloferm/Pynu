@@ -19,7 +19,9 @@ class ICUp_Atm(Experiment):
         self.Definition()
 
         self.MCVariables()
+
         self.Binning()
+        self.SetBinner_2D()
 
         if self.DataFit:
             self.DataVariables()
@@ -42,6 +44,8 @@ class ICUp_Atm(Experiment):
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
+        # Number of samples in the analysis
+        self.NumberOfSamples = 1 + np.amax(self.Samples)
         self.Erec_min = 1
         self.Erec_max = 1e3
         self.Etrue_min = 1

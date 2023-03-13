@@ -103,8 +103,10 @@ def Diff_MultiRing_EMuSeparation(x, experiment):
         e2 = 13
         mu = 12
     mr = np.zeros(experiment.NumberOfEvents)
-    n0 = np.sum(experiment.Weight[experiment.Sample == e0]) + np.sum(
-        experiment.Weight[experiment.Sample == e1]) + np.sum(experiment.Weight[experiment.Sample == e2])
+    n0 = np.sum(
+        experiment.Weight[experiment.Sample == e0]) + np.sum(
+        experiment.Weight[experiment.Sample == e1]) + np.sum(
+        experiment.Weight[experiment.Sample == e2])
     n1 = np.sum(experiment.Weight[experiment.Sample == mu])
     r = n0 / n1
     mr[experiment.Sample == e0] = 1

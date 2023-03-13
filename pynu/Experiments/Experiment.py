@@ -3,6 +3,7 @@
 import pathlib
 from .MCReader import reader
 import numpy as np
+import boost_histogram as bh
 
 
 class Experiment:
@@ -73,50 +74,66 @@ class Experiment:
                             print(
                                 'Warning: Data files have not the same variables, it may produce errors.')
 
+    def SetBinner_1D(self):  # 1D energy binning
+        self.Binner = [
+            bh.Histogram(bh.axis.Variable(self.EnergyBins[s]))
+            for s in range(self.NumberOfSamples)]
+
+    def SetBinner_2D(self):  # 1D energy binning
+        self.Binner = [
+            bh.Histogram(
+                bh.axis.Variable(self.EnergyBins[s]),
+                bh.axis.Variable(self.CTBins[s]))
+            for s in range(self.NumberOfSamples)]
+
     def BinIt_MC_1D(self, array, shift_E=1, bias_E=0):  # 1D energy binning
-        v = np.array([])
-        E = self.EReco * shift_E
-        for s, sample in enumerate(self.Samples):
-            cond = self.Sample == s
-            dummy_w = array[cond]
-            Obs, __ = np.histogram1d(
-                E[cond], bins=self.EnergyBins[s], weights=dummy_w * self.Norm)
-            # Obs, __ = np.histogram1d(E[cond], bins=self.EnergyBins[s], weights=dummy_w)
-            v = np.append(v, Obs)
-        return v.reshape(-1)
+        if shift_E == 1 and bias_E == 0:
+            E = self.EReco
+        else:
+            E = self.EReco * shift_E + bias_E
+
+        v = [
+            hist.fill(
+                E[self.Sample == i],
+                weight=array[self.Sample == i] * self.Norm).values() for i,
+            hist in enumerate(self.Binner)]
+        for hist in self.Binner:
+            hist.reset()
+
+        return np.concatenate(v).ravel()
 
     def BinIt_MC_2D(self, array, shift_E=1, bias_E=0):  # 2D energy and cos(angle) binning
-        v = np.array([])
-        E = self.EReco * shift_E
-        for s, sample in enumerate(self.Samples):
-            cond = self.Sample == s
-            dummy_w = array[cond]
-            Obs, __, __ = np.histogram2d(E[cond], self.CosThetaReco[cond], bins=(
-                self.EnergyBins[s], self.CTBins[s]), weights=dummy_w * self.Norm)
-            # Obs, __, __ = np.histogram2d(E[cond], self.CosThetaReco[cond], bins=(self.EnergyBins[s], self.CTBins[s]), weights=dummy_w)
-            v = np.append(v, Obs)
-        return v.reshape(-1)
+        if shift_E == 1 and bias_E == 0:
+            E = self.EReco
+        else:
+            E = self.EReco * shift_E + bias_E
+
+        v = [
+            hist.fill(
+                E[self.Sample == i],
+                self.CosThetaReco[self.Sample == i],
+                weight=array[self.Sample == i] * self.Norm).values() for i,
+            hist in enumerate(self.Binner)]
+        for hist in self.Binner:
+            hist.reset()
+
+        return np.concatenate(v).ravel()
 
     def BinIt_Data_1D(self):  # 1D energy binning
-        v = np.array([])
-        for s, sample in enumerate(self.Samples):
-            cond = self.dSample == s
-            Obs, __ = np.histogram1d(
-                self.dEReco[cond], bins=self.EnergyBins[s])
-            v = np.append(v, Obs)
-        return v.reshape(-1)
+        v = [hist.fill(self.dEReco[self.dSample == i]).values()
+             for i, hist in enumerate(self.Binner)]
+        return np.concatenate(v).ravel()
 
     def BinIt_Data_2D(self):  # 2D energy and cos(angle) binning
-        v = np.array([])
-        for s, sample in enumerate(self.Samples):
-            cond = self.dSample == s
-            Obs, __, __ = np.histogram2d(
-                self.dEReco[cond], self.dCosThetaReco[cond], bins=(
-                    self.EnergyBins[s], self.CTBins[s]))
-            v = np.append(v, Obs)
-        return v.reshape(-1)
+        v = [
+            hist.fill(
+                self.dEReco[self.dSample == i],
+                self.dCosThetaReco[self.dSample == i]).values() for i,
+            hist in enumerate(self.Binner)]
+        return np.concatenate(v).ravel()
 
     # Contains all default weights of the analysis
+
     def UpdateExpectedWeights(self, w):
         self.ExpectedWeight = w * self.ExpectedWeight
 

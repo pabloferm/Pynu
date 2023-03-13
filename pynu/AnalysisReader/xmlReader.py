@@ -152,7 +152,9 @@ class parseXML:
                     self.PhysGrid[par][item] = np.array(self.PhysEdges[par][j])
                 else:
                     self.PhysGrid[par][item] = np.linspace(
-                        self.PhysEdges[par][j][0], self.PhysEdges[par][j][-1], self.PhysPoints[par][j])
+                        self.PhysEdges[par][j][0],
+                        self.PhysEdges[par][j][-1],
+                        self.PhysPoints[par][j])
 
     def CartesianPhysicsGrid(self):
         v = []
@@ -226,7 +228,8 @@ class parseXML:
                                 Exposure = float(src.find('exposure').text)
                                 MCyears = float(src.find('MCexposure').text)
                         self.Experiments[sname][src.attrib['name']] = {
-                            'MCFiles': MCFiles, 'TotalMCexposure': MCyears, 'DataFiles': DataFiles, 'Exposure': Exposure}
+                            'MCFiles': MCFiles, 'TotalMCexposure': MCyears,
+                            'DataFiles': DataFiles, 'Exposure': Exposure}
                     self.Nuisance[sname] = []
                     self.NuisSigma[sname] = {}
                     self.NuisNominal[sname] = {}
@@ -351,8 +354,9 @@ class parseXML:
                                     int(phys.find('points').text))
                                 self.PhysPointsList.append(
                                     int(phys.find('points').text))
-                                self.PhysEdges[sname].append(
-                                    [float(phys.find('min').text), float(phys.find('max').text)])
+                                self.PhysEdges[sname].append([
+                                    float(phys.find('min').text),
+                                    float(phys.find('max').text)])
                                 self.Physics[sname].append(s)
                                 self.PhysicsList.append(s)
             else:

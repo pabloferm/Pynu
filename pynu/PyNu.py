@@ -251,7 +251,8 @@ class PyNu:
                 for par in self.Analysis.Physics[key]:
                     # this.create_dataset(par, data=[0.0]*self.Analysis.NumberOfPhysPoints, compression='gzip')
                     this.create_dataset(
-                        par, data=self.Analysis.FullPhysicsGrid[:][i], compression='gzip')
+                        par, data=self.Analysis.FullPhysicsGrid[:][i],
+                        compression='gzip')
                     i = + 1
 
             grp = hf.create_group('Analysis')
@@ -288,7 +289,8 @@ class PyNu:
 
         '''Analytic estimate for priors and bounds'''
         AnalyticPrior, AnalyticBounds = FT.AnalyticPriorsBounds(
-            self.Observation, self.Expectation, self.DiffExpectation, self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
+            self.Observation, self.Expectation, self.DiffExpectation, self.
+            Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
 
         '''Combined chi^2 minimization'''
         tol = max(1e-4, np.sqrt(X2_stats) * 1e-5) * 0.1
