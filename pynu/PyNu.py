@@ -41,20 +41,26 @@ class PyNu:
         self.ApplyFixedWeights()
         self.ApplyNominalWeights()
         self.ApplyTrueWeights()
-        self.ApplyOscillations()
+        self.ApplyOscillations('Nominal')
         self.SetBinnedObservedEvents()
         # print(self.Observation)
 
-    def ComputeBinnedExpectation(self, point, nuisance_vector=None):
+    def ComputeBinnedExpectation(self, point, nuisance_vector=None, physics=False):
+        if physics:
+            self.StartPhysics()
+            self.ApplyPhysicsWeights(point)
+            if not self.Analysis.Nuisance[self.Analysis.Scenario]:
+                self.ApplyOscillations('Physics')
+
+        self.StartNuisance()
         if nuisance_vector is None:
-            nuisance_vector = self.Analysis.NuisNominalList
-        self.StartExpectation()
-        self.ApplyPhysicsWeights(point)
-        self.ApplyNuisanceWeights(nuisance_vector)
-        self.ApplyOscillations(Expectation=True)
+            self.ApplyNuisanceWeights(self.Analysis.NuisNominalList)
+        else:
+            self.ApplyNuisanceWeights(nuisance_vector)
+        if not self.Analysis.Nuisance[self.Analysis.Scenario]:
+            self.ApplyOscillations('Nuisance')         
+
         self.SetBinnedExpectedEvents()
-        # print(self.Expectation)
-        # self.WriteToOutFile(point)
 
     def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
         if nuisance_vector is None:
@@ -85,9 +91,12 @@ class PyNu:
                 self.Analysis.Flavors,
                 set_all=True)
 
-    def StartExpectation(self):
+    def StartPhysics(self):
         for exp in self.Experiments.values():
-            exp.StartExpectedWeights()
+            exp.StartPhysicsWeights()
+    def StartNuisance(self):
+        for exp in self.Experiments.values():
+            exp.StartNuisanceWeights()
 
     def SetBinnedObservedEvents(self):
         self.Observation = {}
@@ -142,13 +151,19 @@ class PyNu:
         self.ApplyWeights('Nuisance', vector=vector)
 
     # Tag can be either 'Nominal' or 'Variable'
-    def ApplyOscillations(self, Expectation=False):
+    def ApplyOscillations(self, tag=None):
         for name, exp in self.Experiments.items():
             w = self.PhysicsTunes[name].OscillationTunes.GetOscillations()
-            if Expectation:
-                exp.UpdateExpectedWeights(w)
-            else:
-                exp.UpdateObservedWeights(w)
+            if tag == 'Physics':
+                exp.UpdatePhysicsWeights(w)
+            elif tag == 'Nuisance':
+                exp.UpdateNuisanceWeights(w)
+            elif tag == 'Nominal':
+                if not self.Analysis.Nuisance[self.Analysis.Scenario] and not self.Analysis.Physics[self.Analysis.Scenario]:
+                    exp.UpdateBaseWeights(w)
+                else:
+                    exp.UpdateNominalWeights(w)
+
 
     def ApplyWeights(self, tag, vector=None):
         if tag == 'Fixed':
@@ -284,7 +299,7 @@ class PyNu:
 
     def FitBinnedLLH(self, point):
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
-        self.ComputeBinnedExpectation(point)  # Nominal expectation
+        self.ComputeBinnedExpectation(point, physics=True)  # Nominal expectation
         # Statistics only computation to start guiding the minimization
         X2_stats = FT.ChiSquaredStatsOnly(self.Observation, self.Expectation)
         self.WriteToOutFile(point, 'Analysis', 'Chi2 Stats. Only', X2_stats)
@@ -298,18 +313,16 @@ class PyNu:
             Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
 
         '''Combined chi^2 minimization'''
-        tol = max(1e-4, np.sqrt(X2_stats) * 1e-5) * 0.1
+        tol = max(1e-4, np.sqrt(X2_stats) * 1e-5)
         res = minimize(
             self.ModelTester,
             AnalyticPrior,
             args=(point),
-            method='L-BFGS-B',
+            # method='L-BFGS-B',
             jac=True,
             bounds=AnalyticBounds,
             options={
-                'disp': False,
-                'ftol': tol,
-                'gtol': 1e-03})
+                'disp': False})
 
         nuisance_postfit = res.x.tolist()
         self.WriteToOutFile(
