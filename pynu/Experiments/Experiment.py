@@ -36,6 +36,11 @@ class Experiment:
         self.CTBins = []
         self.ExpectedWeight = 1
 
+        self.PhysicsWeight = 1
+        self.BaseWeight = self.Norm
+        self.NuisanceWeight = 1
+        self.NominalWeight = 1
+
     def Definition(self):
         self.Definition = {
             self.Detector: 'Detector',
@@ -95,7 +100,7 @@ class Experiment:
         v = [
             hist.fill(
                 E[self.Sample == i],
-                weight=array[self.Sample == i] * self.Norm).values() for i,
+                weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i,
             hist in enumerate(self.Binner)]
         for hist in self.Binner:
             hist.reset()
@@ -112,7 +117,7 @@ class Experiment:
             hist.fill(
                 E[self.Sample == i],
                 self.CosThetaReco[self.Sample == i],
-                weight=array[self.Sample == i] * self.Norm).values() for i,
+                weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i,
             hist in enumerate(self.Binner)]
         for hist in self.Binner:
             hist.reset()
@@ -134,8 +139,10 @@ class Experiment:
 
     # Contains all default weights of the analysis
 
-    def UpdateExpectedWeights(self, w):
-        self.ExpectedWeight = w * self.ExpectedWeight
+    def StartPhysicsWeights(self):  # Starts expected weights with fixed values
+        self.PhysicsWeight = 1
+    def UpdatePhysicsWeights(self, w):
+        self.PhysicsWeight = w * self.PhysicsWeight
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateBaseWeights(self, w):
@@ -143,18 +150,17 @@ class Experiment:
 
     # Contains all weights of the analysis except for those relative to
     # nuisance parameters
-    def UpdateBaseAndPhysicsWeights(self, w):
-        self.BaseAndPhysicsWeight = w * self.BaseAndPhysicsWeight
-
-    def StartExpectedWeights(self):  # Starts expected weights with fixed values
-        self.ExpectedWeight = self.BaseWeight
+    def StartNuisanceWeights(self):  # Starts expected weights with fixed values
+        self.NuisanceWeight = 1
+    def UpdateNuisanceWeights(self, w):
+        self.NuisanceWeight = w * self.NuisanceWeight
 
     # Contains all non-changing weights of the analysis, i.e. fixed
-    def UpdateObservedWeights(self, w):
+    def UpdateNominalWeights(self, w):
         self.NominalWeight = w * self.NominalWeight
 
-    def BinNominalWeights(self):
-        self.NominalBinned = self.BinMC(self.NominalWeight)
+    def SetExpectedWeight(self):
+    	self.ExpectedWeight = self.PhysicsWeight * self.NuisanceWeight
 
     def SetExpectedBinned(self):
         self.ExpectedBinned = self.BinMC(self.ExpectedWeight)
@@ -164,8 +170,7 @@ class Experiment:
         if self.DataFit:
             self.ObservedBinned = self.BinData()
         else:
-            self.BinNominalWeights()
-            self.ObservedBinned = self.NominalBinned
+            self.ObservedBinned = self.BinMC(self.NominalWeight)
         self.FewEntries = self.ObservedBinned > 4
         self.RemoveFewEntries('Observed')
 

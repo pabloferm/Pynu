@@ -193,9 +193,15 @@ class PyNu:
                                 tune, value)
 
                         if tune_block != 'Osc':
-                            exp.UpdateObservedWeights(w)
                             if tag == 'Fixed':
                                 exp.UpdateBaseWeights(w)
+                            elif tag in ['True', 'Nominal']:
+                                exp.UpdateNominalWeights(w)
+                            elif tag == 'Physics':
+                                exp.UpdatePhysicsWeights(w)
+                            elif tag == 'Nuisance':
+                                exp.UpdateNuisanceWeights(w)
+
 
     def GetDiffLogWeights(self, vector):
         ''' Computes the derivative with respect the nuisance parameter nuis '''
@@ -221,7 +227,6 @@ class PyNu:
                         elif tune_block == 'Osc':
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetOscillation(
                                 'Diff_' + tune, vector[idx]) / self.PhysicsTunes[name].OscillationTunes.GetOscillations()
-
         return dWoverW
 
     def CreateOutFile(self, fname):
