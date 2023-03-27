@@ -141,6 +141,7 @@ class Experiment:
 
     def StartPhysicsWeights(self):  # Starts expected weights with fixed values
         self.PhysicsWeight = 1
+
     def UpdatePhysicsWeights(self, w):
         self.PhysicsWeight = w * self.PhysicsWeight
 
@@ -152,6 +153,7 @@ class Experiment:
     # nuisance parameters
     def StartNuisanceWeights(self):  # Starts expected weights with fixed values
         self.NuisanceWeight = 1
+
     def UpdateNuisanceWeights(self, w):
         self.NuisanceWeight = w * self.NuisanceWeight
 
@@ -160,7 +162,7 @@ class Experiment:
         self.NominalWeight = w * self.NominalWeight
 
     def SetExpectedWeight(self):
-    	self.ExpectedWeight = self.PhysicsWeight * self.NuisanceWeight
+        self.ExpectedWeight = self.PhysicsWeight * self.NuisanceWeight
 
     def SetExpectedBinned(self):
         self.ExpectedBinned = self.BinMC(self.ExpectedWeight)

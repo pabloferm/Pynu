@@ -45,7 +45,11 @@ class PyNu:
         self.SetBinnedObservedEvents()
         # print(self.Observation)
 
-    def ComputeBinnedExpectation(self, point, nuisance_vector=None, physics=False):
+    def ComputeBinnedExpectation(
+            self,
+            point,
+            nuisance_vector=None,
+            physics=False):
         if physics:
             self.StartPhysics()
             self.ApplyPhysicsWeights(point)
@@ -58,7 +62,7 @@ class PyNu:
         else:
             self.ApplyNuisanceWeights(nuisance_vector)
         if not self.Analysis.Nuisance[self.Analysis.Scenario]:
-            self.ApplyOscillations('Nuisance')         
+            self.ApplyOscillations('Nuisance')
 
         self.SetBinnedExpectedEvents()
 
@@ -94,6 +98,7 @@ class PyNu:
     def StartPhysics(self):
         for exp in self.Experiments.values():
             exp.StartPhysicsWeights()
+
     def StartNuisance(self):
         for exp in self.Experiments.values():
             exp.StartNuisanceWeights()
@@ -164,7 +169,6 @@ class PyNu:
                 else:
                     exp.UpdateNominalWeights(w)
 
-
     def ApplyWeights(self, tag, vector=None):
         if tag == 'Fixed':
             labels = self.Analysis.Fixed
@@ -216,7 +220,6 @@ class PyNu:
                                 exp.UpdatePhysicsWeights(w)
                             elif tag == 'Nuisance':
                                 exp.UpdateNuisanceWeights(w)
-
 
     def GetDiffLogWeights(self, vector):
         ''' Computes the derivative with respect the nuisance parameter nuis '''
@@ -299,7 +302,8 @@ class PyNu:
 
     def FitBinnedLLH(self, point):
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
-        self.ComputeBinnedExpectation(point, physics=True)  # Nominal expectation
+        self.ComputeBinnedExpectation(
+            point, physics=True)  # Nominal expectation
         # Statistics only computation to start guiding the minimization
         X2_stats = FT.ChiSquaredStatsOnly(self.Observation, self.Expectation)
         self.WriteToOutFile(point, 'Analysis', 'Chi2 Stats. Only', X2_stats)
@@ -332,6 +336,7 @@ class PyNu:
             nuisance_postfit)
 
         X2_systs = res.fun
+        print(X2_systs)
         self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', X2_systs)
 
         return - 0.5 * X2_systs
