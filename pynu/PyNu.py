@@ -53,7 +53,7 @@ class PyNu:
         if physics:
             self.StartPhysics()
             self.ApplyPhysicsWeights(point)
-            if not self.Analysis.Nuisance[self.Analysis.Scenario]:
+            if not self.Analysis.Nuisance[self.Analysis.Scenario] and self.Analysis.Physics[self.Analysis.Scenario]:
                 self.ApplyOscillations('Physics')
 
         self.StartNuisance()
@@ -61,12 +61,11 @@ class PyNu:
             self.ApplyNuisanceWeights(self.Analysis.NuisNominalList)
         else:
             self.ApplyNuisanceWeights(nuisance_vector)
-        if not self.Analysis.Nuisance[self.Analysis.Scenario]:
+        if self.Analysis.Nuisance[self.Analysis.Scenario]:
             self.ApplyOscillations('Nuisance')
 
         self.SetExpectedWeights()
         self.SetBinnedExpectedEvents()
-        # print(self.Expectation)
 
     def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
         if nuisance_vector is None:
