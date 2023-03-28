@@ -113,13 +113,11 @@ def main():
             initial = np.zeros((nwalkers, ndim))
 
     # Loop over specified points of analysis
-    for p in points:
+    else:
+        for p in points:
         # Compute weights at a given point of the physics grid (fixed part for
         # nuisance minimisation)
-        if args.cluster:
-            pynu.FitBinnedLLH(p)
-
-        else:
+            print(f'Analyzing point {p} of {pynu.Analysis.NumberOfPhysPoints} points.')
             pynu.FitBinnedLLH(p)
 
 

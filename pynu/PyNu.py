@@ -64,7 +64,9 @@ class PyNu:
         if not self.Analysis.Nuisance[self.Analysis.Scenario]:
             self.ApplyOscillations('Nuisance')
 
+        self.SetExpectedWeights()
         self.SetBinnedExpectedEvents()
+        # print(self.Expectation)
 
     def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
         if nuisance_vector is None:
@@ -108,6 +110,10 @@ class PyNu:
         for name, exp in self.Experiments.items():
             exp.SetObservedBinned()
             self.Observation[name] = exp.GetObservedBinned()
+
+    def SetExpectedWeights(self):
+        for name, exp in self.Experiments.items():
+            exp.SetExpectedWeight()
 
     def SetBinnedExpectedEvents(self):
         self.Expectation = {}
@@ -336,6 +342,7 @@ class PyNu:
             nuisance_postfit)
 
         X2_systs = res.fun
+        print(X2_stats)
         print(X2_systs)
         self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', X2_systs)
 

@@ -18,16 +18,18 @@
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
-		<physics name='FlavorRatio'>
-			<points> 1 </points>
-			<min> 0.65 </min>
-			<max> 1.25 </max>
-			<true> 1.0 </true>
-		</physics>
-		<fixed name='FluxTilt'>
+		<nuisance name='FlavorRatio'>
 			<status> 1 </status>
-			<value> 1.2 </value>
-		</fixed>
+			<sigma> 0.02 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='FluxTilt'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
 	</NeutrinoSource>
 
 	<NeutrinoSource name="Accelerator">
@@ -63,12 +65,12 @@
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
-		<physics name='NCoverCC'>
-			<points> 1 </points>
-			<min> 0.85 </min>
-			<max> 1.15 </max>
-			<true> 1.0 </true>
-		</physics>
+		<nuisance name='NCoverCC'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
 		<fixed name='NCHad'>
 			<status> 1 </status>
 			<value> 1.2 </value>

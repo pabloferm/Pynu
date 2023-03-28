@@ -16,8 +16,7 @@ class Experiment:
         self.TotalMCexposure = dict_of_details['TotalMCexposure']
         self.FitExposure = dict_of_details['Exposure']
         self.FewEntries = None
-        # self.Norm = self.FitExposure / self.TotalMCexposure
-        self.Norm = 1
+        self.Norm = self.FitExposure / self.TotalMCexposure
         self.MCFiles = dict_of_details['MCFiles']
         self.DataFiles = dict_of_details['DataFiles']
 
@@ -37,7 +36,7 @@ class Experiment:
         self.ExpectedWeight = 1
 
         self.PhysicsWeight = 1
-        self.BaseWeight = self.Norm
+        self.BaseWeight = 1
         self.NuisanceWeight = 1
         self.NominalWeight = 1
 
@@ -92,6 +91,9 @@ class Experiment:
             for s in range(self.NumberOfSamples)]
 
     def BinIt_MC_1D(self, array, shift_E=1, bias_E=0):  # 1D energy binning
+        for hist in self.Binner:
+            hist.reset()
+
         if shift_E == 1 and bias_E == 0:
             E = self.EReco
         else:
@@ -102,25 +104,20 @@ class Experiment:
                 E[self.Sample == i],
                 weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i,
             hist in enumerate(self.Binner)]
-        for hist in self.Binner:
-            hist.reset()
 
         return np.concatenate(v).ravel()
 
     def BinIt_MC_2D(self, array, shift_E=1, bias_E=0):  # 2D energy and cos(angle) binning
+        for hist in self.Binner:
+            hist.reset()
+
         if shift_E == 1 and bias_E == 0:
             E = self.EReco
         else:
             E = self.EReco * shift_E + bias_E
-
-        v = [
-            hist.fill(
-                E[self.Sample == i],
-                self.CosThetaReco[self.Sample == i],
-                weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i,
-            hist in enumerate(self.Binner)]
-        for hist in self.Binner:
-            hist.reset()
+        print(f'array {array}')
+        print(f'base {self.BaseWeight}')
+        v = [hist.fill(E[self.Sample == i],self.CosThetaReco[self.Sample == i],weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i, hist in enumerate(self.Binner)]
 
         return np.concatenate(v).ravel()
 

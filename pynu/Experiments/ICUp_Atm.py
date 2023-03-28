@@ -55,10 +55,7 @@ class ICUp_Atm(Experiment):
 
         self.Norm = 365 * 24 * 60 * 60 * 1e4 * self.FitExposure
 
-        self.NominalWeight = self.Weight
-        self.BaseWeight = self.Weight
-        self.BaseAndPhysicsWeight = self.Weight
-        self.ExpectedWeight = self.Weight
+        self.BaseWeight = self.Weight * self.Norm
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux('IPhonda2014_spl_solmin')
