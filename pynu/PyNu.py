@@ -252,58 +252,6 @@ class PyNu:
                                 'Diff_' + tune, vector[idx]) / self.PhysicsTunes[name].OscillationTunes.GetOscillations()
         return dWoverW
 
-    def CreateOutFile(self, fname):
-        self.outfile = fname
-        with h5py.File(fname, 'w') as hf:
-            grp = hf.create_group('Fixed Parameters')
-            for key in self.Analysis.Fixed.keys():
-                this = grp.create_group(key)
-                for par, val in self.Analysis.FixedValue[key].items():
-                    this.create_dataset(par, data=[val], compression='gzip')
-
-            if self.Analysis.wSyst:
-                grp = hf.create_group('Nuisance Parameters')
-                for key in self.Analysis.Nuisance.keys():
-                    this = grp.create_group(key)
-                    for par in self.Analysis.Nuisance[key]:
-                        this.create_dataset(
-                            par,
-                            data=[0.0] *
-                            self.Analysis.NumberOfPhysPoints,
-                            compression='gzip')
-            grp = hf.create_group('Physics Parameters')
-
-            i = 0
-            for key in self.Analysis.Physics.keys():
-                this = grp.create_group(key)
-                for par in self.Analysis.Physics[key]:
-                    # this.create_dataset(par, data=[0.0]*self.Analysis.NumberOfPhysPoints, compression='gzip')
-                    this.create_dataset(
-                        par, data=self.Analysis.FullPhysicsGrid[:][i],
-                        compression='gzip')
-                    i = + 1
-
-            grp = hf.create_group('Analysis')
-            grp.create_dataset(
-                'Chi2 Stats. Only',
-                data=[0.0] *
-                self.Analysis.NumberOfPhysPoints,
-                compression='gzip')
-            if self.Analysis.wSyst:
-                grp.create_dataset(
-                    'Chi2 Systs.',
-                    data=[0.0] *
-                    self.Analysis.NumberOfPhysPoints,
-                    compression='gzip')
-
-    def WriteToOutFile(self, point, block, item, value):
-        with h5py.File(self.outfile, 'r+') as hf:
-            try:
-                for par, val in zip(item, value):
-                    source = self.Analysis.GetSourceOfTune(par)
-                    hf[block + '/' + source + '/' + par][point] = val
-            except BaseException:
-                hf[block + '/' + item][point] = value
 
     def FitBinnedLLH(self, point):
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
@@ -373,3 +321,57 @@ class PyNu:
             nuisance_vector)
 
         return (Chi2, D_Chi2)
+
+
+    def CreateOutFile(self, fname):
+        self.outfile = fname
+        with h5py.File(fname, 'w') as hf:
+            grp = hf.create_group('Fixed Parameters')
+            for key in self.Analysis.Fixed.keys():
+                this = grp.create_group(key)
+                for par, val in self.Analysis.FixedValue[key].items():
+                    this.create_dataset(par, data=[val], compression='gzip')
+
+            if self.Analysis.wSyst:
+                grp = hf.create_group('Nuisance Parameters')
+                for key in self.Analysis.Nuisance.keys():
+                    this = grp.create_group(key)
+                    for par in self.Analysis.Nuisance[key]:
+                        this.create_dataset(
+                            par,
+                            data=[0.0] *
+                            self.Analysis.NumberOfPhysPoints,
+                            compression='gzip')
+            grp = hf.create_group('Physics Parameters')
+
+            i = 0
+            for key in self.Analysis.Physics.keys():
+                this = grp.create_group(key)
+                for par in self.Analysis.Physics[key]:
+                    # this.create_dataset(par, data=[0.0]*self.Analysis.NumberOfPhysPoints, compression='gzip')
+                    this.create_dataset(
+                        par, data=self.Analysis.FullPhysicsGrid[:][i],
+                        compression='gzip')
+                    i = + 1
+
+            grp = hf.create_group('Analysis')
+            grp.create_dataset(
+                'Chi2 Stats. Only',
+                data=[0.0] *
+                self.Analysis.NumberOfPhysPoints,
+                compression='gzip')
+            if self.Analysis.wSyst:
+                grp.create_dataset(
+                    'Chi2 Systs.',
+                    data=[0.0] *
+                    self.Analysis.NumberOfPhysPoints,
+                    compression='gzip')
+
+    def WriteToOutFile(self, point, block, item, value):
+        with h5py.File(self.outfile, 'r+') as hf:
+            try:
+                for par, val in zip(item, value):
+                    source = self.Analysis.GetSourceOfTune(par)
+                    hf[block + '/' + source + '/' + par][point] = val
+            except BaseException:
+                hf[block + '/' + item][point] = value
