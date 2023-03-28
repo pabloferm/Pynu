@@ -99,3 +99,14 @@ def AnalyticPriorsBounds(
     bounds = tuple(map(tuple, bounds))
 
     return priors, bounds
+
+
+def AnalyticPriors_2ndOrder(
+        D_Chi2_0,
+        D_Chi2_1,
+        X_0,
+        X_1):
+    ''' Second order analytic computation of values for parameters to be mariginalized 
+    assuming we are close enough to the minimum , i.e. a parabola'''
+    priors = (D_Chi2_1 * X_0 - D_Chi2_0 * X_1) / (D_Chi2_1 - D_Chi2_0)
+    return priors

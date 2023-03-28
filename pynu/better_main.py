@@ -115,9 +115,10 @@ def main():
     # Loop over specified points of analysis
     else:
         for p in points:
-        # Compute weights at a given point of the physics grid (fixed part for
-        # nuisance minimisation)
-            print(f'Processing point {p} of {pynu.Analysis.NumberOfPhysPoints} points in the analysis.')
+            # Compute weights at a given point of the physics grid (fixed part for
+            # nuisance minimisation)
+            print(
+                f'Processing point {p} of {pynu.Analysis.NumberOfPhysPoints} points in the analysis.')
             pynu.FitBinnedLLH(p)
 
 

@@ -115,7 +115,10 @@ class Experiment:
             E = self.EReco
         else:
             E = self.EReco * shift_E + bias_E
-        v = [hist.fill(E[self.Sample == i],self.CosThetaReco[self.Sample == i],weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i, hist in enumerate(self.Binner)]
+        v = [hist.fill(E[self.Sample == i],
+                       self.CosThetaReco[self.Sample == i],
+                       weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i,
+             hist in enumerate(self.Binner)]
 
         return np.concatenate(v).ravel()
 
