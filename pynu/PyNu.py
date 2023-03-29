@@ -252,7 +252,6 @@ class PyNu:
                                 'Diff_' + tune, vector[idx]) / self.PhysicsTunes[name].OscillationTunes.GetOscillations()
         return dWoverW
 
-
     def FitBinnedLLH(self, point):
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
         self.ComputeBinnedExpectation(
@@ -288,12 +287,11 @@ class PyNu:
             self.Analysis.NuisanceList,
             nuisance_postfit)
 
-        X2_systs = res.fun
-        print(X2_stats)
-        print(X2_systs)
-        self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', X2_systs)
+        # X2_systs = res.fun
+        self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', res.fun)
+        # self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', X2_systs)
 
-        return - 0.5 * X2_systs
+        return - 0.5 * res.fun
 
     def ModelTester(self, nuisance_vector, point):
         ''' Compute expected and its derivatives '''
@@ -322,7 +320,6 @@ class PyNu:
 
         return (Chi2, D_Chi2)
 
-
     def CreateOutFile(self, fname):
         self.outfile = fname
         with h5py.File(fname, 'w') as hf:
@@ -343,14 +340,15 @@ class PyNu:
                             self.Analysis.NumberOfPhysPoints,
                             compression='gzip')
             grp = hf.create_group('Physics Parameters')
-
             i = 0
+            physics_lists = [
+                value for value in zip(
+                    *self.Analysis.FullPhysicsGrid)]
             for key in self.Analysis.Physics.keys():
                 this = grp.create_group(key)
                 for par in self.Analysis.Physics[key]:
-                    # this.create_dataset(par, data=[0.0]*self.Analysis.NumberOfPhysPoints, compression='gzip')
                     this.create_dataset(
-                        par, data=self.Analysis.FullPhysicsGrid[:][i],
+                        par, data=physics_lists[i],
                         compression='gzip')
                     i = + 1
 
