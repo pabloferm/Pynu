@@ -5,15 +5,10 @@ import Experiments as Exp  # contains rd class to read and setup each experiment
 from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
 import Fitter as FT  # does all the fitting calculations
 
-import h5py
-import numpy as np
-from scipy.optimize import minimize
-
-
 class PyNu:
     ''' Top class containing everything '''
 
-    def __init__(self, analysis_file, verbosity=False):
+    def __init__(self, analysis_file, path=None, verbosity=False):
 
         __slots__ = (
             'verbosity',
@@ -23,6 +18,7 @@ class PyNu:
             'Observation')
 
         self.verbosity = verbosity
+        self.path = path
 
         ''' Set up basic analysis variables and structure to build full analysis '''
         self.Analysis = AR.parse(analysis_file, check=self.verbosity)
@@ -253,6 +249,8 @@ class PyNu:
         return dWoverW
 
     def FitBinnedLLH(self, point):
+        from scipy.optimize import minimize
+
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
         self.ComputeBinnedExpectation(
             point, physics=True)  # Nominal expectation
@@ -269,7 +267,7 @@ class PyNu:
             Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
 
         '''Combined chi^2 minimization'''
-        tol = max(1e-4, np.sqrt(X2_stats) * 1e-5)
+        # tol = max(1e-4, np.sqrt(X2_stats) * 1e-5)
         res = minimize(
             self.ModelTester,
             AnalyticPrior,
@@ -280,16 +278,13 @@ class PyNu:
             options={
                 'disp': False})
 
-        nuisance_postfit = res.x.tolist()
         self.WriteToOutFile(
             point,
             'Nuisance Parameters',
             self.Analysis.NuisanceList,
-            nuisance_postfit)
+            res.x.tolist())
 
-        # X2_systs = res.fun
         self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', res.fun)
-        # self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', X2_systs)
 
         return - 0.5 * res.fun
 
@@ -321,6 +316,7 @@ class PyNu:
         return (Chi2, D_Chi2)
 
     def CreateOutFile(self, fname):
+        import h5py
         self.outfile = fname
         with h5py.File(fname, 'w') as hf:
             grp = hf.create_group('Fixed Parameters')
@@ -366,6 +362,7 @@ class PyNu:
                     compression='gzip')
 
     def WriteToOutFile(self, point, block, item, value):
+        import h5py
         with h5py.File(self.outfile, 'r+') as hf:
             try:
                 for par, val in zip(item, value):

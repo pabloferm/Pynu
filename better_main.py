@@ -4,7 +4,6 @@ import argparse
 
 from PyNu import PyNu
 
-
 def main():
 
     print('=============================================================\n' +
