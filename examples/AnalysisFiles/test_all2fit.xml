@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Analysis>
+
+<!--Anything common to a given neutrino source-->
+<!-- Atmospheric neutrinos -->
+	<NeutrinoSource name="Atmospheric">
+		<status> 1 </status>
+        <physics name='FluxNormalization_Above1GeV'>
+			<points> 10 </points>
+			<min> 0.9 </min>
+			<max> 1.1 </max>
+			<true> 1 </true>
+		</physics>
+		<physics name='NuNuBarRatio'>
+			<points> 10 </points>
+			<min> 0.9 </min>
+			<max> 1.1 </max>
+			<true> 1 </true>
+		</physics>
+		<physics name='FlavorRatio'>
+			<points> 10 </points>
+			<min> 0.9 </min>
+			<max> 1.1 </max>
+			<true> 1 </true>
+		</physics>
+		<physics name='FluxTilt'>
+			<points> 10 </points>
+			<min> -0.1 </min>
+			<max> 0.1 </max>
+			<true> 0 </true>
+		</physics>
+		<physics name='ZenithFluxUp'>
+			<points> 10 </points>
+			<min> -0.1 </min>
+			<max> 0.1 </max>
+			<true> 0 </true>
+		</physics>
+		<physics name='ZenithFluxDown'>
+			<points> 10 </points>
+			<min> -0.1 </min>
+			<max> 0.1 </max>
+			<true> 0 </true>
+		</physics>
+	</NeutrinoSource>
+
+<!--Anything common to a given detector type-->
+<!-- Water-Cherenkov -->
+	<NeutrinoTarget name="Water">
+		<status> 1 </status>
+		<nuisance name='XSecNuTau'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='NCoverCC'>
+			<status> 0 </status>
+			<sigma> 0.05 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='NCHad'>
+			<status> 0 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='DIS'>
+			<status> 0 </status>
+			<sigma> 0.05 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>	
+		<nuisance name='CCQE'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CCQENuBarNu'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CCQEMuE'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CC1Pi_Pi0Pi'>
+			<status> 0 </status>
+			<sigma> 0.4 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CC1Pi_NuBarNuE'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CC1Pi_NuBarNuMu'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CC1PiProduction'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CohPiProduction'>
+			<status> 0 </status>
+			<sigma> 1.0 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='AxialMass'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>	
+	</NeutrinoTarget>
+
+<!--Anything common to a given neutrino experiment-->
+<!-- IceCube Upgrade -->
+	<NeutrinoExperiment name="IceCube-Upgrade">
+		<status> 1 </status>
+		<target name="Water"> </target>
+		<source name='Atmospheric'>
+			<status> 1 </status>
+			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
+				<status> 1 </status>
+			</MCFiles>
+<!-- 			<DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
+				<status> 0 </status>
+			</DataFiles> -->
+			<exposure> 5 </exposure> <!-- years-->
+			<MCexposure> 5 </MCexposure> <!-- This is total exposure of all the specified MC files-->
+		</source>
+	</NeutrinoExperiment>
+
+<!--Anything common to a SINGLE given neutrino physics scenario-->
+<!-- Pick one: 3-Osc, 3+N-Osc, LV, NSI -->
+<!-- Please, specify all non-zero parameters. -->
+	<NeutrinoOscillations name="3-Osc"> 
+		<status> 1 </status>
+		<flavors> 3 </flavors>
+		<fixed name='Sin2Theta12'>
+			<status> 1 </status>
+			<value> 0.304 </value>
+		</fixed>
+		<fixed name='Sin2Theta13'>
+			<status> 1 </status>
+			<value> 0.022 </value>
+		</fixed>
+		<physics name='Sin2Theta23'>
+			<points> 10 </points>
+			<min> 0.3 </min>
+			<max> 0.7 </max>
+			<true> 0.517 </true>
+		</physics>
+		<fixed name='Dm221'>
+			<status> 1 </status>
+			<value> 7.42e-5 </value>
+		</fixed>
+		<physics name='dCP'>
+			<points> 1 </points>
+			<min> 4.14 </min>
+			<max> 4.14 </max>
+			<true> 4.14 </true>
+		</physics>
+		<physics name='Dm231'>
+			<points> 1 </points>
+			<min> 2.5e-3 </min>
+			<max> 2.5e-3 </max>
+			<true> 2.5e-3 </true>
+		</physics>
+		<physics name='Ordering'>
+			<points> 1 </points>
+			<min> normal </min>
+			<max> normal </max>
+			<true> normal </true>
+		</physics>
+	</NeutrinoOscillations>
+
+</Analysis>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Analysis>
+
+<!--Anything common to a given neutrino source-->
+
+<!-- Atmospheric neutrinos -->
+	<NeutrinoSource name="Atmospheric">
+		<status> 1 </status>
+        <nuisance name='FluxNormalization_Below1GeV'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<nuisance name='NuNuBarRatio'>
+			<status> 1 </status>
+			<sigma> 0.05 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<physics name='FlavorRatio'>
+			<points> 1 </points>
+			<min> 0.65 </min>
+			<max> 1.25 </max>
+			<true> 1.0 </true>
+		</physics>
+		<fixed name='FluxTilt'>
+			<status> 1 </status>
+			<value> 1.2 </value>
+		</fixed>
+	</NeutrinoSource>
+
+	<NeutrinoSource name="Accelerator">
+		<status> 0 </status>
+        <nuisance name='FluxNormalization'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<physics name='FlavorRatio'>
+			<points> 1 </points>
+			<min> 0.65 </min>
+			<max> 1.25 </max>
+			<true> 1.0 </true>
+		</physics>
+		<fixed name='FluxTilt'>
+			<status> 1 </status>
+			<value> 1.2 </value>
+		</fixed>
+	</NeutrinoSource>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+
+<!--Anything common to a given detector type-->
+
+<!-- Water-Cherenkov -->
+	<NeutrinoTarget name="Water">
+		<status> 1 </status>
+		<nuisance name='XSecNuTau'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+		<physics name='NCoverCC'>
+			<points> 1 </points>
+			<min> 0.85 </min>
+			<max> 1.15 </max>
+			<true> 1.0 </true>
+		</physics>
+		<fixed name='NCHad'>
+			<status> 1 </status>
+			<value> 1.2 </value>
+		</fixed>
+	</NeutrinoTarget>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+
+<!--Anything common to a given neutrino experiment-->
+
+<!-- IceCube Upgrade -->
+	<NeutrinoExperiment name="IceCube-Upgrade">
+		<status> 1 </status>
+		<target name="Water"> </target>
+		<source name='Atmospheric'>
+			<status> 1 </status>
+			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
+				<status> 1 </status>
+			</MCFiles>
+<!-- 			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
+				<status> 1 </status>
+			</MCFiles> -->
+			<DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
+				<status> 0 </status>
+			</DataFiles>
+			<exposure> 5 </exposure> <!-- years-->
+			<MCexposure> 5 </MCexposure> <!-- This is total exposure of all the specified MC files-->
+		</source>
+<!-- 		<nuisance name='IceAbsorption'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ --><!-- 		<physics name='IceScattering'>
+			<points> 10 </points>
+			<min> 0.85 </min>
+			<max> 1.15 </max>
+			<true> 1.0 </true>
+		</physics> -->
+	</NeutrinoExperiment>
+
+
+<!--Anything common to a SINGLE given neutrino physics scenario-->
+
+<!-- Pick one: 3-Osc, 3+N-Osc, LV, NSI -->
+<!-- Please, specify all non-zero parameters. If not specified, the missing parameters are assumed to be zero -->
+
+	<NeutrinoOscillations name="3+1-Osc"> 
+		<status> 1 </status>
+		<flavors> 4 </flavors>
+		<fixed name='Sin2Theta12'>
+			<status> 1 </status>
+			<value> 0.304 </value>
+		</fixed>
+		<nuisance name='Sin2Theta13'>
+			<status> 1 </status>
+			<sigma> 0.005 </sigma>
+			<nominal> 0.022 </nominal>
+		</nuisance>
+		<physics name='Sin2Theta23'>
+			<points> 1 </points>
+			<min> 0.517 </min>
+			<max> 0.517 </max>
+			<true> 0.517 </true>
+		</physics>
+		<physics name='Sin2Theta14'>
+			<points> 10 </points>
+			<min> 0.0 </min>
+			<max> 0.1 </max>
+			<true> 0.0 </true>
+		</physics>
+		<fixed name='Dm221'>
+			<status> 1 </status>
+			<value> 7.42e-5 </value>
+		</fixed>
+		<physics name='dCP'>
+			<points> 1 </points>
+			<min> 4.14 </min>
+			<max> 4.14 </max>
+			<true> 4.14 </true>
+		</physics>
+		<physics name='Dm231'>
+			<points> 1 </points>
+			<min> 2.5e-3 </min>
+			<max> 2.5e-3 </max>
+			<true> 2.5e-3 </true>
+		</physics>
+		<physics name='Ordering'>
+			<points> 1 </points>
+			<min> normal </min>
+			<max> normal </max>
+			<true> normal </true>
+		</physics>
+	</NeutrinoOscillations>
+
+</Analysis>
