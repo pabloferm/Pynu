@@ -6,9 +6,9 @@
 <!-- Atmospheric neutrinos -->
 	<NeutrinoSource name="Atmospheric">
 		<status> 1 </status>
-        <nuisance name='FluxNormalization_Below1GeV'>
+        <nuisance name='FluxNormalization_Above1GeV'>
 			<status> 1 </status>
-			<sigma> 0.25 </sigma>
+			<sigma> 0.1 </sigma>
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
@@ -24,12 +24,12 @@
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
-		<nuisance name='FluxTilt'>
-			<status> 1 </status>
-			<sigma> 0.25 </sigma>
-			<nominal> 1.0 </nominal>
-			<distribution> normal </distribution>
-		</nuisance>
+		<physics name='FluxTilt'>
+			<points> 9 </points>
+			<min> 0.9 </min>
+			<max> 1.1 </max>
+			<true> 1.0 </true>
+		</physics>
 	</NeutrinoSource>
 
 	<NeutrinoSource name="Accelerator">
@@ -59,21 +59,21 @@
 <!-- Water-Cherenkov -->
 	<NeutrinoTarget name="Water">
 		<status> 1 </status>
-		<nuisance name='XSecNuTau'>
+		<physics name='XSecNuTau'>
+			<points> 9 </points>
+			<min> 0.75 </min>
+			<max> 1.25 </max>
+			<true> 1.0 </true>
+		</physics>
+		<nuisance name='DIS'>
 			<status> 1 </status>
-			<sigma> 0.25 </sigma>
-			<nominal> 1.0 </nominal>
-			<distribution> normal </distribution>
-		</nuisance>
-		<nuisance name='NCoverCC'>
-			<status> 1 </status>
-			<sigma> 0.25 </sigma>
+			<sigma> 0.05 </sigma>
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
 		<fixed name='NCHad'>
 			<status> 1 </status>
-			<value> 1.2 </value>
+			<value> 1.0 </value>
 		</fixed>
 	</NeutrinoTarget>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
@@ -136,9 +136,9 @@
 			<value> 0.022 </value>
 		</fixed>
 		<physics name='Sin2Theta23'>
-			<points> 20 </points>
-			<min> 0.3 </min>
-			<max> 0.7 </max>
+			<points> 13 </points>
+			<min> 0.45 </min>
+			<max> 0.65 </max>
 			<true> 0.517 </true>
 		</physics>
 		<fixed name='Dm221'>
@@ -152,9 +152,9 @@
 			<true> 4.14 </true>
 		</physics>
 		<physics name='Dm231'>
-			<points> 1 </points>
-			<min> 2.5e-3 </min>
-			<max> 2.5e-3 </max>
+			<points> 9 </points>
+			<min> 2.0e-3 </min>
+			<max> 3.0e-3 </max>
 			<true> 2.5e-3 </true>
 		</physics>
 		<physics name='Ordering'>

@@ -5,6 +5,7 @@ import Experiments as Exp  # contains rd class to read and setup each experiment
 from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
 import Fitter as FT  # does all the fitting calculations
 
+
 class PyNu:
     ''' Top class containing everything '''
 
@@ -147,6 +148,9 @@ class PyNu:
     def ApplyPhysicsWeights(self, point):  # Physics parameters
         if self.verbosity:
             print('Applying Physics Point Weights')
+            print(*self.Analysis.PhysicsList)
+            print(self.Analysis.FullPhysicsGrid[point])
+
         self.ApplyWeights(
             'Physics',
             vector=self.Analysis.FullPhysicsGrid[point])
@@ -254,7 +258,7 @@ class PyNu:
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
         self.ComputeBinnedExpectation(
             point, physics=True)  # Nominal expectation
-        # Statistics only computation to start guiding the minimization
+        ''' Statistics only computation to start guiding the minimization '''
         X2_stats = FT.ChiSquaredStatsOnly(self.Observation, self.Expectation)
         self.WriteToOutFile(point, 'Analysis', 'Chi2 Stats. Only', X2_stats)
 
@@ -267,7 +271,10 @@ class PyNu:
             Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
 
         '''Combined chi^2 minimization'''
-        # tol = max(1e-4, np.sqrt(X2_stats) * 1e-5)
+        if X2_stats > 200:
+            tol = 1e-4
+        else:
+            tol = None
         res = minimize(
             self.ModelTester,
             AnalyticPrior,
@@ -276,7 +283,8 @@ class PyNu:
             jac=True,
             bounds=AnalyticBounds,
             options={
-                'disp': False})
+                'disp': False,
+                'tol': tol})
 
         self.WriteToOutFile(
             point,
@@ -285,6 +293,9 @@ class PyNu:
             res.x.tolist())
 
         self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', res.fun)
+
+        if self.verbosity:
+            print(f'-2 ln(H/H0) = {res.fun}')
 
         return - 0.5 * res.fun
 
@@ -315,6 +326,9 @@ class PyNu:
 
         return (Chi2, D_Chi2)
 
+    def SetOutFile(self, fname):
+        self.outfile = fname
+
     def CreateOutFile(self, fname):
         import h5py
         self.outfile = fname
@@ -336,17 +350,15 @@ class PyNu:
                             self.Analysis.NumberOfPhysPoints,
                             compression='gzip')
             grp = hf.create_group('Physics Parameters')
-            i = 0
-            physics_lists = [
-                value for value in zip(
-                    *self.Analysis.FullPhysicsGrid)]
+
+            physics_lists = list(zip(*self.Analysis.FullPhysicsGrid))
             for key in self.Analysis.Physics.keys():
                 this = grp.create_group(key)
                 for par in self.Analysis.Physics[key]:
+                    idx = self.Analysis.PhysicsList.index(par)
                     this.create_dataset(
-                        par, data=physics_lists[i],
+                        par, data=physics_lists[idx],
                         compression='gzip')
-                    i = + 1
 
             grp = hf.create_group('Analysis')
             grp.create_dataset(

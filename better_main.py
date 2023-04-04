@@ -4,6 +4,7 @@ import argparse
 
 from PyNu import PyNu
 
+
 def main():
 
     print('=============================================================\n' +
@@ -63,7 +64,7 @@ def main():
 
     # Setup analysis from xml file
     ################################
-    pynu = PyNu(args.xml_file, verbosity=False)
+    pynu = PyNu(args.xml_file, verbosity=True)
 
     # Setup running points and options
     ####################################
@@ -90,9 +91,15 @@ def main():
 
     # Setup output file
     ############################
-    if (args.cluster and (points[0] == 0 or not os.path.isfile(
-            args.outfile))) or not args.cluster or not os.path.isfile(args.outfile):
+    # if (args.cluster and (points[0] == 0 or not os.path.isfile(
+        # args.outfile))) or (not args.cluster) or
+        # (os.path.isfile(args.outfile)):
+    if not os.path.isfile(args.outfile):
+        print(not os.path.isfile(args.outfile))
         pynu.CreateOutFile(args.outfile)
+    else:
+        print('hey')
+        pynu.SetOutFile(args.outfile)
 
     # Set analysis
     ################
@@ -119,18 +126,21 @@ def main():
             print(
                 f'Processing point {p} of {pynu.Analysis.NumberOfPhysPoints} points in the analysis.')
             pynu.FitBinnedLLH(p)
+            print('=====================================================')
 
 
 if __name__ == '__main__':
-    import cProfile
-    from pstats import SortKey
-    import pstats
-    cProfile.run('main()', 'output.dat')
+    # import cProfile
+    # from pstats import SortKey
+    # import pstats
+    # cProfile.run('main()', 'output.dat')
 
-    with open('output_time.txt', 'w') as f:
-        p = pstats.Stats('output.dat', stream=f)
-        p.sort_stats('time').print_stats()
+    # with open('output_time.txt', 'w') as f:
+    #     p = pstats.Stats('output.dat', stream=f)
+    #     p.sort_stats('time').print_stats()
 
-    with open('output_calls.txt', 'w') as f:
-        p = pstats.Stats('output.dat', stream=f)
-        p.sort_stats('calls').print_stats()
+    # with open('output_calls.txt', 'w') as f:
+    #     p = pstats.Stats('output.dat', stream=f)
+    #     p.sort_stats('calls').print_stats()
+
+    main()

@@ -4,6 +4,7 @@ import argparse
 
 from PyNu import Plot
 
+
 def main():
     parse = argparse.ArgumentParser()
     parse.add_argument(
@@ -16,5 +17,6 @@ def main():
 
     pynuplot = Plot(args.hdf5_file)
 
+
 if __name__ == '__main__':
-	main()
+    main()

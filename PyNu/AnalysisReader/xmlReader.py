@@ -155,6 +155,7 @@ class parseXML:
                         self.PhysEdges[par][j][0],
                         self.PhysEdges[par][j][-1],
                         self.PhysPoints[par][j])
+        # print(self.PhysGrid)
 
     def CartesianPhysicsGrid(self):
         v = []
