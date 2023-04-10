@@ -15,15 +15,19 @@ class Plot:
             self,
             analysis_output_file,
             analysis_input_file=False,
-            directory=None):
+            directory=''):
         ''' Set up basic analysis variables and structure to build full analysis '''
         if analysis_input_file:
-            self.AnalysisInput = AR.parse(analysis_file, check=self.verbosity)
+            self.AnalysisInput = AR.parse(analysis_input_file, check=True)
+
+        self.directory = directory
 
         with h5py.File(analysis_output_file, 'r') as hf:
 
             self.X2_stats = np.array(hf['Analysis/Chi2 Stats. Only'])
             self.X2 = np.array(hf['Analysis/Chi2 Systs.'])
+            self.minX2 = np.amin(self.X2)
+            self.BestFit = self.X2 == self.minX2
 
             self.Physics = {}
             self.PhysicsFlat = {}
@@ -35,10 +39,13 @@ class Plot:
             self.NumberOfPhysicsPars = len(self.PhysicsFlat)
 
             self.Nuisance = {}
+            self.NuisanceFlat = {}
             for source in hf['Nuisance Parameters']:
                 self.Nuisance[source] = {}
                 for item, dset in hf['Nuisance Parameters/' + source].items():
                     self.Nuisance[source][item] = np.array(dset)
+                    self.NuisanceFlat[source + '+' + item] = np.array(dset)
+            self.NumberOfNuisancePars = len(self.NuisanceFlat)
 
             self.Fixed = {}
             for source in hf['Fixed Parameters']:
@@ -47,84 +54,210 @@ class Plot:
                     self.Fixed[source][item] = np.array(dset)
 
         self.levels_2d = (4.61, 9.21)
-        self.levels_txt_2d = {4.61:r'$90\%$',9.21:r'$99\%$'}
+        self.levels_txt_2d = {4.61: r'$90\%$ C.L.', 9.21: r'$99\%$ C.L.'}
         # self.colors = ('darkblue','orange','limegreen','mediumvioletred','crimson')
-        self.colors_2d = ('orange', 'orange')
-        self.lines_2d = ('dashed','solid')
-        self.linewidths_2d = (1,1)
+        self.colors_2d = ('darkturquoise', 'darkturquoise')
+        self.lines_2d = ('dashed', 'solid')
+        self.linewidths_2d = (0.8, 1.3)
 
-        self.levels_1d = [1,6.63,9, 16]
-        self.levels_txt_1d = {1:r'$1\sigma$',6.63:r'$99\%$',9:r'$3\sigma$', 16:r'$4\sigma$'}
+        self.levels_1d = [1, 6.63, 9, 16]
+        self.linewidths_1d = (1.3, 0.8)
+        self.colors_1d = ('seagreen', 'mediumseagreen')
+        self.levels_txt_1d = {
+            1: r'$1\sigma$',
+            6.63: r'$99\%$',
+            9: r'$3\sigma$',
+            16: r'$4\sigma$'}
+
+        self.nuislevels_1d = [1, 9]
+        self.nuislinewidths_1d = (1.3, 0.8)
+        self.nuiscolors_1d = ('limegreen', 'peru')
+        self.nuislevels_txt_1d = {
+            1: r'$1\sigma$',
+            9: r'$3\sigma$'}
 
         # self.levels_1d = [1,2.71,4,6.63,9]
         # self.levels_txt_1d = {1:r'$1\sigma$',2.71:r'$90\%$',4:r'$2\sigma$',6.63:r'$99\%$',9:r'$3\sigma$'}
 
         # self.Plot1D(also_stats_only=True)
         # self.Plot2D()
-        self.ResultPlotsMatrix()
+        # self.ResultPlotsMatrix()
 
     def ResultPlotsMatrix(self, interpolate=True):
         fig, ax = plt.subplots(
-                    nrows=self.NumberOfPhysicsPars, 
-                    ncols=self.NumberOfPhysicsPars, 
-                    figsize=(15, 15))
+            nrows=self.NumberOfPhysicsPars,
+            ncols=self.NumberOfPhysicsPars,
+            figsize=(15, 15))
 
         for i, (item_row, values_row) in enumerate(self.PhysicsFlat.items()):
-            for j, (item_col, values_col) in enumerate(self.PhysicsFlat.items()):
-                if i == j: # Diagonal 1D plots
+            for j, (item_col, values_col) in enumerate(
+                    self.PhysicsFlat.items()):
+                if i == j:  # Diagonal 1D plots
                     x = np.unique(values_col)
                     y = np.zeros_like(x)
                     for k, t in enumerate(x):
                         y[k] = np.amin(self.X2[values_col == t])
                     if interpolate:
                         spl = interp1d(x, y, kind='quadratic')
-                        x_dense = np.linspace(np.amin(x), np.amax(x), 10*x.size)
+                        x_dense = np.linspace(
+                            np.amin(x), np.amax(x), 10 * x.size)
                         y_dense = spl(x_dense)
                         y_dense -= np.amin(y_dense)
-                        ax[i,j].plot(x_dense, y_dense, label='w/ systemtics')
+                        ax[i,
+                           j].plot(x_dense,
+                                   y_dense,
+                                   label='w/ systemtics',
+                                   color=self.colors_1d[0],
+                                   linewidth=self.linewidths_1d[0])
                     else:
                         y -= np.amin(y)
-                        ax[i,j].plot(x, y, label='w/ systemtics')
-                    
-                    ax[i,j].set_ylabel(r'$\chi^2$', fontsize=12)
-                    ax[i,j].set_xlabel(self.Format(item_col), fontsize=12)
-                    ax[i,j].set_ylim(0,25)
-                    ax[i,j].tick_params(axis='both', labelsize=12)
-                    axmin,axmax = ax[i,j].get_xlim()
+                        ax[i,
+                           j].plot(x,
+                                   y,
+                                   label='w/ systemtics',
+                                   color=self.colors_1d[0],
+                                   linewidth=self.linewidths_1d[0])
+
+                    ax[i, j].set_ylabel(r'$\chi^2$', fontsize=12)
+                    ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
+                    ax[i, j].set_ylim(0, 25)
+                    ax[i, j].tick_params(axis='both', labelsize=12)
+                    axmin, axmax = ax[i, j].get_xlim()
                     for lv in self.levels_1d:
-                    	ax[i,j].axhline(y=lv, color='grey', linestyle='--', alpha=0.4, linewidth=0.7)
-                    	# ax[i,j].text(0.15*axmin+0.85*axmax, lv, levels_txt[lv])
-                    	ax[i,j].text(0.95*axmin+0.05*axmax, lv, self.levels_txt_1d[lv], fontsize=10)
+                        ax[i, j].axhline(
+                            y=lv, color='grey', linestyle='--', alpha=0.4, linewidth=0.7)
+                        # ax[i,j].text(0.15*axmin+0.85*axmax, lv, levels_txt[lv])
+                        ax[i, j].text(0.95 * axmin + 0.05 * axmax,
+                                      lv, self.levels_txt_1d[lv], fontsize=10)
 
-
-                elif i>j: # Off-diagonal 2D plots
+                # elif i>j: # Off-diagonal 2D plots
+                else:  # Off-diagonal 2D plots
                     x = np.unique(values_col)
                     y = np.unique(values_row)
                     w = np.array([])
-                    for kk,dx in enumerate(x):
-                        for ll,dy in enumerate(y):
-                            cut = np.logical_and(values_col==dx,values_row==dy)
-                            w = np.append(w,np.amin(self.X2[cut]))
+                    for kk, dx in enumerate(x):
+                        for ll, dy in enumerate(y):
+                            cut = np.logical_and(
+                                values_col == dx, values_row == dy)
+                            w = np.append(w, np.amin(self.X2[cut]))
                     X, Y = np.meshgrid(x, y)
                     f = interp2d(x, y, w, kind='cubic')
-                    Chi2 = np.reshape(w, (x.size,y.size)).T
+                    Chi2 = np.reshape(w, (x.size, y.size)).T
                     if interpolate:
-                    	x_dense = np.linspace(np.amin(x),np.amax(x),50)
-                    	y_dense = np.linspace(np.amin(y),np.amax(y),50)
-                    	newX, newY = np.meshgrid(x_dense, y_dense)
-                    	newChi2 = f(x_dense, y_dense)
-                    	CS = ax[i,j].contour(newX,newY,newChi2, colors=self.colors_2d, levels=self.levels_2d, linestyles=self.lines_2d, linewidths=self.linewidths_2d)
+                        x_dense = np.linspace(np.amin(x), np.amax(x), 50)
+                        y_dense = np.linspace(np.amin(y), np.amax(y), 50)
+                        newX, newY = np.meshgrid(x_dense, y_dense)
+                        newChi2 = f(x_dense, y_dense)
+                        CS = ax[i,
+                                j].contour(newX,
+                                           newY,
+                                           newChi2,
+                                           colors=self.colors_2d,
+                                           levels=self.levels_2d,
+                                           linestyles=self.lines_2d,
+                                           linewidths=self.linewidths_2d)
 
-                    ax[i,j].set_xlabel(self.Format(item_col), fontsize=12)
-                    ax[i,j].set_ylabel(self.Format(item_row), fontsize=12)
-                    ax[i,j].tick_params(axis='both', labelsize=12)
+                    h1, _ = CS.legend_elements()
+                    # print(h1)
+                    ax[i, j].legend(
+                        h1, self.levels_txt_2d.values(), fontsize=8)
+                    ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
+                    ax[i, j].set_ylabel(self.Format(item_row), fontsize=12)
+                    ax[i, j].tick_params(axis='both', labelsize=12)
+                    # ax[i,j].legend()
 
         # fig.subplots_adjust(hspace=0.5, wspace=0.5)
         fig.tight_layout()
         plt.tight_layout()
         plt.show()
+        fig.savefig(self.directory + '/ResultPlotsMatrix.png')
 
+    def NuisancePlots(self, all_plots=True, interpolate=True):
+        if not self.AnalysisInput:
+            sys.exit('Please, specify analysis xml file')
 
+        from Fitter import Distributions as dt
+        if all_plots:
+            if self.NumberOfPhysicsPars < 5:
+                fig, ax = plt.subplots(
+                    nrows=1, ncols=self.NumberOfPhysicsPars, figsize=(
+                        14, 4))
+                axis = ax.flat
+            else:
+                ncols = 4
+                nrows = self.NumberOfPhysicsPars // ncols + 1
+                fig, ax = plt.subplots(
+                    nrows=nrows, ncols=ncols, figsize=(
+                        6 * ncols, 6 * nrows))
+                axis = ax.flat
+
+            fig.tight_layout(h_pad=5)
+
+            for i, (item, values) in enumerate(self.NuisanceFlat.items()):
+
+                block, source = item.split('+')
+                prior_mu = self.AnalysisInput.NuisNominal[block][source]
+                prior_sig = self.AnalysisInput.NuisSigma[block][source]
+
+                post_mu = values[self.BestFit]
+                post_sig = self.AnalysisInput.NuisSigma[block][source] * 0.9
+
+                x = np.linspace(
+                    prior_mu - 5 * prior_sig,
+                    prior_mu + 5 * prior_sig,
+                    100)
+                prior_dist = dt.logGaussianPrior(x, prior_mu, prior_sig)
+                post_dist = dt.logGaussianPrior(x, post_mu, post_sig)
+
+                axis[i].plot(
+                    x,
+                    prior_dist,
+                    label='Prior dist.',
+                    color=self.nuiscolors_1d[1],
+                    linewidth=self.nuislinewidths_1d[1])
+                axis[i].plot(
+                    x,
+                    post_dist,
+                    label='Posterior dist.',
+                    color=self.nuiscolors_1d[0],
+                    linewidth=self.nuislinewidths_1d[0])
+                axis[i].axvline(
+                    x=prior_mu,
+                    label='Prior best',
+                    color=self.nuiscolors_1d[1],
+                    linestyle='--',
+                    alpha=0.7,
+                    linewidth=1)
+                axis[i].axvline(
+                    x=post_mu,
+                    label='Posterior best',
+                    color=self.nuiscolors_1d[0],
+                    linestyle='--',
+                    alpha=0.7,
+                    linewidth=1)
+                axis[i].set_ylabel(r'$\chi^2$', fontsize=14)
+                axis[i].set_xlabel(self.Format(item), fontsize=14)
+                axis[i].set_ylim(0, 25)
+
+                axmin, axmax = ax[i].get_xlim()
+                for lv in self.levels_1d:
+                    axis[i].axhline(
+                        y=lv,
+                        color='grey',
+                        linestyle='--',
+                        alpha=0.4,
+                        linewidth=0.7)
+                    axis[i].text(
+                        0.95 * axmin + 0.05 * axmax,
+                        lv,
+                        self.levels_txt_1d[lv],
+                        fontsize=10)
+
+                axis[i].legend()
+
+            plt.tight_layout()
+            plt.show()
+            fig.savefig(self.directory + '/NuisancePlots.png')
 
     def Plot1D(self, all_plots=True, also_stats_only=False, interpolate=True):
         if all_plots:
@@ -151,7 +284,7 @@ class Plot:
                     y[j] = np.amin(self.X2[values == t])
                 if interpolate:
                     spl = interp1d(x, y, kind='quadratic')
-                    x_dense = np.linspace(np.amin(x), np.amax(x), 10*x.size)
+                    x_dense = np.linspace(np.amin(x), np.amax(x), 10 * x.size)
                     y_dense = spl(x_dense)
                     axis[i].plot(x_dense, y_dense, label='w/ systemtics')
                 else:
@@ -161,12 +294,14 @@ class Plot:
                         y[j] = np.amin(self.X2_stats[values == t])
                     if interpolate:
                         spl = interp1d(x, y, kind='quadratic')
-                        x_dense = np.linspace(np.amin(x), np.amax(x), 10*x.size)
+                        x_dense = np.linspace(
+                            np.amin(x), np.amax(x), 10 * x.size)
                         y_dense = spl(x_dense)
-                        axis[i].plot(x_dense, y_dense, linewidth=0.5, label='Stats. only')
+                        axis[i].plot(
+                            x_dense, y_dense, linewidth=0.5, label='Stats. only')
                     else:
                         axis[i].plot(x, y, linewidth=0.5, label='Stats. only')
-                axis[i].set_ylim(0,25)
+                axis[i].set_ylim(0, 25)
                 axis[i].set_xlabel(self.Format(item))
                 axis[i].set_ylabel(r'$\chi^2$')
                 axis[i].legend()
@@ -181,14 +316,16 @@ class Plot:
         else:
             ncols = nrows = self.NumberOfPhysicsPars - 1
             fig = plt.figure()
-            gs = GridSpec(nrows-1, ncols-1)
-            ax = [[0]*(nrows-1)]*(ncols-1)
-            ax[nrows-2][0] = plt.subplot(gs[nrows-2,0])
-            for i in range(0, nrows-2):
-                ax[i][0] = plt.subplot(gs[i,0], sharey = ax[nrows-2][0])
-            for j in range(1, ncols-1):
-            	ax[nrows-2][j] = plt.subplot(gs[nrows-2,j], sharex = ax[nrows-2][0])
-
+            gs = GridSpec(nrows - 1, ncols - 1)
+            ax = [[0] * (nrows - 1)] * (ncols - 1)
+            ax[nrows - 2][0] = plt.subplot(gs[nrows - 2, 0])
+            for i in range(0, nrows - 2):
+                ax[i][0] = plt.subplot(gs[i, 0], sharey=ax[nrows - 2][0])
+            for j in range(1, ncols - 1):
+                ax[nrows -
+                   2][j] = plt.subplot(gs[nrows -
+                                          2, j], sharex=ax[nrows -
+                                                           2][0])
 
                 # for j in range(ncols):
                 #     if i > j:
@@ -198,7 +335,7 @@ class Plot:
                 #             ax[i][j] = plt.subplot(gs[i,j], sharex = ax[nrows-1][j])
                 #         elif i == nrows-1 and j>0:
                 #             ax[i][j] = plt.subplot(gs[i,j], sharey = ax[i][0])
-                        # ax[i][j] = fig.add_subplot(gs[i,j])
+                # ax[i][j] = fig.add_subplot(gs[i,j])
 
             # for i in range(ncols):
             #     for j in range(nrows):
@@ -213,7 +350,6 @@ class Plot:
             plt.subplots_adjust(hspace=0.00)
             fig.tight_layout()
             plt.show()
-
 
     def Format(self, string):
         new_string = ''
@@ -230,8 +366,35 @@ class Plot:
             new_string += r'$\epsilon{' + string[-2] + string[-1] + '}$'
 
         if 'Dm' in string:
-            new_string += r'$\Delta m^2_{' + string[-2] + string[-1] + '}$'
+            new_string += r'$\Delta m^2_{' + \
+                string[-2] + string[-1] + '}$ [eV$^2$]'
 
+        if 'Atmos' in string:
+            new_string += 'Atm. Flux '
+            if 'Tilt' in string:
+                new_string += r'Tilt ($\gamma$)'
+            elif 'Norm' in string:
+                new_string += 'Normalization '
+                if 'Above1GeV' in string:
+                    new_string += r'$>$ 1 GeV'
+                elif 'Below1GeV' in string:
+                    new_string += r'$<$ 1 GeV'
+
+        if 'Water' in string:
+            if 'Ratio' in string:
+                new_string += r'$\sigma^{H_2O}$'
+            else:
+                new_string += r'$\sigma^{H_2O}$'
+                if 'NuTau' in string:
+                    new_string += r'$_{\nu_\tau}$'
+                elif 'DIS' in string:
+                    new_string += r'$_{DIS}$'
+                elif 'NC' in string:
+                    new_string += r'$_{NC}$'
+                elif 'CCQE' in string:
+                    new_string += r'$_{CCQE}$'
+                elif 'CC1Pi' in string:
+                    new_string += r'$_{CC 1\pi}$'
         # print(new_string)
 
         if new_string == '':
