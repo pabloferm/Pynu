@@ -6,7 +6,7 @@ import sys
 from scipy.interpolate import interp1d, interp2d
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-plt.style.use(os.environ['PYNU'] + '/plot.mplstyle')
+plt.style.use(os.environ['PYNU'] + '/utils/plot.mplstyle')
 
 
 class Plot:
@@ -400,3 +400,4 @@ class Plot:
         if new_string == '':
             return string
         return new_string
+

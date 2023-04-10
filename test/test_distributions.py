@@ -1,8 +1,9 @@
 from Fitter import Distributions as dt
 import matplotlib.pyplot as plt
 import numpy as np
+import os 
 
-plt.style.use('/usr/share/matplotlib/mpl-data/stylelib/paper.mplstyle')
+plt.style.use(os.environ['PYNU'] + '/utils/plot.mplstyle')
 
 mu = [0.2, 0.65, 0.97, 0.9]
 sig = [0.08, 0.15, 0.025, 0.07]
