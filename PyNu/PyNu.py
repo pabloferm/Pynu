@@ -40,7 +40,6 @@ class PyNu:
         self.ApplyTrueWeights()
         self.ApplyOscillations('Nominal')
         self.SetBinnedObservedEvents()
-        # print(self.Observation)
 
     def ComputeBinnedExpectation(
             self,
