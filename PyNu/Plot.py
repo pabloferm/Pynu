@@ -400,4 +400,3 @@ class Plot:
         if new_string == '':
             return string
         return new_string
-

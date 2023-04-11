@@ -1,7 +1,7 @@
 from Fitter import Distributions as dt
 import matplotlib.pyplot as plt
 import numpy as np
-import os 
+import os
 
 plt.style.use(os.environ['PYNU'] + '/utils/plot.mplstyle')
 
@@ -44,15 +44,15 @@ for i, (m, s) in enumerate(zip(mu, sig)):
             logB[j] = dt.logBetaPrior(x[j], m, s)
     axis2[i].plot(x, logG, label='log Gaussian')
     axis2[i].plot(x, logB, label='log Beta')
-    axis2[i].set_ylim(0,2)
+    axis2[i].set_ylim(0, 2)
     axis2[i].set_xlim(0.01, 0.99)
     axis2[i].set_title(r'$\mu$=' + str(m) + r', $\sigma$=' + str(s))
     axis2[i].set_xlabel('Efficiency')
     axis2[i].legend()
-    axis2[i].axvline(x=m+s)
-    axis2[i].axvline(x=m-s)
+    axis2[i].axvline(x=m + s)
+    axis2[i].axvline(x=m - s)
     axis2[i].axvline(x=m)
-    axis2[i].axvline(x=dt.BetaMean(a,b))
+    axis2[i].axvline(x=dt.BetaMean(a, b))
     axis2[i].axhline(y=1)
 
 plt.show()

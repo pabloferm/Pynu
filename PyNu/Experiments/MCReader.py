@@ -10,15 +10,27 @@ import h5py
 def Manager(detector, source, dict_of_details, scenario):
     if detector in ['SK', 'SuperK', 'Super-Kamiokande']:
         if source == 'Atmospheric':
-            from .SuperK_Atm import SuperK_Atm
-            return SuperK_Atm(dict_of_details, scenario)
+            if 'Pheno' in detector:
+                from .SuperK_Atm_Pheno import SuperK_Atm_Pheno
+                if 'Htag' in detector:
+                    return SuperK_Htag(dict_of_details, scenario)
+                elif 'Gdtag' in detector:
+                    return SuperK_Gdtag(dict_of_details, scenario)
+                else:
+                    return SuperK(dict_of_details, scenario)
+            else:
+                from .SuperK_Atm_Official import SuperK_Atm_Official
+                if 'Htag' in detector:
+                    return SuperK_Htag(dict_of_details, scenario)
+                elif 'Gdtag' in detector:
+                    return SuperK_Gdtag(dict_of_details, scenario)
+                else:
+                    return SuperK(dict_of_details, scenario)
         elif source == 'Solar':
             pass
         elif source == 'Reactors':
             pass
         elif source in ['Accelerator', 'LBL', 'T2K']:
-            # from .SuperK.SuperK import SuperK_LBL
-            # return SuperK_LBL(dict_of_details, scenario)
             pass
         else:
             sys.exit('Source not found for ' + detector)

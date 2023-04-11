@@ -1,8 +1,6 @@
 # Class for the atmospheric neutrinos in IceCube-Upgrade
 
 import numpy as np
-import pandas as pd
-import h5py
 import nuflux
 from .Experiment import Experiment
 
@@ -30,17 +28,16 @@ class ICUp_Atm(Experiment):
     def MCVariables(self):
         d_itype = self.MC['pid']
         d_Etrue = self.MC['true_energy']
-        condition = (d_itype < 16) * (d_itype > -1) * (d_Etrue > 1)
         self.EReco = self.MC['reco_energy'][condition]
-        self.CosZReco = np.cos(self.MC['reco_zenith'][condition])
-        self.CosZTrue = np.cos(self.MC['true_zenith'][condition])
-        self.AziTrue = self.MC['true_azimuth'][condition]
-        self.CC = self.MC['current_type'][condition]
-        self.nuPDG = np.int_(self.MC['pdg'][condition])
-        self.ETrue = self.MC['true_energy'][condition]
-        self.Weight = self.MC['weight'][condition]
-        self.Sample = self.MC['pid'][condition]  # Sample of each event
-        self.Mode = self.NEUTMode()[condition]
+        self.CosZReco = np.cos(self.MC['reco_zenith'])
+        self.CosZTrue = np.cos(self.MC['true_zenith'])
+        self.AziTrue = self.MC['true_azimuth']
+        self.CC = self.MC['current_type']
+        self.nuPDG = np.int_(self.MC['pdg'])
+        self.ETrue = self.MC['true_energy']
+        self.Weight = self.MC['weight']
+        self.Sample = self.MC['pid']  # Sample of each event
+        self.Mode = self.NEUTMode()
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
@@ -53,9 +50,12 @@ class ICUp_Atm(Experiment):
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
-        self.Norm = 365 * 24 * 60 * 60 * 1e4 * self.FitExposure
+        self.Norm *= 365 * 24 * 60 * 60 * 1e4
 
         self.BaseWeight = self.Weight * self.Norm
+
+        del self.MC
+
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux('IPhonda2014_spl_solmin')
@@ -104,11 +104,12 @@ class ICUp_Atm(Experiment):
 
     def DataVariables(self):
         d_itype = self.Data['pid']
-        condition = (d_itype < 16) * (d_itype > -1)
-        self.dEReco = self.Data['reco_energy'][condition]
-        self.dCosZReco = np.cos(self.Data['reco_zenith'][condition])
-        self.dSample = self.Data['pid'][condition]  # Sample of each event
+        self.dEReco = self.Data['reco_energy']
+        self.dCosZReco = np.cos(self.Data['reco_zenith'])
+        self.dSample = self.Data['pid']  # Sample of each event
         self.dNumberOfEvents = self.Sample.size
+
+        del self.Data
 
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco
