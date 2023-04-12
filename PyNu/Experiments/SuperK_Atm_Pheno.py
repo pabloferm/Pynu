@@ -31,7 +31,7 @@ class SuperK(Experiment):
         self.EReco = self.MC['evis'][condition]
         self.CosZReco = self.MC['recodirZ'][condition]
         self.CosZTrue = self.MC['dirnuZ'][condition]
-        self.AziTrue = self.MC['azi']d_azi[condition]
+        self.AziTrue = self.MC['azi'][condition]
         self.Mode = self.MC['mode'][condition]
         self.CC = np.abs(self.Mode) < 30
         self.nuPDG = self.MC['ipnu'][condition]
@@ -88,7 +88,7 @@ class SuperK(Experiment):
         self.dNumberOfEvents = self.Sample.size
 
         del self.Data
-        
+
 
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco
