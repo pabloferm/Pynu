@@ -29,15 +29,15 @@ class SuperK(Experiment):
         d_itype = self.MC['itype']
         condition = (d_itype > -1)
         self.EReco = self.MC['evis'][condition]
-        self.CosZReco = self.MC['recodirZ'][condition]
-        self.CosZTrue = self.MC['dirnuZ'][condition]
-        self.AziTrue = self.MC['azi']d_azi[condition]
+        self.CosZReco = self.MC['dir'][:,2][condition]
+        self.CosZTrue = self.MC['dirnu'][:,2][condition]
+        # self.AziTrue = self.MC['azi']d_azi[condition]
         self.Mode = self.MC['mode'][condition]
         self.CC = np.abs(self.Mode) < 30
         self.nuPDG = self.MC['ipnu'][condition]
         self.ETrue = self.MC['pnu'][condition]
-        self.Weight = self.MC['weightReco'][condition] * \
-            self.MC['weightSim'][condition]
+        # self.Weight = self.MC['weightReco'][condition] * \
+        #     self.MC['weightSim'][condition]
         self.Sample = self.MC['itype'][condition]  # Sample of each event
         self.DecayE = self.MC['muedk'][condition]
 
@@ -88,7 +88,7 @@ class SuperK(Experiment):
         self.dNumberOfEvents = self.Sample.size
 
         del self.Data
-        
+
 
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco
