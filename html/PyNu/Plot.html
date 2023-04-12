@@ -1,0 +1,1251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>PyNu.Plot API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>PyNu.Plot</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import AnalysisReader as AR  # contains parse class to read and setup the analysis
+import h5py
+import numpy as np
+import os
+import sys
+from scipy.interpolate import interp1d, interp2d
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+plt.style.use(os.environ[&#39;PYNU&#39;] + &#39;/utils/plot.mplstyle&#39;)
+
+
+class Plot:
+
+    def __init__(
+            self,
+            analysis_output_file,
+            analysis_input_file=False,
+            directory=&#39;&#39;):
+        &#39;&#39;&#39; Set up basic analysis variables and structure to build full analysis &#39;&#39;&#39;
+        if analysis_input_file:
+            self.AnalysisInput = AR.parse(analysis_input_file, check=True)
+
+        self.directory = directory
+
+        with h5py.File(analysis_output_file, &#39;r&#39;) as hf:
+
+            self.X2_stats = np.array(hf[&#39;Analysis/Chi2 Stats. Only&#39;])
+            self.X2 = np.array(hf[&#39;Analysis/Chi2 Systs.&#39;])
+            self.minX2 = np.amin(self.X2)
+            self.BestFit = self.X2 == self.minX2
+
+            self.Physics = {}
+            self.PhysicsFlat = {}
+            for source in hf[&#39;Physics Parameters&#39;]:
+                self.Physics[source] = {}
+                for item, dset in hf[&#39;Physics Parameters/&#39; + source].items():
+                    self.Physics[source][item] = np.array(dset)
+                    self.PhysicsFlat[source + &#39;+&#39; + item] = np.array(dset)
+            self.NumberOfPhysicsPars = len(self.PhysicsFlat)
+
+            self.Nuisance = {}
+            self.NuisanceFlat = {}
+            for source in hf[&#39;Nuisance Parameters&#39;]:
+                self.Nuisance[source] = {}
+                for item, dset in hf[&#39;Nuisance Parameters/&#39; + source].items():
+                    self.Nuisance[source][item] = np.array(dset)
+                    self.NuisanceFlat[source + &#39;+&#39; + item] = np.array(dset)
+            self.NumberOfNuisancePars = len(self.NuisanceFlat)
+
+            self.Fixed = {}
+            for source in hf[&#39;Fixed Parameters&#39;]:
+                self.Fixed[source] = {}
+                for item, dset in hf[&#39;Fixed Parameters/&#39; + source].items():
+                    self.Fixed[source][item] = np.array(dset)
+
+        self.levels_2d = (4.61, 9.21)
+        self.levels_txt_2d = {4.61: r&#39;$90\%$ C.L.&#39;, 9.21: r&#39;$99\%$ C.L.&#39;}
+        # self.colors = (&#39;darkblue&#39;,&#39;orange&#39;,&#39;limegreen&#39;,&#39;mediumvioletred&#39;,&#39;crimson&#39;)
+        self.colors_2d = (&#39;darkturquoise&#39;, &#39;darkturquoise&#39;)
+        self.lines_2d = (&#39;dashed&#39;, &#39;solid&#39;)
+        self.linewidths_2d = (0.8, 1.3)
+
+        self.levels_1d = [1, 6.63, 9, 16]
+        self.linewidths_1d = (1.3, 0.8)
+        self.colors_1d = (&#39;seagreen&#39;, &#39;mediumseagreen&#39;)
+        self.levels_txt_1d = {
+            1: r&#39;$1\sigma$&#39;,
+            6.63: r&#39;$99\%$&#39;,
+            9: r&#39;$3\sigma$&#39;,
+            16: r&#39;$4\sigma$&#39;}
+
+        self.nuislevels_1d = [1, 9]
+        self.nuislinewidths_1d = (1.3, 0.8)
+        self.nuiscolors_1d = (&#39;limegreen&#39;, &#39;peru&#39;)
+        self.nuislevels_txt_1d = {
+            1: r&#39;$1\sigma$&#39;,
+            9: r&#39;$3\sigma$&#39;}
+
+        # self.levels_1d = [1,2.71,4,6.63,9]
+        # self.levels_txt_1d = {1:r&#39;$1\sigma$&#39;,2.71:r&#39;$90\%$&#39;,4:r&#39;$2\sigma$&#39;,6.63:r&#39;$99\%$&#39;,9:r&#39;$3\sigma$&#39;}
+
+        # self.Plot1D(also_stats_only=True)
+        # self.Plot2D()
+        # self.ResultPlotsMatrix()
+
+    def ResultPlotsMatrix(self, interpolate=True):
+        fig, ax = plt.subplots(
+            nrows=self.NumberOfPhysicsPars,
+            ncols=self.NumberOfPhysicsPars,
+            figsize=(15, 15))
+
+        for i, (item_row, values_row) in enumerate(self.PhysicsFlat.items()):
+            for j, (item_col, values_col) in enumerate(
+                    self.PhysicsFlat.items()):
+                if i == j:  # Diagonal 1D plots
+                    x = np.unique(values_col)
+                    y = np.zeros_like(x)
+                    for k, t in enumerate(x):
+                        y[k] = np.amin(self.X2[values_col == t])
+                    if interpolate:
+                        spl = interp1d(x, y, kind=&#39;quadratic&#39;)
+                        x_dense = np.linspace(
+                            np.amin(x), np.amax(x), 10 * x.size)
+                        y_dense = spl(x_dense)
+                        y_dense -= np.amin(y_dense)
+                        ax[i,
+                           j].plot(x_dense,
+                                   y_dense,
+                                   label=&#39;w/ systemtics&#39;,
+                                   color=self.colors_1d[0],
+                                   linewidth=self.linewidths_1d[0])
+                    else:
+                        y -= np.amin(y)
+                        ax[i,
+                           j].plot(x,
+                                   y,
+                                   label=&#39;w/ systemtics&#39;,
+                                   color=self.colors_1d[0],
+                                   linewidth=self.linewidths_1d[0])
+
+                    ax[i, j].set_ylabel(r&#39;$\chi^2$&#39;, fontsize=12)
+                    ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
+                    ax[i, j].set_ylim(0, 25)
+                    ax[i, j].tick_params(axis=&#39;both&#39;, labelsize=12)
+                    axmin, axmax = ax[i, j].get_xlim()
+                    for lv in self.levels_1d:
+                        ax[i, j].axhline(
+                            y=lv, color=&#39;grey&#39;, linestyle=&#39;--&#39;, alpha=0.4, linewidth=0.7)
+                        # ax[i,j].text(0.15*axmin+0.85*axmax, lv, levels_txt[lv])
+                        ax[i, j].text(0.95 * axmin + 0.05 * axmax,
+                                      lv, self.levels_txt_1d[lv], fontsize=10)
+
+                # elif i&gt;j: # Off-diagonal 2D plots
+                else:  # Off-diagonal 2D plots
+                    x = np.unique(values_col)
+                    y = np.unique(values_row)
+                    w = np.array([])
+                    for kk, dx in enumerate(x):
+                        for ll, dy in enumerate(y):
+                            cut = np.logical_and(
+                                values_col == dx, values_row == dy)
+                            w = np.append(w, np.amin(self.X2[cut]))
+                    X, Y = np.meshgrid(x, y)
+                    f = interp2d(x, y, w, kind=&#39;cubic&#39;)
+                    Chi2 = np.reshape(w, (x.size, y.size)).T
+                    if interpolate:
+                        x_dense = np.linspace(np.amin(x), np.amax(x), 50)
+                        y_dense = np.linspace(np.amin(y), np.amax(y), 50)
+                        newX, newY = np.meshgrid(x_dense, y_dense)
+                        newChi2 = f(x_dense, y_dense)
+                        CS = ax[i,
+                                j].contour(newX,
+                                           newY,
+                                           newChi2,
+                                           colors=self.colors_2d,
+                                           levels=self.levels_2d,
+                                           linestyles=self.lines_2d,
+                                           linewidths=self.linewidths_2d)
+
+                    h1, _ = CS.legend_elements()
+                    # print(h1)
+                    ax[i, j].legend(
+                        h1, self.levels_txt_2d.values(), fontsize=8)
+                    ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
+                    ax[i, j].set_ylabel(self.Format(item_row), fontsize=12)
+                    ax[i, j].tick_params(axis=&#39;both&#39;, labelsize=12)
+                    # ax[i,j].legend()
+
+        # fig.subplots_adjust(hspace=0.5, wspace=0.5)
+        fig.tight_layout()
+        plt.tight_layout()
+        plt.show()
+        fig.savefig(self.directory + &#39;/ResultPlotsMatrix.png&#39;)
+
+    def NuisancePlots(self, all_plots=True, interpolate=True):
+        if not self.AnalysisInput:
+            sys.exit(&#39;Please, specify analysis xml file&#39;)
+
+        from Fitter import Distributions as dt
+        if all_plots:
+            if self.NumberOfPhysicsPars &lt; 5:
+                fig, ax = plt.subplots(
+                    nrows=1, ncols=self.NumberOfPhysicsPars, figsize=(
+                        14, 4))
+                axis = ax.flat
+            else:
+                ncols = 4
+                nrows = self.NumberOfPhysicsPars // ncols + 1
+                fig, ax = plt.subplots(
+                    nrows=nrows, ncols=ncols, figsize=(
+                        6 * ncols, 6 * nrows))
+                axis = ax.flat
+
+            fig.tight_layout(h_pad=5)
+
+            for i, (item, values) in enumerate(self.NuisanceFlat.items()):
+
+                block, source = item.split(&#39;+&#39;)
+                prior_mu = self.AnalysisInput.NuisNominal[block][source]
+                prior_sig = self.AnalysisInput.NuisSigma[block][source]
+
+                post_mu = values[self.BestFit]
+                post_sig = self.AnalysisInput.NuisSigma[block][source] * 0.9
+
+                x = np.linspace(
+                    prior_mu - 5 * prior_sig,
+                    prior_mu + 5 * prior_sig,
+                    100)
+                prior_dist = dt.logGaussianPrior(x, prior_mu, prior_sig)
+                post_dist = dt.logGaussianPrior(x, post_mu, post_sig)
+
+                axis[i].plot(
+                    x,
+                    prior_dist,
+                    label=&#39;Prior dist.&#39;,
+                    color=self.nuiscolors_1d[1],
+                    linewidth=self.nuislinewidths_1d[1])
+                axis[i].plot(
+                    x,
+                    post_dist,
+                    label=&#39;Posterior dist.&#39;,
+                    color=self.nuiscolors_1d[0],
+                    linewidth=self.nuislinewidths_1d[0])
+                axis[i].axvline(
+                    x=prior_mu,
+                    label=&#39;Prior best&#39;,
+                    color=self.nuiscolors_1d[1],
+                    linestyle=&#39;--&#39;,
+                    alpha=0.7,
+                    linewidth=1)
+                axis[i].axvline(
+                    x=post_mu,
+                    label=&#39;Posterior best&#39;,
+                    color=self.nuiscolors_1d[0],
+                    linestyle=&#39;--&#39;,
+                    alpha=0.7,
+                    linewidth=1)
+                axis[i].set_ylabel(r&#39;$\chi^2$&#39;, fontsize=14)
+                axis[i].set_xlabel(self.Format(item), fontsize=14)
+                axis[i].set_ylim(0, 25)
+
+                axmin, axmax = ax[i].get_xlim()
+                for lv in self.levels_1d:
+                    axis[i].axhline(
+                        y=lv,
+                        color=&#39;grey&#39;,
+                        linestyle=&#39;--&#39;,
+                        alpha=0.4,
+                        linewidth=0.7)
+                    axis[i].text(
+                        0.95 * axmin + 0.05 * axmax,
+                        lv,
+                        self.levels_txt_1d[lv],
+                        fontsize=10)
+
+                axis[i].legend()
+
+            plt.tight_layout()
+            plt.show()
+            fig.savefig(self.directory + &#39;/NuisancePlots.png&#39;)
+
+    def Plot1D(self, all_plots=True, also_stats_only=False, interpolate=True):
+        if all_plots:
+            if self.NumberOfPhysicsPars &lt; 4:
+                fig, ax = plt.subplots(
+                    nrows=1, ncols=self.NumberOfPhysicsPars, figsize=(
+                        12, 36))
+                axis = [ax]
+            else:
+                ncols = 3
+                nrows = self.NumberOfPhysicsPars // ncols + 1
+                fig, ax = plt.subplots(
+                    nrows=nrows, ncols=ncols, figsize=(
+                        6 * ncols, 6 * nrows))
+                axis = ax.flat
+
+            fig.tight_layout(h_pad=5)
+
+            for i, (item, values) in enumerate(self.PhysicsFlat.items()):
+                x = np.unique(values)
+                y = np.zeros_like(x)
+                print(item)
+                for j, t in enumerate(x):
+                    y[j] = np.amin(self.X2[values == t])
+                if interpolate:
+                    spl = interp1d(x, y, kind=&#39;quadratic&#39;)
+                    x_dense = np.linspace(np.amin(x), np.amax(x), 10 * x.size)
+                    y_dense = spl(x_dense)
+                    axis[i].plot(x_dense, y_dense, label=&#39;w/ systemtics&#39;)
+                else:
+                    axis[i].plot(x, y, label=&#39;w/ systemtics&#39;)
+                if also_stats_only:
+                    for j, t in enumerate(x):
+                        y[j] = np.amin(self.X2_stats[values == t])
+                    if interpolate:
+                        spl = interp1d(x, y, kind=&#39;quadratic&#39;)
+                        x_dense = np.linspace(
+                            np.amin(x), np.amax(x), 10 * x.size)
+                        y_dense = spl(x_dense)
+                        axis[i].plot(
+                            x_dense, y_dense, linewidth=0.5, label=&#39;Stats. only&#39;)
+                    else:
+                        axis[i].plot(x, y, linewidth=0.5, label=&#39;Stats. only&#39;)
+                axis[i].set_ylim(0, 25)
+                axis[i].set_xlabel(self.Format(item))
+                axis[i].set_ylabel(r&#39;$\chi^2$&#39;)
+                axis[i].legend()
+
+            plt.tight_layout()
+            plt.show()
+
+    def Plot2D(self, all_plots=True, also_stats_only=False, interpolate=True):
+        if self.NumberOfPhysicsPars &lt; 2:
+            sys.exit(&#39;Cannot make 2D contour plots with 1 physics parameter&#39;)
+
+        else:
+            ncols = nrows = self.NumberOfPhysicsPars - 1
+            fig = plt.figure()
+            gs = GridSpec(nrows - 1, ncols - 1)
+            ax = [[0] * (nrows - 1)] * (ncols - 1)
+            ax[nrows - 2][0] = plt.subplot(gs[nrows - 2, 0])
+            for i in range(0, nrows - 2):
+                ax[i][0] = plt.subplot(gs[i, 0], sharey=ax[nrows - 2][0])
+            for j in range(1, ncols - 1):
+                ax[nrows -
+                   2][j] = plt.subplot(gs[nrows -
+                                          2, j], sharex=ax[nrows -
+                                                           2][0])
+
+                # for j in range(ncols):
+                #     if i &gt; j:
+                #         if i==nrows-1 and j==0:
+                #             ax[i][j] = plt.subplot(gs[i,j])
+                #         elif i &lt; nrows-1 and j==0:
+                #             ax[i][j] = plt.subplot(gs[i,j], sharex = ax[nrows-1][j])
+                #         elif i == nrows-1 and j&gt;0:
+                #             ax[i][j] = plt.subplot(gs[i,j], sharey = ax[i][0])
+                # ax[i][j] = fig.add_subplot(gs[i,j])
+
+            # for i in range(ncols):
+            #     for j in range(nrows):
+            #         if i &gt; j:
+            #             ax[i][j] = fig.add_subplot(gs[i,j])
+
+            # ax_scatter = fig.add_subplot(gs[1:4, 0:3])
+            # ax_hist_y = fig.add_subplot(gs[0,0:3])
+            # ax_hist_x = fig.add_subplot(gs[1:4, 3])
+
+            fig.set_constrained_layout_pads(hspace=0.0, h_pad=0.0)
+            plt.subplots_adjust(hspace=0.00)
+            fig.tight_layout()
+            plt.show()
+
+    def Format(self, string):
+        new_string = &#39;&#39;
+        if &#39;Sin&#39; in string:
+            if &#39;Sin2&#39; in string:
+                new_string = r&#39;$\sin^2$&#39;
+            else:
+                new_string = r&#39;$\sin$&#39;
+
+        if &#39;Theta&#39; in string:
+            new_string += r&#39;$\theta_{&#39; + string[-2] + string[-1] + &#39;}$&#39;
+
+        if &#39;Eps&#39; in string:
+            new_string += r&#39;$\epsilon{&#39; + string[-2] + string[-1] + &#39;}$&#39;
+
+        if &#39;Dm&#39; in string:
+            new_string += r&#39;$\Delta m^2_{&#39; + \
+                string[-2] + string[-1] + &#39;}$ [eV$^2$]&#39;
+
+        if &#39;Atmos&#39; in string:
+            new_string += &#39;Atm. Flux &#39;
+            if &#39;Tilt&#39; in string:
+                new_string += r&#39;Tilt ($\gamma$)&#39;
+            elif &#39;Norm&#39; in string:
+                new_string += &#39;Normalization &#39;
+                if &#39;Above1GeV&#39; in string:
+                    new_string += r&#39;$&gt;$ 1 GeV&#39;
+                elif &#39;Below1GeV&#39; in string:
+                    new_string += r&#39;$&lt;$ 1 GeV&#39;
+
+        if &#39;Water&#39; in string:
+            if &#39;Ratio&#39; in string:
+                new_string += r&#39;$\sigma^{H_2O}$&#39;
+            else:
+                new_string += r&#39;$\sigma^{H_2O}$&#39;
+                if &#39;NuTau&#39; in string:
+                    new_string += r&#39;$_{\nu_\tau}$&#39;
+                elif &#39;DIS&#39; in string:
+                    new_string += r&#39;$_{DIS}$&#39;
+                elif &#39;NC&#39; in string:
+                    new_string += r&#39;$_{NC}$&#39;
+                elif &#39;CCQE&#39; in string:
+                    new_string += r&#39;$_{CCQE}$&#39;
+                elif &#39;CC1Pi&#39; in string:
+                    new_string += r&#39;$_{CC 1\pi}$&#39;
+        # print(new_string)
+
+        if new_string == &#39;&#39;:
+            return string
+        return new_string</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="PyNu.Plot.Plot"><code class="flex name class">
+<span>class <span class="ident">Plot</span></span>
+<span>(</span><span>analysis_output_file, analysis_input_file=False, directory='')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Set up basic analysis variables and structure to build full analysis</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Plot:
+
+    def __init__(
+            self,
+            analysis_output_file,
+            analysis_input_file=False,
+            directory=&#39;&#39;):
+        &#39;&#39;&#39; Set up basic analysis variables and structure to build full analysis &#39;&#39;&#39;
+        if analysis_input_file:
+            self.AnalysisInput = AR.parse(analysis_input_file, check=True)
+
+        self.directory = directory
+
+        with h5py.File(analysis_output_file, &#39;r&#39;) as hf:
+
+            self.X2_stats = np.array(hf[&#39;Analysis/Chi2 Stats. Only&#39;])
+            self.X2 = np.array(hf[&#39;Analysis/Chi2 Systs.&#39;])
+            self.minX2 = np.amin(self.X2)
+            self.BestFit = self.X2 == self.minX2
+
+            self.Physics = {}
+            self.PhysicsFlat = {}
+            for source in hf[&#39;Physics Parameters&#39;]:
+                self.Physics[source] = {}
+                for item, dset in hf[&#39;Physics Parameters/&#39; + source].items():
+                    self.Physics[source][item] = np.array(dset)
+                    self.PhysicsFlat[source + &#39;+&#39; + item] = np.array(dset)
+            self.NumberOfPhysicsPars = len(self.PhysicsFlat)
+
+            self.Nuisance = {}
+            self.NuisanceFlat = {}
+            for source in hf[&#39;Nuisance Parameters&#39;]:
+                self.Nuisance[source] = {}
+                for item, dset in hf[&#39;Nuisance Parameters/&#39; + source].items():
+                    self.Nuisance[source][item] = np.array(dset)
+                    self.NuisanceFlat[source + &#39;+&#39; + item] = np.array(dset)
+            self.NumberOfNuisancePars = len(self.NuisanceFlat)
+
+            self.Fixed = {}
+            for source in hf[&#39;Fixed Parameters&#39;]:
+                self.Fixed[source] = {}
+                for item, dset in hf[&#39;Fixed Parameters/&#39; + source].items():
+                    self.Fixed[source][item] = np.array(dset)
+
+        self.levels_2d = (4.61, 9.21)
+        self.levels_txt_2d = {4.61: r&#39;$90\%$ C.L.&#39;, 9.21: r&#39;$99\%$ C.L.&#39;}
+        # self.colors = (&#39;darkblue&#39;,&#39;orange&#39;,&#39;limegreen&#39;,&#39;mediumvioletred&#39;,&#39;crimson&#39;)
+        self.colors_2d = (&#39;darkturquoise&#39;, &#39;darkturquoise&#39;)
+        self.lines_2d = (&#39;dashed&#39;, &#39;solid&#39;)
+        self.linewidths_2d = (0.8, 1.3)
+
+        self.levels_1d = [1, 6.63, 9, 16]
+        self.linewidths_1d = (1.3, 0.8)
+        self.colors_1d = (&#39;seagreen&#39;, &#39;mediumseagreen&#39;)
+        self.levels_txt_1d = {
+            1: r&#39;$1\sigma$&#39;,
+            6.63: r&#39;$99\%$&#39;,
+            9: r&#39;$3\sigma$&#39;,
+            16: r&#39;$4\sigma$&#39;}
+
+        self.nuislevels_1d = [1, 9]
+        self.nuislinewidths_1d = (1.3, 0.8)
+        self.nuiscolors_1d = (&#39;limegreen&#39;, &#39;peru&#39;)
+        self.nuislevels_txt_1d = {
+            1: r&#39;$1\sigma$&#39;,
+            9: r&#39;$3\sigma$&#39;}
+
+        # self.levels_1d = [1,2.71,4,6.63,9]
+        # self.levels_txt_1d = {1:r&#39;$1\sigma$&#39;,2.71:r&#39;$90\%$&#39;,4:r&#39;$2\sigma$&#39;,6.63:r&#39;$99\%$&#39;,9:r&#39;$3\sigma$&#39;}
+
+        # self.Plot1D(also_stats_only=True)
+        # self.Plot2D()
+        # self.ResultPlotsMatrix()
+
+    def ResultPlotsMatrix(self, interpolate=True):
+        fig, ax = plt.subplots(
+            nrows=self.NumberOfPhysicsPars,
+            ncols=self.NumberOfPhysicsPars,
+            figsize=(15, 15))
+
+        for i, (item_row, values_row) in enumerate(self.PhysicsFlat.items()):
+            for j, (item_col, values_col) in enumerate(
+                    self.PhysicsFlat.items()):
+                if i == j:  # Diagonal 1D plots
+                    x = np.unique(values_col)
+                    y = np.zeros_like(x)
+                    for k, t in enumerate(x):
+                        y[k] = np.amin(self.X2[values_col == t])
+                    if interpolate:
+                        spl = interp1d(x, y, kind=&#39;quadratic&#39;)
+                        x_dense = np.linspace(
+                            np.amin(x), np.amax(x), 10 * x.size)
+                        y_dense = spl(x_dense)
+                        y_dense -= np.amin(y_dense)
+                        ax[i,
+                           j].plot(x_dense,
+                                   y_dense,
+                                   label=&#39;w/ systemtics&#39;,
+                                   color=self.colors_1d[0],
+                                   linewidth=self.linewidths_1d[0])
+                    else:
+                        y -= np.amin(y)
+                        ax[i,
+                           j].plot(x,
+                                   y,
+                                   label=&#39;w/ systemtics&#39;,
+                                   color=self.colors_1d[0],
+                                   linewidth=self.linewidths_1d[0])
+
+                    ax[i, j].set_ylabel(r&#39;$\chi^2$&#39;, fontsize=12)
+                    ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
+                    ax[i, j].set_ylim(0, 25)
+                    ax[i, j].tick_params(axis=&#39;both&#39;, labelsize=12)
+                    axmin, axmax = ax[i, j].get_xlim()
+                    for lv in self.levels_1d:
+                        ax[i, j].axhline(
+                            y=lv, color=&#39;grey&#39;, linestyle=&#39;--&#39;, alpha=0.4, linewidth=0.7)
+                        # ax[i,j].text(0.15*axmin+0.85*axmax, lv, levels_txt[lv])
+                        ax[i, j].text(0.95 * axmin + 0.05 * axmax,
+                                      lv, self.levels_txt_1d[lv], fontsize=10)
+
+                # elif i&gt;j: # Off-diagonal 2D plots
+                else:  # Off-diagonal 2D plots
+                    x = np.unique(values_col)
+                    y = np.unique(values_row)
+                    w = np.array([])
+                    for kk, dx in enumerate(x):
+                        for ll, dy in enumerate(y):
+                            cut = np.logical_and(
+                                values_col == dx, values_row == dy)
+                            w = np.append(w, np.amin(self.X2[cut]))
+                    X, Y = np.meshgrid(x, y)
+                    f = interp2d(x, y, w, kind=&#39;cubic&#39;)
+                    Chi2 = np.reshape(w, (x.size, y.size)).T
+                    if interpolate:
+                        x_dense = np.linspace(np.amin(x), np.amax(x), 50)
+                        y_dense = np.linspace(np.amin(y), np.amax(y), 50)
+                        newX, newY = np.meshgrid(x_dense, y_dense)
+                        newChi2 = f(x_dense, y_dense)
+                        CS = ax[i,
+                                j].contour(newX,
+                                           newY,
+                                           newChi2,
+                                           colors=self.colors_2d,
+                                           levels=self.levels_2d,
+                                           linestyles=self.lines_2d,
+                                           linewidths=self.linewidths_2d)
+
+                    h1, _ = CS.legend_elements()
+                    # print(h1)
+                    ax[i, j].legend(
+                        h1, self.levels_txt_2d.values(), fontsize=8)
+                    ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
+                    ax[i, j].set_ylabel(self.Format(item_row), fontsize=12)
+                    ax[i, j].tick_params(axis=&#39;both&#39;, labelsize=12)
+                    # ax[i,j].legend()
+
+        # fig.subplots_adjust(hspace=0.5, wspace=0.5)
+        fig.tight_layout()
+        plt.tight_layout()
+        plt.show()
+        fig.savefig(self.directory + &#39;/ResultPlotsMatrix.png&#39;)
+
+    def NuisancePlots(self, all_plots=True, interpolate=True):
+        if not self.AnalysisInput:
+            sys.exit(&#39;Please, specify analysis xml file&#39;)
+
+        from Fitter import Distributions as dt
+        if all_plots:
+            if self.NumberOfPhysicsPars &lt; 5:
+                fig, ax = plt.subplots(
+                    nrows=1, ncols=self.NumberOfPhysicsPars, figsize=(
+                        14, 4))
+                axis = ax.flat
+            else:
+                ncols = 4
+                nrows = self.NumberOfPhysicsPars // ncols + 1
+                fig, ax = plt.subplots(
+                    nrows=nrows, ncols=ncols, figsize=(
+                        6 * ncols, 6 * nrows))
+                axis = ax.flat
+
+            fig.tight_layout(h_pad=5)
+
+            for i, (item, values) in enumerate(self.NuisanceFlat.items()):
+
+                block, source = item.split(&#39;+&#39;)
+                prior_mu = self.AnalysisInput.NuisNominal[block][source]
+                prior_sig = self.AnalysisInput.NuisSigma[block][source]
+
+                post_mu = values[self.BestFit]
+                post_sig = self.AnalysisInput.NuisSigma[block][source] * 0.9
+
+                x = np.linspace(
+                    prior_mu - 5 * prior_sig,
+                    prior_mu + 5 * prior_sig,
+                    100)
+                prior_dist = dt.logGaussianPrior(x, prior_mu, prior_sig)
+                post_dist = dt.logGaussianPrior(x, post_mu, post_sig)
+
+                axis[i].plot(
+                    x,
+                    prior_dist,
+                    label=&#39;Prior dist.&#39;,
+                    color=self.nuiscolors_1d[1],
+                    linewidth=self.nuislinewidths_1d[1])
+                axis[i].plot(
+                    x,
+                    post_dist,
+                    label=&#39;Posterior dist.&#39;,
+                    color=self.nuiscolors_1d[0],
+                    linewidth=self.nuislinewidths_1d[0])
+                axis[i].axvline(
+                    x=prior_mu,
+                    label=&#39;Prior best&#39;,
+                    color=self.nuiscolors_1d[1],
+                    linestyle=&#39;--&#39;,
+                    alpha=0.7,
+                    linewidth=1)
+                axis[i].axvline(
+                    x=post_mu,
+                    label=&#39;Posterior best&#39;,
+                    color=self.nuiscolors_1d[0],
+                    linestyle=&#39;--&#39;,
+                    alpha=0.7,
+                    linewidth=1)
+                axis[i].set_ylabel(r&#39;$\chi^2$&#39;, fontsize=14)
+                axis[i].set_xlabel(self.Format(item), fontsize=14)
+                axis[i].set_ylim(0, 25)
+
+                axmin, axmax = ax[i].get_xlim()
+                for lv in self.levels_1d:
+                    axis[i].axhline(
+                        y=lv,
+                        color=&#39;grey&#39;,
+                        linestyle=&#39;--&#39;,
+                        alpha=0.4,
+                        linewidth=0.7)
+                    axis[i].text(
+                        0.95 * axmin + 0.05 * axmax,
+                        lv,
+                        self.levels_txt_1d[lv],
+                        fontsize=10)
+
+                axis[i].legend()
+
+            plt.tight_layout()
+            plt.show()
+            fig.savefig(self.directory + &#39;/NuisancePlots.png&#39;)
+
+    def Plot1D(self, all_plots=True, also_stats_only=False, interpolate=True):
+        if all_plots:
+            if self.NumberOfPhysicsPars &lt; 4:
+                fig, ax = plt.subplots(
+                    nrows=1, ncols=self.NumberOfPhysicsPars, figsize=(
+                        12, 36))
+                axis = [ax]
+            else:
+                ncols = 3
+                nrows = self.NumberOfPhysicsPars // ncols + 1
+                fig, ax = plt.subplots(
+                    nrows=nrows, ncols=ncols, figsize=(
+                        6 * ncols, 6 * nrows))
+                axis = ax.flat
+
+            fig.tight_layout(h_pad=5)
+
+            for i, (item, values) in enumerate(self.PhysicsFlat.items()):
+                x = np.unique(values)
+                y = np.zeros_like(x)
+                print(item)
+                for j, t in enumerate(x):
+                    y[j] = np.amin(self.X2[values == t])
+                if interpolate:
+                    spl = interp1d(x, y, kind=&#39;quadratic&#39;)
+                    x_dense = np.linspace(np.amin(x), np.amax(x), 10 * x.size)
+                    y_dense = spl(x_dense)
+                    axis[i].plot(x_dense, y_dense, label=&#39;w/ systemtics&#39;)
+                else:
+                    axis[i].plot(x, y, label=&#39;w/ systemtics&#39;)
+                if also_stats_only:
+                    for j, t in enumerate(x):
+                        y[j] = np.amin(self.X2_stats[values == t])
+                    if interpolate:
+                        spl = interp1d(x, y, kind=&#39;quadratic&#39;)
+                        x_dense = np.linspace(
+                            np.amin(x), np.amax(x), 10 * x.size)
+                        y_dense = spl(x_dense)
+                        axis[i].plot(
+                            x_dense, y_dense, linewidth=0.5, label=&#39;Stats. only&#39;)
+                    else:
+                        axis[i].plot(x, y, linewidth=0.5, label=&#39;Stats. only&#39;)
+                axis[i].set_ylim(0, 25)
+                axis[i].set_xlabel(self.Format(item))
+                axis[i].set_ylabel(r&#39;$\chi^2$&#39;)
+                axis[i].legend()
+
+            plt.tight_layout()
+            plt.show()
+
+    def Plot2D(self, all_plots=True, also_stats_only=False, interpolate=True):
+        if self.NumberOfPhysicsPars &lt; 2:
+            sys.exit(&#39;Cannot make 2D contour plots with 1 physics parameter&#39;)
+
+        else:
+            ncols = nrows = self.NumberOfPhysicsPars - 1
+            fig = plt.figure()
+            gs = GridSpec(nrows - 1, ncols - 1)
+            ax = [[0] * (nrows - 1)] * (ncols - 1)
+            ax[nrows - 2][0] = plt.subplot(gs[nrows - 2, 0])
+            for i in range(0, nrows - 2):
+                ax[i][0] = plt.subplot(gs[i, 0], sharey=ax[nrows - 2][0])
+            for j in range(1, ncols - 1):
+                ax[nrows -
+                   2][j] = plt.subplot(gs[nrows -
+                                          2, j], sharex=ax[nrows -
+                                                           2][0])
+
+                # for j in range(ncols):
+                #     if i &gt; j:
+                #         if i==nrows-1 and j==0:
+                #             ax[i][j] = plt.subplot(gs[i,j])
+                #         elif i &lt; nrows-1 and j==0:
+                #             ax[i][j] = plt.subplot(gs[i,j], sharex = ax[nrows-1][j])
+                #         elif i == nrows-1 and j&gt;0:
+                #             ax[i][j] = plt.subplot(gs[i,j], sharey = ax[i][0])
+                # ax[i][j] = fig.add_subplot(gs[i,j])
+
+            # for i in range(ncols):
+            #     for j in range(nrows):
+            #         if i &gt; j:
+            #             ax[i][j] = fig.add_subplot(gs[i,j])
+
+            # ax_scatter = fig.add_subplot(gs[1:4, 0:3])
+            # ax_hist_y = fig.add_subplot(gs[0,0:3])
+            # ax_hist_x = fig.add_subplot(gs[1:4, 3])
+
+            fig.set_constrained_layout_pads(hspace=0.0, h_pad=0.0)
+            plt.subplots_adjust(hspace=0.00)
+            fig.tight_layout()
+            plt.show()
+
+    def Format(self, string):
+        new_string = &#39;&#39;
+        if &#39;Sin&#39; in string:
+            if &#39;Sin2&#39; in string:
+                new_string = r&#39;$\sin^2$&#39;
+            else:
+                new_string = r&#39;$\sin$&#39;
+
+        if &#39;Theta&#39; in string:
+            new_string += r&#39;$\theta_{&#39; + string[-2] + string[-1] + &#39;}$&#39;
+
+        if &#39;Eps&#39; in string:
+            new_string += r&#39;$\epsilon{&#39; + string[-2] + string[-1] + &#39;}$&#39;
+
+        if &#39;Dm&#39; in string:
+            new_string += r&#39;$\Delta m^2_{&#39; + \
+                string[-2] + string[-1] + &#39;}$ [eV$^2$]&#39;
+
+        if &#39;Atmos&#39; in string:
+            new_string += &#39;Atm. Flux &#39;
+            if &#39;Tilt&#39; in string:
+                new_string += r&#39;Tilt ($\gamma$)&#39;
+            elif &#39;Norm&#39; in string:
+                new_string += &#39;Normalization &#39;
+                if &#39;Above1GeV&#39; in string:
+                    new_string += r&#39;$&gt;$ 1 GeV&#39;
+                elif &#39;Below1GeV&#39; in string:
+                    new_string += r&#39;$&lt;$ 1 GeV&#39;
+
+        if &#39;Water&#39; in string:
+            if &#39;Ratio&#39; in string:
+                new_string += r&#39;$\sigma^{H_2O}$&#39;
+            else:
+                new_string += r&#39;$\sigma^{H_2O}$&#39;
+                if &#39;NuTau&#39; in string:
+                    new_string += r&#39;$_{\nu_\tau}$&#39;
+                elif &#39;DIS&#39; in string:
+                    new_string += r&#39;$_{DIS}$&#39;
+                elif &#39;NC&#39; in string:
+                    new_string += r&#39;$_{NC}$&#39;
+                elif &#39;CCQE&#39; in string:
+                    new_string += r&#39;$_{CCQE}$&#39;
+                elif &#39;CC1Pi&#39; in string:
+                    new_string += r&#39;$_{CC 1\pi}$&#39;
+        # print(new_string)
+
+        if new_string == &#39;&#39;:
+            return string
+        return new_string</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="PyNu.Plot.Plot.Format"><code class="name flex">
+<span>def <span class="ident">Format</span></span>(<span>self, string)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Format(self, string):
+    new_string = &#39;&#39;
+    if &#39;Sin&#39; in string:
+        if &#39;Sin2&#39; in string:
+            new_string = r&#39;$\sin^2$&#39;
+        else:
+            new_string = r&#39;$\sin$&#39;
+
+    if &#39;Theta&#39; in string:
+        new_string += r&#39;$\theta_{&#39; + string[-2] + string[-1] + &#39;}$&#39;
+
+    if &#39;Eps&#39; in string:
+        new_string += r&#39;$\epsilon{&#39; + string[-2] + string[-1] + &#39;}$&#39;
+
+    if &#39;Dm&#39; in string:
+        new_string += r&#39;$\Delta m^2_{&#39; + \
+            string[-2] + string[-1] + &#39;}$ [eV$^2$]&#39;
+
+    if &#39;Atmos&#39; in string:
+        new_string += &#39;Atm. Flux &#39;
+        if &#39;Tilt&#39; in string:
+            new_string += r&#39;Tilt ($\gamma$)&#39;
+        elif &#39;Norm&#39; in string:
+            new_string += &#39;Normalization &#39;
+            if &#39;Above1GeV&#39; in string:
+                new_string += r&#39;$&gt;$ 1 GeV&#39;
+            elif &#39;Below1GeV&#39; in string:
+                new_string += r&#39;$&lt;$ 1 GeV&#39;
+
+    if &#39;Water&#39; in string:
+        if &#39;Ratio&#39; in string:
+            new_string += r&#39;$\sigma^{H_2O}$&#39;
+        else:
+            new_string += r&#39;$\sigma^{H_2O}$&#39;
+            if &#39;NuTau&#39; in string:
+                new_string += r&#39;$_{\nu_\tau}$&#39;
+            elif &#39;DIS&#39; in string:
+                new_string += r&#39;$_{DIS}$&#39;
+            elif &#39;NC&#39; in string:
+                new_string += r&#39;$_{NC}$&#39;
+            elif &#39;CCQE&#39; in string:
+                new_string += r&#39;$_{CCQE}$&#39;
+            elif &#39;CC1Pi&#39; in string:
+                new_string += r&#39;$_{CC 1\pi}$&#39;
+    # print(new_string)
+
+    if new_string == &#39;&#39;:
+        return string
+    return new_string</code></pre>
+</details>
+</dd>
+<dt id="PyNu.Plot.Plot.NuisancePlots"><code class="name flex">
+<span>def <span class="ident">NuisancePlots</span></span>(<span>self, all_plots=True, interpolate=True)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def NuisancePlots(self, all_plots=True, interpolate=True):
+    if not self.AnalysisInput:
+        sys.exit(&#39;Please, specify analysis xml file&#39;)
+
+    from Fitter import Distributions as dt
+    if all_plots:
+        if self.NumberOfPhysicsPars &lt; 5:
+            fig, ax = plt.subplots(
+                nrows=1, ncols=self.NumberOfPhysicsPars, figsize=(
+                    14, 4))
+            axis = ax.flat
+        else:
+            ncols = 4
+            nrows = self.NumberOfPhysicsPars // ncols + 1
+            fig, ax = plt.subplots(
+                nrows=nrows, ncols=ncols, figsize=(
+                    6 * ncols, 6 * nrows))
+            axis = ax.flat
+
+        fig.tight_layout(h_pad=5)
+
+        for i, (item, values) in enumerate(self.NuisanceFlat.items()):
+
+            block, source = item.split(&#39;+&#39;)
+            prior_mu = self.AnalysisInput.NuisNominal[block][source]
+            prior_sig = self.AnalysisInput.NuisSigma[block][source]
+
+            post_mu = values[self.BestFit]
+            post_sig = self.AnalysisInput.NuisSigma[block][source] * 0.9
+
+            x = np.linspace(
+                prior_mu - 5 * prior_sig,
+                prior_mu + 5 * prior_sig,
+                100)
+            prior_dist = dt.logGaussianPrior(x, prior_mu, prior_sig)
+            post_dist = dt.logGaussianPrior(x, post_mu, post_sig)
+
+            axis[i].plot(
+                x,
+                prior_dist,
+                label=&#39;Prior dist.&#39;,
+                color=self.nuiscolors_1d[1],
+                linewidth=self.nuislinewidths_1d[1])
+            axis[i].plot(
+                x,
+                post_dist,
+                label=&#39;Posterior dist.&#39;,
+                color=self.nuiscolors_1d[0],
+                linewidth=self.nuislinewidths_1d[0])
+            axis[i].axvline(
+                x=prior_mu,
+                label=&#39;Prior best&#39;,
+                color=self.nuiscolors_1d[1],
+                linestyle=&#39;--&#39;,
+                alpha=0.7,
+                linewidth=1)
+            axis[i].axvline(
+                x=post_mu,
+                label=&#39;Posterior best&#39;,
+                color=self.nuiscolors_1d[0],
+                linestyle=&#39;--&#39;,
+                alpha=0.7,
+                linewidth=1)
+            axis[i].set_ylabel(r&#39;$\chi^2$&#39;, fontsize=14)
+            axis[i].set_xlabel(self.Format(item), fontsize=14)
+            axis[i].set_ylim(0, 25)
+
+            axmin, axmax = ax[i].get_xlim()
+            for lv in self.levels_1d:
+                axis[i].axhline(
+                    y=lv,
+                    color=&#39;grey&#39;,
+                    linestyle=&#39;--&#39;,
+                    alpha=0.4,
+                    linewidth=0.7)
+                axis[i].text(
+                    0.95 * axmin + 0.05 * axmax,
+                    lv,
+                    self.levels_txt_1d[lv],
+                    fontsize=10)
+
+            axis[i].legend()
+
+        plt.tight_layout()
+        plt.show()
+        fig.savefig(self.directory + &#39;/NuisancePlots.png&#39;)</code></pre>
+</details>
+</dd>
+<dt id="PyNu.Plot.Plot.Plot1D"><code class="name flex">
+<span>def <span class="ident">Plot1D</span></span>(<span>self, all_plots=True, also_stats_only=False, interpolate=True)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Plot1D(self, all_plots=True, also_stats_only=False, interpolate=True):
+    if all_plots:
+        if self.NumberOfPhysicsPars &lt; 4:
+            fig, ax = plt.subplots(
+                nrows=1, ncols=self.NumberOfPhysicsPars, figsize=(
+                    12, 36))
+            axis = [ax]
+        else:
+            ncols = 3
+            nrows = self.NumberOfPhysicsPars // ncols + 1
+            fig, ax = plt.subplots(
+                nrows=nrows, ncols=ncols, figsize=(
+                    6 * ncols, 6 * nrows))
+            axis = ax.flat
+
+        fig.tight_layout(h_pad=5)
+
+        for i, (item, values) in enumerate(self.PhysicsFlat.items()):
+            x = np.unique(values)
+            y = np.zeros_like(x)
+            print(item)
+            for j, t in enumerate(x):
+                y[j] = np.amin(self.X2[values == t])
+            if interpolate:
+                spl = interp1d(x, y, kind=&#39;quadratic&#39;)
+                x_dense = np.linspace(np.amin(x), np.amax(x), 10 * x.size)
+                y_dense = spl(x_dense)
+                axis[i].plot(x_dense, y_dense, label=&#39;w/ systemtics&#39;)
+            else:
+                axis[i].plot(x, y, label=&#39;w/ systemtics&#39;)
+            if also_stats_only:
+                for j, t in enumerate(x):
+                    y[j] = np.amin(self.X2_stats[values == t])
+                if interpolate:
+                    spl = interp1d(x, y, kind=&#39;quadratic&#39;)
+                    x_dense = np.linspace(
+                        np.amin(x), np.amax(x), 10 * x.size)
+                    y_dense = spl(x_dense)
+                    axis[i].plot(
+                        x_dense, y_dense, linewidth=0.5, label=&#39;Stats. only&#39;)
+                else:
+                    axis[i].plot(x, y, linewidth=0.5, label=&#39;Stats. only&#39;)
+            axis[i].set_ylim(0, 25)
+            axis[i].set_xlabel(self.Format(item))
+            axis[i].set_ylabel(r&#39;$\chi^2$&#39;)
+            axis[i].legend()
+
+        plt.tight_layout()
+        plt.show()</code></pre>
+</details>
+</dd>
+<dt id="PyNu.Plot.Plot.Plot2D"><code class="name flex">
+<span>def <span class="ident">Plot2D</span></span>(<span>self, all_plots=True, also_stats_only=False, interpolate=True)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Plot2D(self, all_plots=True, also_stats_only=False, interpolate=True):
+    if self.NumberOfPhysicsPars &lt; 2:
+        sys.exit(&#39;Cannot make 2D contour plots with 1 physics parameter&#39;)
+
+    else:
+        ncols = nrows = self.NumberOfPhysicsPars - 1
+        fig = plt.figure()
+        gs = GridSpec(nrows - 1, ncols - 1)
+        ax = [[0] * (nrows - 1)] * (ncols - 1)
+        ax[nrows - 2][0] = plt.subplot(gs[nrows - 2, 0])
+        for i in range(0, nrows - 2):
+            ax[i][0] = plt.subplot(gs[i, 0], sharey=ax[nrows - 2][0])
+        for j in range(1, ncols - 1):
+            ax[nrows -
+               2][j] = plt.subplot(gs[nrows -
+                                      2, j], sharex=ax[nrows -
+                                                       2][0])
+
+            # for j in range(ncols):
+            #     if i &gt; j:
+            #         if i==nrows-1 and j==0:
+            #             ax[i][j] = plt.subplot(gs[i,j])
+            #         elif i &lt; nrows-1 and j==0:
+            #             ax[i][j] = plt.subplot(gs[i,j], sharex = ax[nrows-1][j])
+            #         elif i == nrows-1 and j&gt;0:
+            #             ax[i][j] = plt.subplot(gs[i,j], sharey = ax[i][0])
+            # ax[i][j] = fig.add_subplot(gs[i,j])
+
+        # for i in range(ncols):
+        #     for j in range(nrows):
+        #         if i &gt; j:
+        #             ax[i][j] = fig.add_subplot(gs[i,j])
+
+        # ax_scatter = fig.add_subplot(gs[1:4, 0:3])
+        # ax_hist_y = fig.add_subplot(gs[0,0:3])
+        # ax_hist_x = fig.add_subplot(gs[1:4, 3])
+
+        fig.set_constrained_layout_pads(hspace=0.0, h_pad=0.0)
+        plt.subplots_adjust(hspace=0.00)
+        fig.tight_layout()
+        plt.show()</code></pre>
+</details>
+</dd>
+<dt id="PyNu.Plot.Plot.ResultPlotsMatrix"><code class="name flex">
+<span>def <span class="ident">ResultPlotsMatrix</span></span>(<span>self, interpolate=True)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ResultPlotsMatrix(self, interpolate=True):
+    fig, ax = plt.subplots(
+        nrows=self.NumberOfPhysicsPars,
+        ncols=self.NumberOfPhysicsPars,
+        figsize=(15, 15))
+
+    for i, (item_row, values_row) in enumerate(self.PhysicsFlat.items()):
+        for j, (item_col, values_col) in enumerate(
+                self.PhysicsFlat.items()):
+            if i == j:  # Diagonal 1D plots
+                x = np.unique(values_col)
+                y = np.zeros_like(x)
+                for k, t in enumerate(x):
+                    y[k] = np.amin(self.X2[values_col == t])
+                if interpolate:
+                    spl = interp1d(x, y, kind=&#39;quadratic&#39;)
+                    x_dense = np.linspace(
+                        np.amin(x), np.amax(x), 10 * x.size)
+                    y_dense = spl(x_dense)
+                    y_dense -= np.amin(y_dense)
+                    ax[i,
+                       j].plot(x_dense,
+                               y_dense,
+                               label=&#39;w/ systemtics&#39;,
+                               color=self.colors_1d[0],
+                               linewidth=self.linewidths_1d[0])
+                else:
+                    y -= np.amin(y)
+                    ax[i,
+                       j].plot(x,
+                               y,
+                               label=&#39;w/ systemtics&#39;,
+                               color=self.colors_1d[0],
+                               linewidth=self.linewidths_1d[0])
+
+                ax[i, j].set_ylabel(r&#39;$\chi^2$&#39;, fontsize=12)
+                ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
+                ax[i, j].set_ylim(0, 25)
+                ax[i, j].tick_params(axis=&#39;both&#39;, labelsize=12)
+                axmin, axmax = ax[i, j].get_xlim()
+                for lv in self.levels_1d:
+                    ax[i, j].axhline(
+                        y=lv, color=&#39;grey&#39;, linestyle=&#39;--&#39;, alpha=0.4, linewidth=0.7)
+                    # ax[i,j].text(0.15*axmin+0.85*axmax, lv, levels_txt[lv])
+                    ax[i, j].text(0.95 * axmin + 0.05 * axmax,
+                                  lv, self.levels_txt_1d[lv], fontsize=10)
+
+            # elif i&gt;j: # Off-diagonal 2D plots
+            else:  # Off-diagonal 2D plots
+                x = np.unique(values_col)
+                y = np.unique(values_row)
+                w = np.array([])
+                for kk, dx in enumerate(x):
+                    for ll, dy in enumerate(y):
+                        cut = np.logical_and(
+                            values_col == dx, values_row == dy)
+                        w = np.append(w, np.amin(self.X2[cut]))
+                X, Y = np.meshgrid(x, y)
+                f = interp2d(x, y, w, kind=&#39;cubic&#39;)
+                Chi2 = np.reshape(w, (x.size, y.size)).T
+                if interpolate:
+                    x_dense = np.linspace(np.amin(x), np.amax(x), 50)
+                    y_dense = np.linspace(np.amin(y), np.amax(y), 50)
+                    newX, newY = np.meshgrid(x_dense, y_dense)
+                    newChi2 = f(x_dense, y_dense)
+                    CS = ax[i,
+                            j].contour(newX,
+                                       newY,
+                                       newChi2,
+                                       colors=self.colors_2d,
+                                       levels=self.levels_2d,
+                                       linestyles=self.lines_2d,
+                                       linewidths=self.linewidths_2d)
+
+                h1, _ = CS.legend_elements()
+                # print(h1)
+                ax[i, j].legend(
+                    h1, self.levels_txt_2d.values(), fontsize=8)
+                ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
+                ax[i, j].set_ylabel(self.Format(item_row), fontsize=12)
+                ax[i, j].tick_params(axis=&#39;both&#39;, labelsize=12)
+                # ax[i,j].legend()
+
+    # fig.subplots_adjust(hspace=0.5, wspace=0.5)
+    fig.tight_layout()
+    plt.tight_layout()
+    plt.show()
+    fig.savefig(self.directory + &#39;/ResultPlotsMatrix.png&#39;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="PyNu" href="index.html">PyNu</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="PyNu.Plot.Plot" href="#PyNu.Plot.Plot">Plot</a></code></h4>
+<ul class="">
+<li><code><a title="PyNu.Plot.Plot.Format" href="#PyNu.Plot.Plot.Format">Format</a></code></li>
+<li><code><a title="PyNu.Plot.Plot.NuisancePlots" href="#PyNu.Plot.Plot.NuisancePlots">NuisancePlots</a></code></li>
+<li><code><a title="PyNu.Plot.Plot.Plot1D" href="#PyNu.Plot.Plot.Plot1D">Plot1D</a></code></li>
+<li><code><a title="PyNu.Plot.Plot.Plot2D" href="#PyNu.Plot.Plot.Plot2D">Plot2D</a></code></li>
+<li><code><a title="PyNu.Plot.Plot.ResultPlotsMatrix" href="#PyNu.Plot.Plot.ResultPlotsMatrix">ResultPlotsMatrix</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
