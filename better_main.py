@@ -19,7 +19,7 @@ def main():
         type=str,
         nargs='?',
         default=os.environ['PYNU'] +
-        '/examples/AnalysisFiles/test.xml',
+        '/../examples/AnalysisFiles/test.xml',
         help='Input analysis file in xml format.')
     parse.add_argument(
         '-p',
@@ -125,7 +125,7 @@ def main():
             # nuisance minimisation)
             print(
                 f'Processing point {p} of {pynu.Analysis.NumberOfPhysPoints} points in the analysis.')
-            pynu.FitBinnedLLH(p)
+            pynu.FitModel(p)
             print('=====================================================')
 
 

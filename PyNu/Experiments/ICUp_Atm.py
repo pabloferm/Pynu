@@ -28,15 +28,16 @@ class ICUp_Atm(Experiment):
     def MCVariables(self):
         d_itype = self.MC['pid']
         d_Etrue = self.MC['true_energy']
+        condition = (d_Etrue > 1.0) * (d_itype > -1)
         self.EReco = self.MC['reco_energy'][condition]
-        self.CosZReco = np.cos(self.MC['reco_zenith'])
-        self.CosZTrue = np.cos(self.MC['true_zenith'])
-        self.AziTrue = self.MC['true_azimuth']
-        self.CC = self.MC['current_type']
-        self.nuPDG = np.int_(self.MC['pdg'])
-        self.ETrue = self.MC['true_energy']
-        self.Weight = self.MC['weight']
-        self.Sample = self.MC['pid']  # Sample of each event
+        self.CosZReco = np.cos(self.MC['reco_zenith'][condition])
+        self.CosZTrue = np.cos(self.MC['true_zenith'][condition])
+        self.AziTrue = self.MC['true_azimuth'][condition]
+        self.CC = self.MC['current_type'][condition]
+        self.nuPDG = np.int_(self.MC['pdg'][condition])
+        self.ETrue = self.MC['true_energy'][condition]
+        self.Weight = self.MC['weight'][condition]
+        self.Sample = self.MC['pid'][condition]  # Sample of each event
         self.Mode = self.NEUTMode()
 
         self.NumberOfEvents = self.Sample.size

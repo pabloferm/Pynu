@@ -252,52 +252,66 @@ class PyNu:
                                 'Diff_' + tune, vector[idx]) / self.PhysicsTunes[name].OscillationTunes.GetOscillations()
         return dWoverW
 
-    def FitBinnedLLH(self, point):
-        from scipy.optimize import minimize
+    def FitModel(self, point, mode = 'BinnedLogLikelihoodRatio'):
+        if mode == 'BinnedLogLikelihoodRatio':
+            from scipy.optimize import minimize
 
-        ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
-        self.ComputeBinnedExpectation(
-            point, physics=True)  # Nominal expectation
-        ''' Statistics only computation to start guiding the minimization '''
-        X2_stats = FT.ChiSquaredStatsOnly(self.Observation, self.Expectation)
-        self.WriteToOutFile(point, 'Analysis', 'Chi2 Stats. Only', X2_stats)
+            ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
+            self.LLH = FT.BinnedLogLikelihoodRatio(self.Observation, 
+                self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList, self.Analysis.NuisDistributionList)
 
-        '''Get Jacobian of expected events w.r.t. nuisance parameters'''
-        self.ComputeBinnedDiffExpectation()
+            ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
+            self.ComputeBinnedExpectation(
+                point, physics=True)  # Nominal expectation
+            ''' Statistics only computation to start guiding the minimization '''
+            X2_stats = self.LLH.StatsOnly(self.Expectation)
 
-        '''Analytic estimate for priors and bounds'''
-        AnalyticPrior, AnalyticBounds = FT.AnalyticPriorsBounds(
-            self.Observation, self.Expectation, self.DiffExpectation, self.
-            Analysis.NuisNominalList, self.Analysis.NuisSigmaList)
+            '''Get Jacobian of expected events w.r.t. nuisance parameters'''
+            self.ComputeBinnedDiffExpectation()
 
-        '''Combined chi^2 minimization'''
-        if X2_stats > 200:
-            tol = 1e-4
-        else:
-            tol = None
-        res = minimize(
-            self.ModelTester,
-            AnalyticPrior,
-            args=(point),
-            # method='L-BFGS-B',
-            jac=True,
-            bounds=AnalyticBounds,
-            options={
-                'disp': False,
-                'tol': tol})
+            '''Analytic estimate for priors and bounds at first order'''
+            AnalyticPrior, AnalyticBounds = self.LLH.AnalyticPriorsBounds(
+                self.Expectation, self.DiffExpectation)
 
-        self.WriteToOutFile(
-            point,
-            'Nuisance Parameters',
-            self.Analysis.NuisanceList,
-            res.x.tolist())
+            '''Analytic estimate for priors at second order'''
+            self.ComputeBinnedExpectation(
+            point, nuisance_vector=AnalyticPrior)  # Nominal expectation
+            self.ComputeBinnedDiffExpectation(nuisance_vector=AnalyticPrior)
 
-        self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', res.fun)
+            AnalyticPrior = self.LLH.AnalyticPriors_2ndOrder(self.Expectation, self.DiffExpectation, AnalyticPrior)
 
-        if self.verbosity:
-            print(f'-2 ln(H/H0) = {res.fun}')
 
-        return - 0.5 * res.fun
+            '''Combined chi^2 minimization'''
+            if X2_stats > 200:
+                tol = 1e-4
+            else:
+                tol = None
+            res = minimize(
+                self.ModelTester,
+                AnalyticPrior,
+                args=(point),
+                # method='L-BFGS-B',
+                jac=True,
+                bounds=AnalyticBounds,
+                options={
+                    'disp': False,
+                    'tol': tol})
+
+            self.WriteToOutFile(point, 'Analysis', 'Chi2 Stats. Only', X2_stats)
+
+            self.WriteToOutFile(
+                point,
+                'Nuisance Parameters',
+                self.Analysis.NuisanceList,
+                res.x.tolist())
+
+            self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', res.fun)
+
+            if self.verbosity:
+                print(f'Fitted nuisances: {res.x}')
+                print(f'-2 ln(H/H0) = {res.fun}')
+
+            return - 0.5 * res.fun
 
     def ModelTester(self, nuisance_vector, point):
         ''' Compute expected and its derivatives '''
@@ -306,22 +320,14 @@ class PyNu:
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
         ''' Get -2 ln(H/H0) ~ χ2 '''
-        Chi2 = FT.ChiSquared(
-            self.Observation,
+        Chi2 = self.LLH.StatsAndSystematics(
             self.Expectation,
-            self.Analysis.NuisNominalList,
-            self.Analysis.NuisSigmaList,
-            self.Analysis.NuisDistributionList,
             nuisance_vector)
 
         ''' The gradient of the above '''
-        D_Chi2 = FT.ChiSquaredGradient(
-            self.Observation,
+        D_Chi2 = self.LLH.Gradient(
             self.Expectation,
             self.DiffExpectation,
-            self.Analysis.NuisNominalList,
-            self.Analysis.NuisSigmaList,
-            self.Analysis.NuisDistributionList,
             nuisance_vector)
 
         return (Chi2, D_Chi2)

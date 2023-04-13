@@ -1,1 +1,1 @@
-from .ChiSquared import *
+from .BinnedLogLikelihoodRatio import BinnedLogLikelihoodRatio

@@ -1,11 +1,12 @@
 # Provides several functions for probability distributions
 from math import gamma, exp, sqrt, pi, log
+import numpy as np
 
 # Normal distribution
 
-
+# class Normal:
 def Gaussian(x, m, s):
-    return exp(-0.5 * (x - m)**2 / s**2) / (s * sqrt(2 * pi))
+    return np.exp(-0.5 * (x - m)**2 / s**2) / (s * np.sqrt(2 * pi))
 
 
 def logGaussianPrior(x, m, s):  # Actually, -2 ln(L/L0)
@@ -23,24 +24,22 @@ def BetaPar(m, s):  # Mode and std
     beta = alpha * (1 / m - 1)
     return alpha, beta
 
-
 def BetaMean(a, b):
     return a / (a + b)
-
 
 def BetaMode(a, b):
     return (a - 1) / (a + b - 2)
 
+def BetaSTD(a, b):
+    return np.sqrt((a*b) / ((a+b)**2 * (a+b+1)))
 
 def Beta(x, a, b):
-    return x**(a) * (1 - x)**(b) * gamma(a + b) / gamma(a) / gamma(b)
+    return x**(a-1) * (1 - x)**(b-1) * gamma(a + b) / gamma(a) / gamma(b)
 
-
-def logBetaPrior(x, m, s):
-    a, b = BetaPar(m, s)
-    return 2 * (a * log(m / x) + b * log((1 - m) / (1 - x)))
-
+def logBetaPrior(x, a, b):
+    m = BetaMode(a, b)
+    return 2 * ((a-1) * np.log(m / x) + (b-1) * np.log((1 - m) / (1 - x)))
 
 def DifflogBetaPrior(x, m, s):
     a, b = BetaPar(m, s)
-    return 2 * (- a / x + b / (1 - x))
+    return 2 * (- (a-1) / x + (b-1) / (1 - x))
