@@ -57,7 +57,6 @@ class SuperK(Experiment):
 
         del self.MC
 
-
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux('IPhonda2014_sk_solmin')
 
@@ -88,7 +87,6 @@ class SuperK(Experiment):
         self.dNumberOfEvents = self.Sample.size
 
         del self.Data
-
 
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco

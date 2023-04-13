@@ -29,8 +29,8 @@ class SuperK(Experiment):
         d_itype = self.MC['itype']
         condition = (d_itype > -1)
         self.EReco = self.MC['evis'][condition]
-        self.CosZReco = self.MC['dir'][:,2][condition]
-        self.CosZTrue = self.MC['dirnu'][:,2][condition]
+        self.CosZReco = self.MC['dir'][:, 2][condition]
+        self.CosZTrue = self.MC['dirnu'][:, 2][condition]
         # self.AziTrue = self.MC['azi']d_azi[condition]
         self.Mode = self.MC['mode'][condition]
         self.CC = np.abs(self.Mode) < 30
@@ -56,7 +56,6 @@ class SuperK(Experiment):
         self.BaseWeight = self.Weight * self.Norm
 
         del self.MC
-
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux('IPhonda2014_sk_solmin')
@@ -88,7 +87,6 @@ class SuperK(Experiment):
         self.dNumberOfEvents = self.Sample.size
 
         del self.Data
-
 
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco

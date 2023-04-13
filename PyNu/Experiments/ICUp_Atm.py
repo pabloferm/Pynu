@@ -38,7 +38,7 @@ class ICUp_Atm(Experiment):
         self.ETrue = self.MC['true_energy'][condition]
         self.Weight = self.MC['weight'][condition]
         self.Sample = self.MC['pid'][condition]  # Sample of each event
-        self.Mode = self.NEUTMode()
+        self.Mode = self.NEUTMode()[condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
@@ -56,7 +56,6 @@ class ICUp_Atm(Experiment):
         self.BaseWeight = self.Weight * self.Norm
 
         del self.MC
-
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux('IPhonda2014_spl_solmin')

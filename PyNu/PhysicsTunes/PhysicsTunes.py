@@ -103,7 +103,8 @@ class Tune:
     def Get(self, tune, exp, x):
         ''' Get specific weights for a given experiment from tune evaluated at x '''
         try:
-            return getattr(self, tune)(exp, x)
+            # return getattr(self, tune)(exp, x)
+            return self.__getattribute__(tune)(exp, x)
         except BaseException:
             print(tune + ' not found!!')
             return 1

@@ -252,13 +252,16 @@ class PyNu:
                                 'Diff_' + tune, vector[idx]) / self.PhysicsTunes[name].OscillationTunes.GetOscillations()
         return dWoverW
 
-    def FitModel(self, point, mode = 'BinnedLogLikelihoodRatio'):
+    def FitModel(self, point, mode='BinnedLogLikelihoodRatio'):
         if mode == 'BinnedLogLikelihoodRatio':
             from scipy.optimize import minimize
 
             ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
-            self.LLH = FT.BinnedLogLikelihoodRatio(self.Observation, 
-                self.Analysis.NuisNominalList, self.Analysis.NuisSigmaList, self.Analysis.NuisDistributionList)
+            self.LLH = FT.BinnedLogLikelihoodRatio(
+                self.Observation,
+                self.Analysis.NuisNominalList,
+                self.Analysis.NuisSigmaList,
+                self.Analysis.NuisDistributionList)
 
             ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
             self.ComputeBinnedExpectation(
@@ -272,14 +275,6 @@ class PyNu:
             '''Analytic estimate for priors and bounds at first order'''
             AnalyticPrior, AnalyticBounds = self.LLH.AnalyticPriorsBounds(
                 self.Expectation, self.DiffExpectation)
-
-            '''Analytic estimate for priors at second order'''
-            self.ComputeBinnedExpectation(
-            point, nuisance_vector=AnalyticPrior)  # Nominal expectation
-            self.ComputeBinnedDiffExpectation(nuisance_vector=AnalyticPrior)
-
-            AnalyticPrior = self.LLH.AnalyticPriors_2ndOrder(self.Expectation, self.DiffExpectation, AnalyticPrior)
-
 
             '''Combined chi^2 minimization'''
             if X2_stats > 200:
@@ -297,7 +292,11 @@ class PyNu:
                     'disp': False,
                     'tol': tol})
 
-            self.WriteToOutFile(point, 'Analysis', 'Chi2 Stats. Only', X2_stats)
+            self.WriteToOutFile(
+                point,
+                'Analysis',
+                'Chi2 Stats. Only',
+                X2_stats)
 
             self.WriteToOutFile(
                 point,

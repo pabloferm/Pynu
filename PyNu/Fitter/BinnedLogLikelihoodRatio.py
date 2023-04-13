@@ -1,12 +1,12 @@
 import sys
 import numpy as np
 from .Distributions import *
-# Beta, Normal
+
 
 class BinnedLogLikelihoodRatio:
     def __init__(self, Observation_dict, NominalNuisance_list,
-            SigmaNuisance_list,
-            DistNuisance_list,):
+                 SigmaNuisance_list,
+                 DistNuisance_list,):
 
         self.Observation_dict = Observation_dict
         self.NominalNuisance_list = NominalNuisance_list
@@ -14,14 +14,13 @@ class BinnedLogLikelihoodRatio:
         self.DistNuisance_list = DistNuisance_list
         self.number_of_nuisance = len(self.NominalNuisance_list)
 
-
     def StatsOnly(self, Expectation_dict):
         ''' Compute statistics only binned chi-squared '''
         X2 = 0
-        for O, E in zip(self.Observation_dict.values(), Expectation_dict.values()):
+        for O, E in zip(self.Observation_dict.values(),
+                        Expectation_dict.values()):
             X2 += 2 * np.sum(E - O + O * np.log(O / E))
         return X2
-
 
     def StatsAndSystematics(
             self,
@@ -29,8 +28,8 @@ class BinnedLogLikelihoodRatio:
             nuisance_vector):
         if set(nuisance_vector) == set(self.NominalNuisance_list):
             return self.StatsOnly(Expectation_dict)
-        return self.StatsOnly(Expectation_dict) + self.NuisancePenalty(nuisance_vector)
-
+        return self.StatsOnly(Expectation_dict) + \
+            self.NuisancePenalty(nuisance_vector)
 
     def Gradient(
             self,
@@ -54,7 +53,6 @@ class BinnedLogLikelihoodRatio:
 
         return nabla_X2
 
-
     def NuisancePenalty(
             self,
             nuisance_vector):
@@ -67,7 +65,6 @@ class BinnedLogLikelihoodRatio:
             elif dist == 'beta':
                 X2 += logBetaPrior(nuis, mu, sig)
         return X2
-
 
     def AnalyticPriorsBounds(
             self,
@@ -99,22 +96,34 @@ class BinnedLogLikelihoodRatio:
 
         return priors, bounds
 
-
     def AnalyticPriors_2ndOrder(self,
-            Expectation_dict_prior,
-            DiffExpectation_dict_prior,
-            prior):
+                                Expectation_dict_prior,
+                                DiffExpectation_dict_prior,
+                                prior):
         ''' Second order analytic computation of values for parameters to be mariginalized
-        assuming we are close enough to the minimum , i.e. a parabola'''
+        assuming we are close enough to the minimum , i.e. a parabola, i.e. linear derivative'''
 
-        D_Chi2_1 = np.array(self.Gradient(Expectation_dict_prior, DiffExpectation_dict_prior, prior))
+        if not self.Expectation_dict_Nominal:
+            sys.exit('Expectation for nominal values of nuisance not defined.')
+
+        if not self.DiffExpectation_dict_Nominal:
+            sys.exit(
+                'Derivative of the expectation for nominal values of nuisance not defined.')
+
+        D_Chi2_1 = np.array(
+            self.Gradient(
+                Expectation_dict_prior,
+                DiffExpectation_dict_prior,
+                prior))
         X_1 = np.array(prior)
 
-        D_Chi2_0 = np.array(self.Gradient(self.Expectation_dict_Nominal, self.DiffExpectation_dict_Nominal, self.NominalNuisance_list))
+        D_Chi2_0 = np.array(
+            self.Gradient(
+                self.Expectation_dict_Nominal,
+                self.DiffExpectation_dict_Nominal,
+                self.NominalNuisance_list))
         X_0 = np.array(self.NominalNuisance_list)
 
         priors_2nd = (D_Chi2_1 * X_0 - D_Chi2_0 * X_1) / (D_Chi2_1 - D_Chi2_0)
 
-        print(prior)
-        print(priors_2nd)
         return priors_2nd
