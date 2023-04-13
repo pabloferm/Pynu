@@ -56,16 +56,17 @@ class ICUp_Atm(Experiment):
     def MCVariables(self):
         d_itype = self.MC[&#39;pid&#39;]
         d_Etrue = self.MC[&#39;true_energy&#39;]
+        condition = (d_Etrue &gt; 1.0) * (d_itype &gt; -1)
         self.EReco = self.MC[&#39;reco_energy&#39;][condition]
-        self.CosZReco = np.cos(self.MC[&#39;reco_zenith&#39;])
-        self.CosZTrue = np.cos(self.MC[&#39;true_zenith&#39;])
-        self.AziTrue = self.MC[&#39;true_azimuth&#39;]
-        self.CC = self.MC[&#39;current_type&#39;]
-        self.nuPDG = np.int_(self.MC[&#39;pdg&#39;])
-        self.ETrue = self.MC[&#39;true_energy&#39;]
-        self.Weight = self.MC[&#39;weight&#39;]
-        self.Sample = self.MC[&#39;pid&#39;]  # Sample of each event
-        self.Mode = self.NEUTMode()
+        self.CosZReco = np.cos(self.MC[&#39;reco_zenith&#39;][condition])
+        self.CosZTrue = np.cos(self.MC[&#39;true_zenith&#39;][condition])
+        self.AziTrue = self.MC[&#39;true_azimuth&#39;][condition]
+        self.CC = self.MC[&#39;current_type&#39;][condition]
+        self.nuPDG = np.int_(self.MC[&#39;pdg&#39;][condition])
+        self.ETrue = self.MC[&#39;true_energy&#39;][condition]
+        self.Weight = self.MC[&#39;weight&#39;][condition]
+        self.Sample = self.MC[&#39;pid&#39;][condition]  # Sample of each event
+        self.Mode = self.NEUTMode()[condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
@@ -83,7 +84,6 @@ class ICUp_Atm(Experiment):
         self.BaseWeight = self.Weight * self.Norm
 
         del self.MC
-
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux(&#39;IPhonda2014_spl_solmin&#39;)
@@ -201,16 +201,17 @@ class ICUp_Atm(Experiment):
     def MCVariables(self):
         d_itype = self.MC[&#39;pid&#39;]
         d_Etrue = self.MC[&#39;true_energy&#39;]
+        condition = (d_Etrue &gt; 1.0) * (d_itype &gt; -1)
         self.EReco = self.MC[&#39;reco_energy&#39;][condition]
-        self.CosZReco = np.cos(self.MC[&#39;reco_zenith&#39;])
-        self.CosZTrue = np.cos(self.MC[&#39;true_zenith&#39;])
-        self.AziTrue = self.MC[&#39;true_azimuth&#39;]
-        self.CC = self.MC[&#39;current_type&#39;]
-        self.nuPDG = np.int_(self.MC[&#39;pdg&#39;])
-        self.ETrue = self.MC[&#39;true_energy&#39;]
-        self.Weight = self.MC[&#39;weight&#39;]
-        self.Sample = self.MC[&#39;pid&#39;]  # Sample of each event
-        self.Mode = self.NEUTMode()
+        self.CosZReco = np.cos(self.MC[&#39;reco_zenith&#39;][condition])
+        self.CosZTrue = np.cos(self.MC[&#39;true_zenith&#39;][condition])
+        self.AziTrue = self.MC[&#39;true_azimuth&#39;][condition]
+        self.CC = self.MC[&#39;current_type&#39;][condition]
+        self.nuPDG = np.int_(self.MC[&#39;pdg&#39;][condition])
+        self.ETrue = self.MC[&#39;true_energy&#39;][condition]
+        self.Weight = self.MC[&#39;weight&#39;][condition]
+        self.Sample = self.MC[&#39;pid&#39;][condition]  # Sample of each event
+        self.Mode = self.NEUTMode()[condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
@@ -228,7 +229,6 @@ class ICUp_Atm(Experiment):
         self.BaseWeight = self.Weight * self.Norm
 
         del self.MC
-
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux(&#39;IPhonda2014_spl_solmin&#39;)
@@ -389,16 +389,17 @@ class ICUp_Atm(Experiment):
 <pre><code class="python">def MCVariables(self):
     d_itype = self.MC[&#39;pid&#39;]
     d_Etrue = self.MC[&#39;true_energy&#39;]
+    condition = (d_Etrue &gt; 1.0) * (d_itype &gt; -1)
     self.EReco = self.MC[&#39;reco_energy&#39;][condition]
-    self.CosZReco = np.cos(self.MC[&#39;reco_zenith&#39;])
-    self.CosZTrue = np.cos(self.MC[&#39;true_zenith&#39;])
-    self.AziTrue = self.MC[&#39;true_azimuth&#39;]
-    self.CC = self.MC[&#39;current_type&#39;]
-    self.nuPDG = np.int_(self.MC[&#39;pdg&#39;])
-    self.ETrue = self.MC[&#39;true_energy&#39;]
-    self.Weight = self.MC[&#39;weight&#39;]
-    self.Sample = self.MC[&#39;pid&#39;]  # Sample of each event
-    self.Mode = self.NEUTMode()
+    self.CosZReco = np.cos(self.MC[&#39;reco_zenith&#39;][condition])
+    self.CosZTrue = np.cos(self.MC[&#39;true_zenith&#39;][condition])
+    self.AziTrue = self.MC[&#39;true_azimuth&#39;][condition]
+    self.CC = self.MC[&#39;current_type&#39;][condition]
+    self.nuPDG = np.int_(self.MC[&#39;pdg&#39;][condition])
+    self.ETrue = self.MC[&#39;true_energy&#39;][condition]
+    self.Weight = self.MC[&#39;weight&#39;][condition]
+    self.Sample = self.MC[&#39;pid&#39;][condition]  # Sample of each event
+    self.Mode = self.NEUTMode()[condition]
 
     self.NumberOfEvents = self.Sample.size
     self.Samples = np.unique(self.Sample)  # Samples in the analysis

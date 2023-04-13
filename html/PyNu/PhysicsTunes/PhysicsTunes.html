@@ -131,7 +131,8 @@ class Tune:
     def Get(self, tune, exp, x):
         &#39;&#39;&#39; Get specific weights for a given experiment from tune evaluated at x &#39;&#39;&#39;
         try:
-            return getattr(self, tune)(exp, x)
+            # return getattr(self, tune)(exp, x)
+            return self.__getattribute__(tune)(exp, x)
         except BaseException:
             print(tune + &#39; not found!!&#39;)
             return 1</code></pre>
@@ -410,7 +411,8 @@ def Experiment(self):
     def Get(self, tune, exp, x):
         &#39;&#39;&#39; Get specific weights for a given experiment from tune evaluated at x &#39;&#39;&#39;
         try:
-            return getattr(self, tune)(exp, x)
+            # return getattr(self, tune)(exp, x)
+            return self.__getattribute__(tune)(exp, x)
         except BaseException:
             print(tune + &#39; not found!!&#39;)
             return 1</code></pre>
@@ -429,7 +431,8 @@ def Experiment(self):
 <pre><code class="python">def Get(self, tune, exp, x):
     &#39;&#39;&#39; Get specific weights for a given experiment from tune evaluated at x &#39;&#39;&#39;
     try:
-        return getattr(self, tune)(exp, x)
+        # return getattr(self, tune)(exp, x)
+        return self.__getattribute__(tune)(exp, x)
     except BaseException:
         print(tune + &#39; not found!!&#39;)
         return 1</code></pre>

@@ -149,7 +149,7 @@ class SuperK_I(Experiment):
             15: z10bins}
 
 
-class SuperK_II(SuperK):
+class SuperK_II(SuperK_I):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_II, self).__init__(dict_of_details)
         self.Detector = 'SuperK_II'
@@ -157,7 +157,7 @@ class SuperK_II(SuperK):
         self.Definition()
 
 
-class SuperK_III(SuperK):
+class SuperK_III(SuperK_I):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_III, self).__init__(dict_of_details)
         self.Detector = 'SuperK_III'
@@ -165,7 +165,7 @@ class SuperK_III(SuperK):
         self.Definition()
 
 
-class SuperK_IV_noNtag(SuperK):
+class SuperK_IV_noNtag(SuperK_I):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_IV, self).__init__(dict_of_details)
         self.Detector = 'SuperK_IV_noNtag'
@@ -173,7 +173,7 @@ class SuperK_IV_noNtag(SuperK):
         self.Definition()
 
 
-class SuperK_IV(SuperK):
+class SuperK_IV(SuperK_I):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_Htag, self).__init__(dict_of_details)
 

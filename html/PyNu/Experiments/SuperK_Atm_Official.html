@@ -34,10 +34,10 @@ import nuflux
 from .Experiment import Experiment
 
 
-class SuperK(Experiment):
+class SuperK_I(Experiment):
     def __init__(self, dict_of_details, scenario):
         super(SuperK, self).__init__(dict_of_details)
-        self.Detector = &#39;SuperK&#39;
+        self.Detector = &#39;SuperK_I&#39;
         self.Source = &#39;Atmospheric&#39;
         self.Target = &#39;Water&#39;
         self.Scenario = scenario
@@ -57,8 +57,8 @@ class SuperK(Experiment):
         d_itype = self.MC[&#39;itype&#39;]
         condition = (d_itype &gt; -1)
         self.EReco = self.MC[&#39;evis&#39;][condition]
-        self.CosZReco = self.MC[&#39;dir&#39;][:,2][condition]
-        self.CosZTrue = self.MC[&#39;dirnu&#39;][:,2][condition]
+        self.CosZReco = self.MC[&#39;dir&#39;][:, 2][condition]
+        self.CosZTrue = self.MC[&#39;dirnu&#39;][:, 2][condition]
         # self.AziTrue = self.MC[&#39;azi&#39;]d_azi[condition]
         self.Mode = self.MC[&#39;mode&#39;][condition]
         self.CC = np.abs(self.Mode) &lt; 30
@@ -68,10 +68,11 @@ class SuperK(Experiment):
         #     self.MC[&#39;weightSim&#39;][condition]
         self.Sample = self.MC[&#39;itype&#39;][condition]  # Sample of each event
         self.DecayE = self.MC[&#39;muedk&#39;][condition]
+        self.Wall = self.MC[&#39;wall&#39;][condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        self.NumberOfSamples = 1 + np.amax(self.Samples)
+        self.NumberOfSamples = 1 + np.amax(self.Samples) - np.amin(self.Samples)
         self.Erec_max = 4e2
         self.Erec_min = 0.1
         self.Etrue_min = 0.1
@@ -83,8 +84,7 @@ class SuperK(Experiment):
 
         self.BaseWeight = self.Weight * self.Norm
 
-        del self.MC
-
+        # del self.MC
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux(&#39;IPhonda2014_sk_solmin&#39;)
@@ -113,10 +113,10 @@ class SuperK(Experiment):
         self.dCosZReco = self.Data[&#39;recodirZ&#39;][condition]
         self.dSample = self.Data[&#39;itype&#39;][condition]  # Sample of each event
         self.dDecayE = self.Data[&#39;muedk&#39;][condition]
+        self.dWall = self.Data[&#39;wall&#39;][condition]
         self.dNumberOfEvents = self.Sample.size
 
-        del self.Data
-
+        # del self.Data
 
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco
@@ -177,19 +177,54 @@ class SuperK(Experiment):
             15: z10bins}
 
 
-class SuperK_Htag(SuperK):
+class SuperK_II(SuperK_I):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_II, self).__init__(dict_of_details)
+        self.Detector = &#39;SuperK_II&#39;
+
+        self.Definition()
+
+
+class SuperK_III(SuperK_I):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_III, self).__init__(dict_of_details)
+        self.Detector = &#39;SuperK_III&#39;
+
+        self.Definition()
+
+
+class SuperK_IV_noNtag(SuperK_I):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_IV, self).__init__(dict_of_details)
+        self.Detector = &#39;SuperK_IV_noNtag&#39;
+
+        self.Definition()
+
+
+class SuperK_IV(SuperK_I):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_Htag, self).__init__(dict_of_details)
 
-        self.Detector = &#39;SuperK_Htag&#39;
+        self.Detector = &#39;SuperK_IV&#39;
 
-        self.Binning()
+        self.Definition()
 
-        self.SetBinner_2D()
+        self.AddMCVariables()
 
         if self.DataFit:
-            self.DataVariables()
-            self.BinData()
+            self.AddDataVariables()
+
+    def AddMCVariables(self):
+        d_itype = self.MC[&#39;itype&#39;]
+        condition = (d_itype &gt; -1)
+        self.NN = self.MC[&#39;nn&#39;][condition]
+        self.trueNN = self.MC[&#39;nn_mctruth&#39;][condition]
+
+    def AddDataVariables(self):
+        d_itype = self.Data[&#39;itype&#39;]
+        condition = (d_itype &gt; -1)
+        self.dNN = self.Data[&#39;nn&#39;][condition]
+        self.dtrueNN = self.Data[&#39;nn_mctruth&#39;][condition]
 
     def Binning(self):
         sge_ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.0, 1.33])
@@ -246,11 +281,22 @@ class SuperK_Htag(SuperK):
             17: z10bins}
 
 
-class SuperK_Gdtag(SuperK_Htag):
+class SuperK_V(SuperK_IV):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_Gdtag, self).__init__(dict_of_details)
 
-        self.Detector = &#39;SuperK_Gdtag&#39;</code></pre>
+        self.Detector = &#39;SuperK_V&#39;
+
+        self.Definition()
+
+
+class SuperK_VI(SuperK_IV):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_Gdtag, self).__init__(dict_of_details)
+
+        self.Detector = &#39;SuperK_VI&#39;
+
+        self.Definition()</code></pre>
 </details>
 </section>
 <section>
@@ -262,8 +308,8 @@ class SuperK_Gdtag(SuperK_Htag):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK"><code class="flex name class">
-<span>class <span class="ident">SuperK</span></span>
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_I"><code class="flex name class">
+<span>class <span class="ident">SuperK_I</span></span>
 <span>(</span><span>dict_of_details, scenario)</span>
 </code></dt>
 <dd>
@@ -272,10 +318,10 @@ class SuperK_Gdtag(SuperK_Htag):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class SuperK(Experiment):
+<pre><code class="python">class SuperK_I(Experiment):
     def __init__(self, dict_of_details, scenario):
         super(SuperK, self).__init__(dict_of_details)
-        self.Detector = &#39;SuperK&#39;
+        self.Detector = &#39;SuperK_I&#39;
         self.Source = &#39;Atmospheric&#39;
         self.Target = &#39;Water&#39;
         self.Scenario = scenario
@@ -295,8 +341,8 @@ class SuperK_Gdtag(SuperK_Htag):
         d_itype = self.MC[&#39;itype&#39;]
         condition = (d_itype &gt; -1)
         self.EReco = self.MC[&#39;evis&#39;][condition]
-        self.CosZReco = self.MC[&#39;dir&#39;][:,2][condition]
-        self.CosZTrue = self.MC[&#39;dirnu&#39;][:,2][condition]
+        self.CosZReco = self.MC[&#39;dir&#39;][:, 2][condition]
+        self.CosZTrue = self.MC[&#39;dirnu&#39;][:, 2][condition]
         # self.AziTrue = self.MC[&#39;azi&#39;]d_azi[condition]
         self.Mode = self.MC[&#39;mode&#39;][condition]
         self.CC = np.abs(self.Mode) &lt; 30
@@ -306,10 +352,11 @@ class SuperK_Gdtag(SuperK_Htag):
         #     self.MC[&#39;weightSim&#39;][condition]
         self.Sample = self.MC[&#39;itype&#39;][condition]  # Sample of each event
         self.DecayE = self.MC[&#39;muedk&#39;][condition]
+        self.Wall = self.MC[&#39;wall&#39;][condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        self.NumberOfSamples = 1 + np.amax(self.Samples)
+        self.NumberOfSamples = 1 + np.amax(self.Samples) - np.amin(self.Samples)
         self.Erec_max = 4e2
         self.Erec_min = 0.1
         self.Etrue_min = 0.1
@@ -321,8 +368,7 @@ class SuperK_Gdtag(SuperK_Htag):
 
         self.BaseWeight = self.Weight * self.Norm
 
-        del self.MC
-
+        # del self.MC
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux(&#39;IPhonda2014_sk_solmin&#39;)
@@ -351,10 +397,10 @@ class SuperK_Gdtag(SuperK_Htag):
         self.dCosZReco = self.Data[&#39;recodirZ&#39;][condition]
         self.dSample = self.Data[&#39;itype&#39;][condition]  # Sample of each event
         self.dDecayE = self.Data[&#39;muedk&#39;][condition]
+        self.dWall = self.Data[&#39;wall&#39;][condition]
         self.dNumberOfEvents = self.Sample.size
 
-        del self.Data
-
+        # del self.Data
 
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco
@@ -420,11 +466,14 @@ class SuperK_Gdtag(SuperK_Htag):
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag">SuperK_Htag</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_II" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_II">SuperK_II</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_III" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_III">SuperK_III</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_IV">SuperK_IV</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV_noNtag" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_IV_noNtag">SuperK_IV_noNtag</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK.BinData"><code class="name flex">
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.BinData"><code class="name flex">
 <span>def <span class="ident">BinData</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -438,7 +487,7 @@ class SuperK_Gdtag(SuperK_Htag):
     return self.BinIt_Data_2D()</code></pre>
 </details>
 </dd>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK.BinMC"><code class="name flex">
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.BinMC"><code class="name flex">
 <span>def <span class="ident">BinMC</span></span>(<span>self, array, shift_E=1, bias_E=0)</span>
 </code></dt>
 <dd>
@@ -452,7 +501,7 @@ class SuperK_Gdtag(SuperK_Htag):
     return self.BinIt_MC_2D(array, shift_E=1, bias_E=0)</code></pre>
 </details>
 </dd>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK.Binning"><code class="name flex">
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.Binning"><code class="name flex">
 <span>def <span class="ident">Binning</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -512,7 +561,7 @@ class SuperK_Gdtag(SuperK_Htag):
         15: z10bins}</code></pre>
 </details>
 </dd>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK.DataVariables"><code class="name flex">
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.DataVariables"><code class="name flex">
 <span>def <span class="ident">DataVariables</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -528,12 +577,13 @@ class SuperK_Gdtag(SuperK_Htag):
     self.dCosZReco = self.Data[&#39;recodirZ&#39;][condition]
     self.dSample = self.Data[&#39;itype&#39;][condition]  # Sample of each event
     self.dDecayE = self.Data[&#39;muedk&#39;][condition]
+    self.dWall = self.Data[&#39;wall&#39;][condition]
     self.dNumberOfEvents = self.Sample.size
 
-    del self.Data</code></pre>
+    # del self.Data</code></pre>
 </details>
 </dd>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK.MCVariables"><code class="name flex">
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.MCVariables"><code class="name flex">
 <span>def <span class="ident">MCVariables</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -546,8 +596,8 @@ class SuperK_Gdtag(SuperK_Htag):
     d_itype = self.MC[&#39;itype&#39;]
     condition = (d_itype &gt; -1)
     self.EReco = self.MC[&#39;evis&#39;][condition]
-    self.CosZReco = self.MC[&#39;dir&#39;][:,2][condition]
-    self.CosZTrue = self.MC[&#39;dirnu&#39;][:,2][condition]
+    self.CosZReco = self.MC[&#39;dir&#39;][:, 2][condition]
+    self.CosZTrue = self.MC[&#39;dirnu&#39;][:, 2][condition]
     # self.AziTrue = self.MC[&#39;azi&#39;]d_azi[condition]
     self.Mode = self.MC[&#39;mode&#39;][condition]
     self.CC = np.abs(self.Mode) &lt; 30
@@ -557,10 +607,11 @@ class SuperK_Gdtag(SuperK_Htag):
     #     self.MC[&#39;weightSim&#39;][condition]
     self.Sample = self.MC[&#39;itype&#39;][condition]  # Sample of each event
     self.DecayE = self.MC[&#39;muedk&#39;][condition]
+    self.Wall = self.MC[&#39;wall&#39;][condition]
 
     self.NumberOfEvents = self.Sample.size
     self.Samples = np.unique(self.Sample)  # Samples in the analysis
-    self.NumberOfSamples = 1 + np.amax(self.Samples)
+    self.NumberOfSamples = 1 + np.amax(self.Samples) - np.amin(self.Samples)
     self.Erec_max = 4e2
     self.Erec_min = 0.1
     self.Etrue_min = 0.1
@@ -572,10 +623,10 @@ class SuperK_Gdtag(SuperK_Htag):
 
     self.BaseWeight = self.Weight * self.Norm
 
-    del self.MC</code></pre>
+    # del self.MC</code></pre>
 </details>
 </dd>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK.SetInitialFlux"><code class="name flex">
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.SetInitialFlux"><code class="name flex">
 <span>def <span class="ident">SetInitialFlux</span></span>(<span>self, energy_nodes, cth_nodes, neutrino_flavors)</span>
 </code></dt>
 <dd>
@@ -607,8 +658,8 @@ class SuperK_Gdtag(SuperK_Htag):
 </dd>
 </dl>
 </dd>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_Gdtag"><code class="flex name class">
-<span>class <span class="ident">SuperK_Gdtag</span></span>
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_II"><code class="flex name class">
+<span>class <span class="ident">SuperK_II</span></span>
 <span>(</span><span>dict_of_details, scenario)</span>
 </code></dt>
 <dd>
@@ -617,21 +668,21 @@ class SuperK_Gdtag(SuperK_Htag):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class SuperK_Gdtag(SuperK_Htag):
+<pre><code class="python">class SuperK_II(SuperK_I):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK_Gdtag, self).__init__(dict_of_details)
+        super(SuperK_II, self).__init__(dict_of_details)
+        self.Detector = &#39;SuperK_II&#39;
 
-        self.Detector = &#39;SuperK_Gdtag&#39;</code></pre>
+        self.Definition()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag">SuperK_Htag</a></li>
-<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK">SuperK</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I">SuperK_I</a></li>
 <li><a title="PyNu.Experiments.Experiment.Experiment" href="Experiment.html#PyNu.Experiments.Experiment.Experiment">Experiment</a></li>
 </ul>
 </dd>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag"><code class="flex name class">
-<span>class <span class="ident">SuperK_Htag</span></span>
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_III"><code class="flex name class">
+<span>class <span class="ident">SuperK_III</span></span>
 <span>(</span><span>dict_of_details, scenario)</span>
 </code></dt>
 <dd>
@@ -640,19 +691,53 @@ class SuperK_Gdtag(SuperK_Htag):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class SuperK_Htag(SuperK):
+<pre><code class="python">class SuperK_III(SuperK_I):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_III, self).__init__(dict_of_details)
+        self.Detector = &#39;SuperK_III&#39;
+
+        self.Definition()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I">SuperK_I</a></li>
+<li><a title="PyNu.Experiments.Experiment.Experiment" href="Experiment.html#PyNu.Experiments.Experiment.Experiment">Experiment</a></li>
+</ul>
+</dd>
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV"><code class="flex name class">
+<span>class <span class="ident">SuperK_IV</span></span>
+<span>(</span><span>dict_of_details, scenario)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SuperK_IV(SuperK_I):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_Htag, self).__init__(dict_of_details)
 
-        self.Detector = &#39;SuperK_Htag&#39;
+        self.Detector = &#39;SuperK_IV&#39;
 
-        self.Binning()
+        self.Definition()
 
-        self.SetBinner_2D()
+        self.AddMCVariables()
 
         if self.DataFit:
-            self.DataVariables()
-            self.BinData()
+            self.AddDataVariables()
+
+    def AddMCVariables(self):
+        d_itype = self.MC[&#39;itype&#39;]
+        condition = (d_itype &gt; -1)
+        self.NN = self.MC[&#39;nn&#39;][condition]
+        self.trueNN = self.MC[&#39;nn_mctruth&#39;][condition]
+
+    def AddDataVariables(self):
+        d_itype = self.Data[&#39;itype&#39;]
+        condition = (d_itype &gt; -1)
+        self.dNN = self.Data[&#39;nn&#39;][condition]
+        self.dtrueNN = self.Data[&#39;nn_mctruth&#39;][condition]
 
     def Binning(self):
         sge_ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.0, 1.33])
@@ -710,16 +795,49 @@ class SuperK_Gdtag(SuperK_Htag):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK">SuperK</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I">SuperK_I</a></li>
 <li><a title="PyNu.Experiments.Experiment.Experiment" href="Experiment.html#PyNu.Experiments.Experiment.Experiment">Experiment</a></li>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_Gdtag" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_Gdtag">SuperK_Gdtag</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_V" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_V">SuperK_V</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_VI" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_VI">SuperK_VI</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag.Binning"><code class="name flex">
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV.AddDataVariables"><code class="name flex">
+<span>def <span class="ident">AddDataVariables</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def AddDataVariables(self):
+    d_itype = self.Data[&#39;itype&#39;]
+    condition = (d_itype &gt; -1)
+    self.dNN = self.Data[&#39;nn&#39;][condition]
+    self.dtrueNN = self.Data[&#39;nn_mctruth&#39;][condition]</code></pre>
+</details>
+</dd>
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV.AddMCVariables"><code class="name flex">
+<span>def <span class="ident">AddMCVariables</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def AddMCVariables(self):
+    d_itype = self.MC[&#39;itype&#39;]
+    condition = (d_itype &gt; -1)
+    self.NN = self.MC[&#39;nn&#39;][condition]
+    self.trueNN = self.MC[&#39;nn_mctruth&#39;][condition]</code></pre>
+</details>
+</dd>
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV.Binning"><code class="name flex">
 <span>def <span class="ident">Binning</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -785,6 +903,79 @@ class SuperK_Gdtag(SuperK_Htag):
 </dd>
 </dl>
 </dd>
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV_noNtag"><code class="flex name class">
+<span>class <span class="ident">SuperK_IV_noNtag</span></span>
+<span>(</span><span>dict_of_details, scenario)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SuperK_IV_noNtag(SuperK_I):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_IV, self).__init__(dict_of_details)
+        self.Detector = &#39;SuperK_IV_noNtag&#39;
+
+        self.Definition()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I">SuperK_I</a></li>
+<li><a title="PyNu.Experiments.Experiment.Experiment" href="Experiment.html#PyNu.Experiments.Experiment.Experiment">Experiment</a></li>
+</ul>
+</dd>
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_V"><code class="flex name class">
+<span>class <span class="ident">SuperK_V</span></span>
+<span>(</span><span>dict_of_details, scenario)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SuperK_V(SuperK_IV):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_Gdtag, self).__init__(dict_of_details)
+
+        self.Detector = &#39;SuperK_V&#39;
+
+        self.Definition()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_IV">SuperK_IV</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I">SuperK_I</a></li>
+<li><a title="PyNu.Experiments.Experiment.Experiment" href="Experiment.html#PyNu.Experiments.Experiment.Experiment">Experiment</a></li>
+</ul>
+</dd>
+<dt id="PyNu.Experiments.SuperK_Atm_Official.SuperK_VI"><code class="flex name class">
+<span>class <span class="ident">SuperK_VI</span></span>
+<span>(</span><span>dict_of_details, scenario)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SuperK_VI(SuperK_IV):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_Gdtag, self).__init__(dict_of_details)
+
+        self.Detector = &#39;SuperK_VI&#39;
+
+        self.Definition()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_IV">SuperK_IV</a></li>
+<li><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I">SuperK_I</a></li>
+<li><a title="PyNu.Experiments.Experiment.Experiment" href="Experiment.html#PyNu.Experiments.Experiment.Experiment">Experiment</a></li>
+</ul>
+</dd>
 </dl>
 </section>
 </article>
@@ -802,24 +993,38 @@ class SuperK_Gdtag(SuperK_Htag):
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK">SuperK</a></code></h4>
+<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I">SuperK_I</a></code></h4>
 <ul class="two-column">
-<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK.BinData" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK.BinData">BinData</a></code></li>
-<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK.BinMC" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK.BinMC">BinMC</a></code></li>
-<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK.Binning" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK.Binning">Binning</a></code></li>
-<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK.DataVariables" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK.DataVariables">DataVariables</a></code></li>
-<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK.MCVariables" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK.MCVariables">MCVariables</a></code></li>
-<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK.SetInitialFlux" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK.SetInitialFlux">SetInitialFlux</a></code></li>
+<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.BinData" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I.BinData">BinData</a></code></li>
+<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.BinMC" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I.BinMC">BinMC</a></code></li>
+<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.Binning" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I.Binning">Binning</a></code></li>
+<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.DataVariables" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I.DataVariables">DataVariables</a></code></li>
+<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.MCVariables" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I.MCVariables">MCVariables</a></code></li>
+<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_I.SetInitialFlux" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_I.SetInitialFlux">SetInitialFlux</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_Gdtag" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_Gdtag">SuperK_Gdtag</a></code></h4>
+<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_II" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_II">SuperK_II</a></code></h4>
 </li>
 <li>
-<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag">SuperK_Htag</a></code></h4>
+<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_III" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_III">SuperK_III</a></code></h4>
+</li>
+<li>
+<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_IV">SuperK_IV</a></code></h4>
 <ul class="">
-<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag.Binning" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_Htag.Binning">Binning</a></code></li>
+<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV.AddDataVariables" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_IV.AddDataVariables">AddDataVariables</a></code></li>
+<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV.AddMCVariables" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_IV.AddMCVariables">AddMCVariables</a></code></li>
+<li><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV.Binning" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_IV.Binning">Binning</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_IV_noNtag" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_IV_noNtag">SuperK_IV_noNtag</a></code></h4>
+</li>
+<li>
+<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_V" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_V">SuperK_V</a></code></h4>
+</li>
+<li>
+<h4><code><a title="PyNu.Experiments.SuperK_Atm_Official.SuperK_VI" href="#PyNu.Experiments.SuperK_Atm_Official.SuperK_VI">SuperK_VI</a></code></h4>
 </li>
 </ul>
 </li>
