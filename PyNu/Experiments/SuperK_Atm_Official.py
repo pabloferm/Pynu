@@ -6,10 +6,10 @@ import nuflux
 from .Experiment import Experiment
 
 
-class SuperK(Experiment):
+class SuperK_I(Experiment):
     def __init__(self, dict_of_details, scenario):
         super(SuperK, self).__init__(dict_of_details)
-        self.Detector = 'SuperK'
+        self.Detector = 'SuperK_I'
         self.Source = 'Atmospheric'
         self.Target = 'Water'
         self.Scenario = scenario
@@ -40,10 +40,11 @@ class SuperK(Experiment):
         #     self.MC['weightSim'][condition]
         self.Sample = self.MC['itype'][condition]  # Sample of each event
         self.DecayE = self.MC['muedk'][condition]
+        self.Wall = self.MC['wall'][condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        self.NumberOfSamples = 1 + np.amax(self.Samples)
+        self.NumberOfSamples = 1 + np.amax(self.Samples) - np.amin(self.Samples)
         self.Erec_max = 4e2
         self.Erec_min = 0.1
         self.Etrue_min = 0.1
@@ -55,7 +56,7 @@ class SuperK(Experiment):
 
         self.BaseWeight = self.Weight * self.Norm
 
-        del self.MC
+        # del self.MC
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux('IPhonda2014_sk_solmin')
@@ -84,9 +85,10 @@ class SuperK(Experiment):
         self.dCosZReco = self.Data['recodirZ'][condition]
         self.dSample = self.Data['itype'][condition]  # Sample of each event
         self.dDecayE = self.Data['muedk'][condition]
+        self.dWall = self.Data['wall'][condition]
         self.dNumberOfEvents = self.Sample.size
 
-        del self.Data
+        # del self.Data
 
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco
@@ -147,19 +149,54 @@ class SuperK(Experiment):
             15: z10bins}
 
 
-class SuperK_Htag(SuperK):
+class SuperK_II(SuperK):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_II, self).__init__(dict_of_details)
+        self.Detector = 'SuperK_II'
+
+        self.Definition()
+
+
+class SuperK_III(SuperK):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_III, self).__init__(dict_of_details)
+        self.Detector = 'SuperK_III'
+
+        self.Definition()
+
+
+class SuperK_IV_noNtag(SuperK):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_IV, self).__init__(dict_of_details)
+        self.Detector = 'SuperK_IV_noNtag'
+
+        self.Definition()
+
+
+class SuperK_IV(SuperK):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_Htag, self).__init__(dict_of_details)
 
-        self.Detector = 'SuperK_Htag'
+        self.Detector = 'SuperK_IV'
 
-        self.Binning()
+        self.Definition()
 
-        self.SetBinner_2D()
+        self.AddMCVariables()
 
         if self.DataFit:
-            self.DataVariables()
-            self.BinData()
+            self.AddDataVariables()
+
+    def AddMCVariables(self):
+        d_itype = self.MC['itype']
+        condition = (d_itype > -1)
+        self.NN = self.MC['nn'][condition]
+        self.trueNN = self.MC['nn_mctruth'][condition]
+
+    def AddDataVariables(self):
+        d_itype = self.Data['itype']
+        condition = (d_itype > -1)
+        self.dNN = self.Data['nn'][condition]
+        self.dtrueNN = self.Data['nn_mctruth'][condition]
 
     def Binning(self):
         sge_ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.0, 1.33])
@@ -216,8 +253,19 @@ class SuperK_Htag(SuperK):
             17: z10bins}
 
 
-class SuperK_Gdtag(SuperK_Htag):
+class SuperK_V(SuperK_IV):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_Gdtag, self).__init__(dict_of_details)
 
-        self.Detector = 'SuperK_Gdtag'
+        self.Detector = 'SuperK_V'
+
+        self.Definition()
+
+
+class SuperK_VI(SuperK_IV):
+    def __init__(self, dict_of_details, scenario):
+        super(SuperK_Gdtag, self).__init__(dict_of_details)
+
+        self.Detector = 'SuperK_VI'
+
+        self.Definition()
