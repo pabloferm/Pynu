@@ -153,6 +153,8 @@ class SuperK_Htag(SuperK):
 
         self.Detector = 'SuperK_Htag_Pheno'
 
+        self.Definition()
+
         self.Binning()
 
         self.SetBinner_2D()
@@ -221,3 +223,5 @@ class SuperK_Gdtag(SuperK_Htag):
         super(SuperK_Gdtag, self).__init__(dict_of_details)
 
         self.Detector = 'SuperK_Gdtag_Pheno'
+
+        self.Definition()

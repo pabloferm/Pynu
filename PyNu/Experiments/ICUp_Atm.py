@@ -14,7 +14,7 @@ class ICUp_Atm(Experiment):
         self.Source = 'Atmospheric'
         self.Scenario = scenario
 
-        self.Definition()
+        self.SetDefinition()
 
         self.MCVariables()
 

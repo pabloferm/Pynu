@@ -1,6 +1,7 @@
 # from .CrossSection import *
 # from .Detector import *
 # from .Oscillations.Oscillations import Oscillations
+import sys
 
 
 class PhysicsTunes:
@@ -67,21 +68,24 @@ class PhysicsTunes:
             # return SuperK_LBL(experiment)
             pass
         else:
-            sys.exit('{name} not found.')
+            sys.exit(f'{self._Experiment.Source} source not found.')
 
     def SetXSection(self):
         if self.Target == 'Water':
             from .CrossSection.WaterXSection import WaterXSection
             self.XSectionTunes = WaterXSection()
         else:
-            sys.exit('{name} not found.')
+            sys.exit(f'{self._Experiment.Target} target not found.')
 
     def SetDetector(self):
         if self.Detector == 'IceCube-Upgrade':
             from .Detector.ICUpDetector import ICUpgrade
             self.DetectorTunes = ICUpgrade()
+        elif self.Detector == 'SuperK_IV':
+            from .Detector.SuperKIV_Detector import SuperK_IV
+            self.DetectorTunes = SuperK_IV()
         else:
-            sys.exit('{name} not found.')
+            sys.exit(f'{self.Detector} detector not found.')
 
     def SetOscillation(self):
         if self.Source == 'Atmospheric':
@@ -89,7 +93,7 @@ class PhysicsTunes:
             self.OscillationTunes = AtmosphericOscillations(
                 self.Scenario, self.NeutrinoFlavors, self._Experiment)
         else:
-            sys.exit('{name} not found.')
+            sys.exit(f'{self._Experiment.Scenario} oscillaiton scenario not found.')
 
 
 #############################################################################

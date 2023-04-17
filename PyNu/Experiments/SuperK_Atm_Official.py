@@ -8,13 +8,13 @@ from .Experiment import Experiment
 
 class SuperK_I(Experiment):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK, self).__init__(dict_of_details)
+        super(SuperK_I, self).__init__(dict_of_details)
         self.Detector = 'SuperK_I'
         self.Source = 'Atmospheric'
         self.Target = 'Water'
         self.Scenario = scenario
 
-        self.Definition()
+        self.SetDefinition()
 
         self.MCVariables()
 
@@ -28,7 +28,7 @@ class SuperK_I(Experiment):
     def MCVariables(self):
         d_itype = self.MC['itype']
         condition = (d_itype > -1)
-        self.EReco = self.MC['evis'][condition]
+        self.EReco = self.MC['amom'][condition]
         self.CosZReco = self.MC['dir'][:, 2][condition]
         self.CosZTrue = self.MC['dirnu'][:, 2][condition]
         # self.AziTrue = self.MC['azi']d_azi[condition]
@@ -36,15 +36,16 @@ class SuperK_I(Experiment):
         self.CC = np.abs(self.Mode) < 30
         self.nuPDG = self.MC['ipnu'][condition]
         self.ETrue = self.MC['pnu'][condition]
-        # self.Weight = self.MC['weightReco'][condition] * \
-        #     self.MC['weightSim'][condition]
         self.Sample = self.MC['itype'][condition]  # Sample of each event
         self.DecayE = self.MC['muedk'][condition]
         self.Wall = self.MC['wall'][condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        self.NumberOfSamples = 1 + np.amax(self.Samples) - np.amin(self.Samples)
+        First_Sample = np.min(self.Samples)
+        self.Samples -= First_Sample
+        self.NumberOfSamples = 1 + \
+            np.amax(self.Samples) - np.amin(self.Samples)
         self.Erec_max = 4e2
         self.Erec_min = 0.1
         self.Etrue_min = 0.1
@@ -54,7 +55,7 @@ class SuperK_I(Experiment):
 
         self.Norm *= 1
 
-        self.BaseWeight = self.Weight * self.Norm
+        self.BaseWeight = self.Norm
 
         # del self.MC
 
@@ -110,8 +111,8 @@ class SuperK_I(Experiment):
         mro_ebins = np.array([1.3, 2.5, 5.0, 10., 500.])
         pcs_ebins = np.array([0.1, 10., 1.0e5])
         pct_ebins = np.array([0.1, 10.0, 50., 1.0e5])
-        z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2,
-                           0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        z10bins = np.linspace(-1,1,10+1)
+        z10bins_up = np.linspace(-1,0,10+1)
         z1bins = np.array([-1, 1.0])
         self.EnergyBins = {
             0: sge_ebins,
@@ -129,7 +130,10 @@ class SuperK_I(Experiment):
             12: mrm_ebins,
             13: mro_ebins,
             14: pcs_ebins,
-            15: pct_ebins}
+            15: pct_ebins,
+            16: umstop_ebins,
+            17: um_ebins,
+            18: um_ebins}
         self.CTBins = {
             0: z10bins,
             1: z1bins,
@@ -146,45 +150,54 @@ class SuperK_I(Experiment):
             12: z10bins,
             13: z10bins,
             14: z10bins,
-            15: z10bins}
+            15: z10bins,
+            16: z10bins_up,
+            17: z10bins_up,
+            18: z10bins_up}
 
 
 class SuperK_II(SuperK_I):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK_II, self).__init__(dict_of_details)
+        super(SuperK_II, self).__init__(dict_of_details, scenario)
         self.Detector = 'SuperK_II'
 
-        self.Definition()
+        self.SetDefinition()
 
 
 class SuperK_III(SuperK_I):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK_III, self).__init__(dict_of_details)
+        super(SuperK_III, self).__init__(dict_of_details, scenario)
         self.Detector = 'SuperK_III'
 
-        self.Definition()
+        self.SetDefinition()
 
 
 class SuperK_IV_noNtag(SuperK_I):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK_IV, self).__init__(dict_of_details)
+        super(SuperK_IV_noNtag, self).__init__(dict_of_details, scenario)
         self.Detector = 'SuperK_IV_noNtag'
 
-        self.Definition()
+        self.SetDefinition()
 
 
 class SuperK_IV(SuperK_I):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK_Htag, self).__init__(dict_of_details)
+        super(SuperK_IV, self).__init__(dict_of_details, scenario)
 
         self.Detector = 'SuperK_IV'
 
-        self.Definition()
+        self.SetDefinition()
 
         self.AddMCVariables()
 
+        self.DeleteBinner()
+        self.Binning()
+        self.SetBinner_2D()
+
         if self.DataFit:
             self.AddDataVariables()
+            self.DataVariables()
+            self.BinData()
 
     def AddMCVariables(self):
         d_itype = self.MC['itype']
@@ -210,8 +223,10 @@ class SuperK_IV(SuperK_I):
         mro_ebins = np.array([1.3, 2.5, 5.0, 10., 500.])
         pcs_ebins = np.array([0.1, 10., 1.0e5])
         pct_ebins = np.array([0.1, 10.0, 50., 1.0e5])
-        z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2,
-                           0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        umstop_ebins = np.array([1.0, 8.0, 20., 1.0e5])
+        um_ebins = np.array([1.0, 1.0e5])
+        z10bins = np.linspace(-1,1,10+1)
+        z10bins_up = np.linspace(-1,0,10+1)
         z1bins = np.array([-1, 1.0])
         self.EnergyBins = {
             0: sge_ebins,
@@ -231,8 +246,11 @@ class SuperK_IV(SuperK_I):
             14: mrm_ebins,
             15: mro_ebins,
             16: pcs_ebins,
-            17: pct_ebins}
-        self.CzBins = {
+            17: pct_ebins,
+            18: umstop_ebins,
+            19: um_ebins,
+            20: um_ebins}
+        self.CTBins = {
             0: z1bins,
             1: z10bins,
             2: z10bins,
@@ -250,22 +268,25 @@ class SuperK_IV(SuperK_I):
             14: z10bins,
             15: z10bins,
             16: z10bins,
-            17: z10bins}
+            17: z10bins,
+            18: z10bins_up,
+            19: z10bins_up,
+            20: z10bins_up}
 
 
 class SuperK_V(SuperK_IV):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK_Gdtag, self).__init__(dict_of_details)
+        super(SuperK_V, self).__init__(dict_of_details, scenario)
 
         self.Detector = 'SuperK_V'
 
-        self.Definition()
+        self.SetDefinition()
 
 
 class SuperK_VI(SuperK_IV):
-    def __init__(self, dict_of_details, scenario):
-        super(SuperK_Gdtag, self).__init__(dict_of_details)
+    def __init__(self, dict_of_details, scenario) -> None:
+        super(SuperK_VI, self).__init__(dict_of_details, scenario)
 
         self.Detector = 'SuperK_VI'
 
-        self.Definition()
+        self.SetDefinition()

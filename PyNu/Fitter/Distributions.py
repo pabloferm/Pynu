@@ -1,51 +1,56 @@
 # Provides several functions for probability distributions
 from math import gamma, exp, sqrt, pi, log
 import numpy as np
+from typing import List, Tuple
 
 # Normal distribution
 
 
-def GaussianDistribution(x, m, s):
+def GaussianDistribution(x: np.ndarray, m: float, s: float) -> np.ndarray:
     return np.exp(-0.5 * (x - m)**2 / s**2) / (s * np.sqrt(2 * pi))
 
 
-def logGaussianPrior(x, m, s):  # Actually, -2 ln(L/L0)
+def logGaussianPrior(x: float, m: float, s: float) -> float:  # Actually, -2 ln(L/L0)
     return (x - m)**2 / s**2
 
 
-def DifflogGaussianPrior(x, m, s):  # Actually, -2 ln(L/L0)
+def DifflogGaussianPrior(x: float, m: float, s: float) -> float:  # Actually, -2 ln(L/L0)
     return 2 * (x - m) / s**2
 
 
 # Beta distribution
 
-def BetaDistribution(x, a, b):
+def BetaDistribution(x: np.ndarray, a: float, b: float) -> np.ndarray:
     return x**(a - 1) * (1 - x)**(b - 1) * gamma(a + b) / gamma(a) / gamma(b)
 
 
-def BetaPar(m, s):  # Mode and std
+def BetaPar(m: float, s: float) -> Tuple[float, float]:  # Mode and std
     alpha = ((1 - m) / s**2 - 1 / m) * m**2
     beta = alpha * (1 / m - 1)
     return alpha, beta
 
 
-def BetaMean(a, b):
+def BetaMean(a: float, b: float) -> float:
     return a / (a + b)
 
 
-def BetaMode(a, b):
+def BetaMode(a: float, b: float) -> float:
     return (a - 1) / (a + b - 2)
 
 
-def BetaSTD(a, b):
+def BetaSTD(a: float, b: float) -> float:
     return np.sqrt((a * b) / ((a + b)**2 * (a + b + 1)))
 
 
-def logBetaPrior(x, a, b):
+def logBetaPrior(x: float, a: float, b: float) -> float:
     m = BetaMode(a, b)
     return 2 * ((a - 1) * np.log(m / x) + (b - 1) * np.log((1 - m) / (1 - x)))
 
 
-def DifflogBetaPrior(x, m, s):
+def DifflogBetaPrior(x: float, m: float, s: float) -> float:
     a, b = BetaPar(m, s)
+    return 2 * (- (a - 1) / x + (b - 1) / (1 - x))
+
+
+def DifflogBetaPrior_wParameters(x: float, a: float, b: float) -> float:
     return 2 * (- (a - 1) / x + (b - 1) / (1 - x))

@@ -4,6 +4,9 @@ from .SKDetector import *
 ###### SK-IV #######
 ####################
 
+class SuperK_IV(Tune):
+    pass
+
 
 def SKIV_SKEnergyScale(x, experiment):
     return SKEnergyScale(x, experiment)

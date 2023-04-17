@@ -40,7 +40,7 @@ class Experiment:
         self.NuisanceWeight = 1
         self.NominalWeight = 1
 
-    def Definition(self):
+    def SetDefinition(self):
         self.Definition = {
             self.Detector: 'Detector',
             self.Target: 'XSection',
@@ -89,6 +89,9 @@ class Experiment:
                 bh.axis.Variable(self.EnergyBins[s]),
                 bh.axis.Variable(self.CTBins[s]))
             for s in range(self.NumberOfSamples)]
+
+    def DeleteBinner(self):
+        self.Binner = []
 
     def BinIt_MC_1D(self, array, shift_E=1, bias_E=0):  # 1D energy binning
         for hist in self.Binner:

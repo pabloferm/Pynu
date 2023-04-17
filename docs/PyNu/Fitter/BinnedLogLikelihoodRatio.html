@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>PyNu.Fitter.BinnedLogLikelihoodRatio API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Chebyshev Series (:mod:`numpy.polynomial.chebyshev`)
+…" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,19 +23,169 @@
 <h1 class="title">Module <code>PyNu.Fitter.BinnedLogLikelihoodRatio</code></h1>
 </header>
 <section id="section-intro">
+<p>====================================================
+Chebyshev Series (:mod:<code>numpy.polynomial.chebyshev</code>)
+====================================================</p>
+<p>This module provides a number of objects (mostly functions) useful for
+dealing with Chebyshev series, including a <code>Chebyshev</code> class that
+encapsulates the usual arithmetic operations.
+(General information
+on how this module represents and works with such polynomials is in the
+docstring for its "parent" sub-package, <code>numpy.polynomial</code>).</p>
+<h2 id="class">Class</h2>
+<div class="admonition autosummary">
+<p class="admonition-title">Autosummary</p>
+<p>:toctree: generated/</p>
+<p>BinnedLogLikelihoodRatio</p>
+</div>
+<h2 id="constants">Constants</h2>
+<div class="admonition autosummary">
+<p class="admonition-title">Autosummary</p>
+<p>:toctree: generated/</p>
+<p>chebdomain
+chebzero
+chebone
+chebx</p>
+</div>
+<h2 id="arithmetic">Arithmetic</h2>
+<div class="admonition autosummary">
+<p class="admonition-title">Autosummary</p>
+<p>:toctree: generated/</p>
+<p>chebadd
+chebsub
+chebmulx
+chebmul
+chebdiv
+chebpow
+chebval
+chebval2d
+chebval3d
+chebgrid2d
+chebgrid3d</p>
+</div>
+<h2 id="calculus">Calculus</h2>
+<div class="admonition autosummary">
+<p class="admonition-title">Autosummary</p>
+<p>:toctree: generated/</p>
+<p>chebder
+chebint</p>
+</div>
+<h2 id="misc-functions">Misc Functions</h2>
+<div class="admonition autosummary">
+<p class="admonition-title">Autosummary</p>
+<p>:toctree: generated/</p>
+<p>chebfromroots
+chebroots
+chebvander</p>
+</div>
+<h2 id="notes">Notes</h2>
+<p>The implementations of multiplication, division, integration, and
+differentiation use the algebraic identities [1]_:</p>
+<p>.. math ::
+T_n(x) = \frac{z^n + z^{-n}}{2} \
+z\frac{dx}{dz} = \frac{z - z^{-1}}{2}.</p>
+<p>where</p>
+<p>.. math :: x = \frac{z + z^{-1}}{2}.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import sys
+<pre><code class="python">&#39;&#39;&#39;
+====================================================
+Chebyshev Series (:mod:`numpy.polynomial.chebyshev`)
+====================================================
+
+This module provides a number of objects (mostly functions) useful for
+dealing with Chebyshev series, including a `Chebyshev` class that
+encapsulates the usual arithmetic operations.  (General information
+on how this module represents and works with such polynomials is in the
+docstring for its &#34;parent&#34; sub-package, `numpy.polynomial`).
+
+Class
+-------
+
+.. autosummary::
+   :toctree: generated/
+
+   BinnedLogLikelihoodRatio
+
+
+Constants
+---------
+
+.. autosummary::
+   :toctree: generated/
+
+   chebdomain
+   chebzero
+   chebone
+   chebx
+
+Arithmetic
+----------
+
+.. autosummary::
+   :toctree: generated/
+
+   chebadd
+   chebsub
+   chebmulx
+   chebmul
+   chebdiv
+   chebpow
+   chebval
+   chebval2d
+   chebval3d
+   chebgrid2d
+   chebgrid3d
+
+Calculus
+--------
+
+.. autosummary::
+   :toctree: generated/
+
+   chebder
+   chebint
+
+Misc Functions
+--------------
+
+.. autosummary::
+   :toctree: generated/
+
+   chebfromroots
+   chebroots
+   chebvander
+
+Notes
+-----
+The implementations of multiplication, division, integration, and
+differentiation use the algebraic identities [1]_:
+
+.. math ::
+    T_n(x) = \\frac{z^n + z^{-n}}{2} \\\\
+    z\\frac{dx}{dz} = \\frac{z - z^{-1}}{2}.
+
+where
+
+.. math :: x = \\frac{z + z^{-1}}{2}.
+
+&#39;&#39;&#39;
+
+import sys
 import numpy as np
+import numpy.typing as npt
+from typing import List, Tuple, Dict
 from .Distributions import *
+
+vector = npt.NDArray[np.float64]
 
 
 class BinnedLogLikelihoodRatio:
-    def __init__(self, Observation_dict, NominalNuisance_list,
-                 SigmaNuisance_list,
-                 DistNuisance_list,):
+    def __init__(self, Observation_dict, NominalNuisance_list: vector,
+                 SigmaNuisance_list: vector,
+                 DistNuisance_list: List[str]) -&gt; None:
 
         self.Observation_dict = Observation_dict
         self.NominalNuisance_list = NominalNuisance_list
@@ -42,7 +193,7 @@ class BinnedLogLikelihoodRatio:
         self.DistNuisance_list = DistNuisance_list
         self.number_of_nuisance = len(self.NominalNuisance_list)
 
-    def StatsOnly(self, Expectation_dict):
+    def StatsOnly(self, Expectation_dict) -&gt; float:
         &#39;&#39;&#39; Compute statistics only binned chi-squared &#39;&#39;&#39;
         X2 = 0
         for O, E in zip(self.Observation_dict.values(),
@@ -53,7 +204,7 @@ class BinnedLogLikelihoodRatio:
     def StatsAndSystematics(
             self,
             Expectation_dict,
-            nuisance_vector):
+            nuisance_vector: vector) -&gt; float:
         if set(nuisance_vector) == set(self.NominalNuisance_list):
             return self.StatsOnly(Expectation_dict)
         return self.StatsOnly(Expectation_dict) + \
@@ -63,8 +214,8 @@ class BinnedLogLikelihoodRatio:
             self,
             Expectation_dict,
             DiffExpectation_dict,
-            nuisance_vector):
-        nabla_X2 = [0] * len(self.NominalNuisance_list)
+            nuisance_vector: vector) -&gt; vector:
+        nabla_X2: vector = np.zeros(len(self.NominalNuisance_list))
         for i, (dE, mu, sig, dist, nuis) in enumerate(zip(DiffExpectation_dict.values(
         ), self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list, nuisance_vector)):
             if dist == &#39;normal&#39;:
@@ -83,8 +234,8 @@ class BinnedLogLikelihoodRatio:
 
     def NuisancePenalty(
             self,
-            nuisance_vector):
-        X2 = 0
+            nuisance_vector: vector) -&gt; float:
+        X2: float = 0.0
         for mu, sig, dist, nuis in zip(
                 self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list,
                 nuisance_vector):
@@ -94,9 +245,11 @@ class BinnedLogLikelihoodRatio:
                 X2 += logBetaPrior(nuis, mu, sig)
         return X2
 
-    def AnalyticPriorsBounds(
-            self,
-            Expectation_dict, DiffExpectation_dict,):
+    def AnalyticPriorsBounds(self,
+                             Expectation_dict,
+                             DiffExpectation_dict) -&gt; Tuple[vector,
+                                                            Tuple[Tuple[float,
+                                                                        float]]]:
         &#39;&#39;&#39; First order analytic computation of values for parameters to be mariginalized &#39;&#39;&#39;
         A = np.zeros(self.number_of_nuisance)
         B = np.zeros(self.number_of_nuisance)
@@ -127,7 +280,7 @@ class BinnedLogLikelihoodRatio:
     def AnalyticPriors_2ndOrder(self,
                                 Expectation_dict_prior,
                                 DiffExpectation_dict_prior,
-                                prior):
+                                prior: vector) -&gt; vector:
         &#39;&#39;&#39; Second order analytic computation of values for parameters to be mariginalized
         assuming we are close enough to the minimum , i.e. a parabola, i.e. linear derivative&#39;&#39;&#39;
 
@@ -138,18 +291,16 @@ class BinnedLogLikelihoodRatio:
             sys.exit(
                 &#39;Derivative of the expectation for nominal values of nuisance not defined.&#39;)
 
-        D_Chi2_1 = np.array(
-            self.Gradient(
-                Expectation_dict_prior,
-                DiffExpectation_dict_prior,
-                prior))
-        X_1 = np.array(prior)
+        D_Chi2_1 = self.Gradient(
+            Expectation_dict_prior,
+            DiffExpectation_dict_prior,
+            prior)
+        X_1 = prior
 
-        D_Chi2_0 = np.array(
-            self.Gradient(
-                self.Expectation_dict_Nominal,
-                self.DiffExpectation_dict_Nominal,
-                self.NominalNuisance_list))
+        D_Chi2_0 = self.Gradient(
+            self.Expectation_dict_Nominal,
+            self.DiffExpectation_dict_Nominal,
+            self.NominalNuisance_list)
         X_0 = np.array(self.NominalNuisance_list)
 
         priors_2nd = (D_Chi2_1 * X_0 - D_Chi2_0 * X_1) / (D_Chi2_1 - D_Chi2_0)
@@ -168,7 +319,7 @@ class BinnedLogLikelihoodRatio:
 <dl>
 <dt id="PyNu.Fitter.BinnedLogLikelihoodRatio.BinnedLogLikelihoodRatio"><code class="flex name class">
 <span>class <span class="ident">BinnedLogLikelihoodRatio</span></span>
-<span>(</span><span>Observation_dict, NominalNuisance_list, SigmaNuisance_list, DistNuisance_list)</span>
+<span>(</span><span>Observation_dict, NominalNuisance_list: numpy.ndarray[typing.Any, numpy.dtype[numpy.float64]], SigmaNuisance_list: numpy.ndarray[typing.Any, numpy.dtype[numpy.float64]], DistNuisance_list: List[str])</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -177,9 +328,9 @@ class BinnedLogLikelihoodRatio:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class BinnedLogLikelihoodRatio:
-    def __init__(self, Observation_dict, NominalNuisance_list,
-                 SigmaNuisance_list,
-                 DistNuisance_list,):
+    def __init__(self, Observation_dict, NominalNuisance_list: vector,
+                 SigmaNuisance_list: vector,
+                 DistNuisance_list: List[str]) -&gt; None:
 
         self.Observation_dict = Observation_dict
         self.NominalNuisance_list = NominalNuisance_list
@@ -187,7 +338,7 @@ class BinnedLogLikelihoodRatio:
         self.DistNuisance_list = DistNuisance_list
         self.number_of_nuisance = len(self.NominalNuisance_list)
 
-    def StatsOnly(self, Expectation_dict):
+    def StatsOnly(self, Expectation_dict) -&gt; float:
         &#39;&#39;&#39; Compute statistics only binned chi-squared &#39;&#39;&#39;
         X2 = 0
         for O, E in zip(self.Observation_dict.values(),
@@ -198,7 +349,7 @@ class BinnedLogLikelihoodRatio:
     def StatsAndSystematics(
             self,
             Expectation_dict,
-            nuisance_vector):
+            nuisance_vector: vector) -&gt; float:
         if set(nuisance_vector) == set(self.NominalNuisance_list):
             return self.StatsOnly(Expectation_dict)
         return self.StatsOnly(Expectation_dict) + \
@@ -208,8 +359,8 @@ class BinnedLogLikelihoodRatio:
             self,
             Expectation_dict,
             DiffExpectation_dict,
-            nuisance_vector):
-        nabla_X2 = [0] * len(self.NominalNuisance_list)
+            nuisance_vector: vector) -&gt; vector:
+        nabla_X2: vector = np.zeros(len(self.NominalNuisance_list))
         for i, (dE, mu, sig, dist, nuis) in enumerate(zip(DiffExpectation_dict.values(
         ), self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list, nuisance_vector)):
             if dist == &#39;normal&#39;:
@@ -228,8 +379,8 @@ class BinnedLogLikelihoodRatio:
 
     def NuisancePenalty(
             self,
-            nuisance_vector):
-        X2 = 0
+            nuisance_vector: vector) -&gt; float:
+        X2: float = 0.0
         for mu, sig, dist, nuis in zip(
                 self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list,
                 nuisance_vector):
@@ -239,9 +390,11 @@ class BinnedLogLikelihoodRatio:
                 X2 += logBetaPrior(nuis, mu, sig)
         return X2
 
-    def AnalyticPriorsBounds(
-            self,
-            Expectation_dict, DiffExpectation_dict,):
+    def AnalyticPriorsBounds(self,
+                             Expectation_dict,
+                             DiffExpectation_dict) -&gt; Tuple[vector,
+                                                            Tuple[Tuple[float,
+                                                                        float]]]:
         &#39;&#39;&#39; First order analytic computation of values for parameters to be mariginalized &#39;&#39;&#39;
         A = np.zeros(self.number_of_nuisance)
         B = np.zeros(self.number_of_nuisance)
@@ -272,7 +425,7 @@ class BinnedLogLikelihoodRatio:
     def AnalyticPriors_2ndOrder(self,
                                 Expectation_dict_prior,
                                 DiffExpectation_dict_prior,
-                                prior):
+                                prior: vector) -&gt; vector:
         &#39;&#39;&#39; Second order analytic computation of values for parameters to be mariginalized
         assuming we are close enough to the minimum , i.e. a parabola, i.e. linear derivative&#39;&#39;&#39;
 
@@ -283,18 +436,16 @@ class BinnedLogLikelihoodRatio:
             sys.exit(
                 &#39;Derivative of the expectation for nominal values of nuisance not defined.&#39;)
 
-        D_Chi2_1 = np.array(
-            self.Gradient(
-                Expectation_dict_prior,
-                DiffExpectation_dict_prior,
-                prior))
-        X_1 = np.array(prior)
+        D_Chi2_1 = self.Gradient(
+            Expectation_dict_prior,
+            DiffExpectation_dict_prior,
+            prior)
+        X_1 = prior
 
-        D_Chi2_0 = np.array(
-            self.Gradient(
-                self.Expectation_dict_Nominal,
-                self.DiffExpectation_dict_Nominal,
-                self.NominalNuisance_list))
+        D_Chi2_0 = self.Gradient(
+            self.Expectation_dict_Nominal,
+            self.DiffExpectation_dict_Nominal,
+            self.NominalNuisance_list)
         X_0 = np.array(self.NominalNuisance_list)
 
         priors_2nd = (D_Chi2_1 * X_0 - D_Chi2_0 * X_1) / (D_Chi2_1 - D_Chi2_0)
@@ -304,7 +455,7 @@ class BinnedLogLikelihoodRatio:
 <h3>Methods</h3>
 <dl>
 <dt id="PyNu.Fitter.BinnedLogLikelihoodRatio.BinnedLogLikelihoodRatio.AnalyticPriorsBounds"><code class="name flex">
-<span>def <span class="ident">AnalyticPriorsBounds</span></span>(<span>self, Expectation_dict, DiffExpectation_dict)</span>
+<span>def <span class="ident">AnalyticPriorsBounds</span></span>(<span>self, Expectation_dict, DiffExpectation_dict) ‑> Tuple[numpy.ndarray[Any, numpy.dtype[numpy.float64]], Tuple[Tuple[float, float]]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>First order analytic computation of values for parameters to be mariginalized</p></div>
@@ -312,9 +463,11 @@ class BinnedLogLikelihoodRatio:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def AnalyticPriorsBounds(
-        self,
-        Expectation_dict, DiffExpectation_dict,):
+<pre><code class="python">def AnalyticPriorsBounds(self,
+                         Expectation_dict,
+                         DiffExpectation_dict) -&gt; Tuple[vector,
+                                                        Tuple[Tuple[float,
+                                                                    float]]]:
     &#39;&#39;&#39; First order analytic computation of values for parameters to be mariginalized &#39;&#39;&#39;
     A = np.zeros(self.number_of_nuisance)
     B = np.zeros(self.number_of_nuisance)
@@ -344,7 +497,7 @@ class BinnedLogLikelihoodRatio:
 </details>
 </dd>
 <dt id="PyNu.Fitter.BinnedLogLikelihoodRatio.BinnedLogLikelihoodRatio.AnalyticPriors_2ndOrder"><code class="name flex">
-<span>def <span class="ident">AnalyticPriors_2ndOrder</span></span>(<span>self, Expectation_dict_prior, DiffExpectation_dict_prior, prior)</span>
+<span>def <span class="ident">AnalyticPriors_2ndOrder</span></span>(<span>self, Expectation_dict_prior, DiffExpectation_dict_prior, prior: numpy.ndarray[typing.Any, numpy.dtype[numpy.float64]]) ‑> numpy.ndarray[typing.Any, numpy.dtype[numpy.float64]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Second order analytic computation of values for parameters to be mariginalized
@@ -356,7 +509,7 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
 <pre><code class="python">def AnalyticPriors_2ndOrder(self,
                             Expectation_dict_prior,
                             DiffExpectation_dict_prior,
-                            prior):
+                            prior: vector) -&gt; vector:
     &#39;&#39;&#39; Second order analytic computation of values for parameters to be mariginalized
     assuming we are close enough to the minimum , i.e. a parabola, i.e. linear derivative&#39;&#39;&#39;
 
@@ -367,18 +520,16 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
         sys.exit(
             &#39;Derivative of the expectation for nominal values of nuisance not defined.&#39;)
 
-    D_Chi2_1 = np.array(
-        self.Gradient(
-            Expectation_dict_prior,
-            DiffExpectation_dict_prior,
-            prior))
-    X_1 = np.array(prior)
+    D_Chi2_1 = self.Gradient(
+        Expectation_dict_prior,
+        DiffExpectation_dict_prior,
+        prior)
+    X_1 = prior
 
-    D_Chi2_0 = np.array(
-        self.Gradient(
-            self.Expectation_dict_Nominal,
-            self.DiffExpectation_dict_Nominal,
-            self.NominalNuisance_list))
+    D_Chi2_0 = self.Gradient(
+        self.Expectation_dict_Nominal,
+        self.DiffExpectation_dict_Nominal,
+        self.NominalNuisance_list)
     X_0 = np.array(self.NominalNuisance_list)
 
     priors_2nd = (D_Chi2_1 * X_0 - D_Chi2_0 * X_1) / (D_Chi2_1 - D_Chi2_0)
@@ -387,7 +538,7 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
 </details>
 </dd>
 <dt id="PyNu.Fitter.BinnedLogLikelihoodRatio.BinnedLogLikelihoodRatio.Gradient"><code class="name flex">
-<span>def <span class="ident">Gradient</span></span>(<span>self, Expectation_dict, DiffExpectation_dict, nuisance_vector)</span>
+<span>def <span class="ident">Gradient</span></span>(<span>self, Expectation_dict, DiffExpectation_dict, nuisance_vector: numpy.ndarray[typing.Any, numpy.dtype[numpy.float64]]) ‑> numpy.ndarray[typing.Any, numpy.dtype[numpy.float64]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -399,8 +550,8 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
         self,
         Expectation_dict,
         DiffExpectation_dict,
-        nuisance_vector):
-    nabla_X2 = [0] * len(self.NominalNuisance_list)
+        nuisance_vector: vector) -&gt; vector:
+    nabla_X2: vector = np.zeros(len(self.NominalNuisance_list))
     for i, (dE, mu, sig, dist, nuis) in enumerate(zip(DiffExpectation_dict.values(
     ), self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list, nuisance_vector)):
         if dist == &#39;normal&#39;:
@@ -419,7 +570,7 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
 </details>
 </dd>
 <dt id="PyNu.Fitter.BinnedLogLikelihoodRatio.BinnedLogLikelihoodRatio.NuisancePenalty"><code class="name flex">
-<span>def <span class="ident">NuisancePenalty</span></span>(<span>self, nuisance_vector)</span>
+<span>def <span class="ident">NuisancePenalty</span></span>(<span>self, nuisance_vector: numpy.ndarray[typing.Any, numpy.dtype[numpy.float64]]) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -429,8 +580,8 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
 </summary>
 <pre><code class="python">def NuisancePenalty(
         self,
-        nuisance_vector):
-    X2 = 0
+        nuisance_vector: vector) -&gt; float:
+    X2: float = 0.0
     for mu, sig, dist, nuis in zip(
             self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list,
             nuisance_vector):
@@ -442,7 +593,7 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
 </details>
 </dd>
 <dt id="PyNu.Fitter.BinnedLogLikelihoodRatio.BinnedLogLikelihoodRatio.StatsAndSystematics"><code class="name flex">
-<span>def <span class="ident">StatsAndSystematics</span></span>(<span>self, Expectation_dict, nuisance_vector)</span>
+<span>def <span class="ident">StatsAndSystematics</span></span>(<span>self, Expectation_dict, nuisance_vector: numpy.ndarray[typing.Any, numpy.dtype[numpy.float64]]) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -453,7 +604,7 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
 <pre><code class="python">def StatsAndSystematics(
         self,
         Expectation_dict,
-        nuisance_vector):
+        nuisance_vector: vector) -&gt; float:
     if set(nuisance_vector) == set(self.NominalNuisance_list):
         return self.StatsOnly(Expectation_dict)
     return self.StatsOnly(Expectation_dict) + \
@@ -461,7 +612,7 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
 </details>
 </dd>
 <dt id="PyNu.Fitter.BinnedLogLikelihoodRatio.BinnedLogLikelihoodRatio.StatsOnly"><code class="name flex">
-<span>def <span class="ident">StatsOnly</span></span>(<span>self, Expectation_dict)</span>
+<span>def <span class="ident">StatsOnly</span></span>(<span>self, Expectation_dict) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute statistics only binned chi-squared</p></div>
@@ -469,7 +620,7 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def StatsOnly(self, Expectation_dict):
+<pre><code class="python">def StatsOnly(self, Expectation_dict) -&gt; float:
     &#39;&#39;&#39; Compute statistics only binned chi-squared &#39;&#39;&#39;
     X2 = 0
     for O, E in zip(self.Observation_dict.values(),
@@ -486,7 +637,14 @@ assuming we are close enough to the minimum , i.e. a parabola, i.e. linear deriv
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#class">Class</a></li>
+<li><a href="#constants">Constants</a></li>
+<li><a href="#arithmetic">Arithmetic</a></li>
+<li><a href="#calculus">Calculus</a></li>
+<li><a href="#misc-functions">Misc Functions</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>

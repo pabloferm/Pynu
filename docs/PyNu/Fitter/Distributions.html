@@ -29,53 +29,58 @@
 <pre><code class="python"># Provides several functions for probability distributions
 from math import gamma, exp, sqrt, pi, log
 import numpy as np
+from typing import List, Tuple
 
 # Normal distribution
 
 
-def GaussianDistribution(x, m, s):
+def GaussianDistribution(x: np.ndarray, m: float, s: float) -&gt; np.ndarray:
     return np.exp(-0.5 * (x - m)**2 / s**2) / (s * np.sqrt(2 * pi))
 
 
-def logGaussianPrior(x, m, s):  # Actually, -2 ln(L/L0)
+def logGaussianPrior(x: float, m: float, s: float) -&gt; float:  # Actually, -2 ln(L/L0)
     return (x - m)**2 / s**2
 
 
-def DifflogGaussianPrior(x, m, s):  # Actually, -2 ln(L/L0)
+def DifflogGaussianPrior(x: float, m: float, s: float) -&gt; float:  # Actually, -2 ln(L/L0)
     return 2 * (x - m) / s**2
 
 
 # Beta distribution
 
-def BetaDistribution(x, a, b):
+def BetaDistribution(x: np.ndarray, a: float, b: float) -&gt; np.ndarray:
     return x**(a - 1) * (1 - x)**(b - 1) * gamma(a + b) / gamma(a) / gamma(b)
 
 
-def BetaPar(m, s):  # Mode and std
+def BetaPar(m: float, s: float) -&gt; Tuple[float, float]:  # Mode and std
     alpha = ((1 - m) / s**2 - 1 / m) * m**2
     beta = alpha * (1 / m - 1)
     return alpha, beta
 
 
-def BetaMean(a, b):
+def BetaMean(a: float, b: float) -&gt; float:
     return a / (a + b)
 
 
-def BetaMode(a, b):
+def BetaMode(a: float, b: float) -&gt; float:
     return (a - 1) / (a + b - 2)
 
 
-def BetaSTD(a, b):
+def BetaSTD(a: float, b: float) -&gt; float:
     return np.sqrt((a * b) / ((a + b)**2 * (a + b + 1)))
 
 
-def logBetaPrior(x, a, b):
+def logBetaPrior(x: float, a: float, b: float) -&gt; float:
     m = BetaMode(a, b)
     return 2 * ((a - 1) * np.log(m / x) + (b - 1) * np.log((1 - m) / (1 - x)))
 
 
-def DifflogBetaPrior(x, m, s):
+def DifflogBetaPrior(x: float, m: float, s: float) -&gt; float:
     a, b = BetaPar(m, s)
+    return 2 * (- (a - 1) / x + (b - 1) / (1 - x))
+
+
+def DifflogBetaPrior_wParameters(x: float, a: float, b: float) -&gt; float:
     return 2 * (- (a - 1) / x + (b - 1) / (1 - x))</code></pre>
 </details>
 </section>
@@ -87,7 +92,7 @@ def DifflogBetaPrior(x, m, s):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="PyNu.Fitter.Distributions.BetaDistribution"><code class="name flex">
-<span>def <span class="ident">BetaDistribution</span></span>(<span>x, a, b)</span>
+<span>def <span class="ident">BetaDistribution</span></span>(<span>x: numpy.ndarray, a: float, b: float) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -95,12 +100,12 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def BetaDistribution(x, a, b):
+<pre><code class="python">def BetaDistribution(x: np.ndarray, a: float, b: float) -&gt; np.ndarray:
     return x**(a - 1) * (1 - x)**(b - 1) * gamma(a + b) / gamma(a) / gamma(b)</code></pre>
 </details>
 </dd>
 <dt id="PyNu.Fitter.Distributions.BetaMean"><code class="name flex">
-<span>def <span class="ident">BetaMean</span></span>(<span>a, b)</span>
+<span>def <span class="ident">BetaMean</span></span>(<span>a: float, b: float) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -108,12 +113,12 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def BetaMean(a, b):
+<pre><code class="python">def BetaMean(a: float, b: float) -&gt; float:
     return a / (a + b)</code></pre>
 </details>
 </dd>
 <dt id="PyNu.Fitter.Distributions.BetaMode"><code class="name flex">
-<span>def <span class="ident">BetaMode</span></span>(<span>a, b)</span>
+<span>def <span class="ident">BetaMode</span></span>(<span>a: float, b: float) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -121,12 +126,12 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def BetaMode(a, b):
+<pre><code class="python">def BetaMode(a: float, b: float) -&gt; float:
     return (a - 1) / (a + b - 2)</code></pre>
 </details>
 </dd>
 <dt id="PyNu.Fitter.Distributions.BetaPar"><code class="name flex">
-<span>def <span class="ident">BetaPar</span></span>(<span>m, s)</span>
+<span>def <span class="ident">BetaPar</span></span>(<span>m: float, s: float) ‑> Tuple[float, float]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -134,14 +139,14 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def BetaPar(m, s):  # Mode and std
+<pre><code class="python">def BetaPar(m: float, s: float) -&gt; Tuple[float, float]:  # Mode and std
     alpha = ((1 - m) / s**2 - 1 / m) * m**2
     beta = alpha * (1 / m - 1)
     return alpha, beta</code></pre>
 </details>
 </dd>
 <dt id="PyNu.Fitter.Distributions.BetaSTD"><code class="name flex">
-<span>def <span class="ident">BetaSTD</span></span>(<span>a, b)</span>
+<span>def <span class="ident">BetaSTD</span></span>(<span>a: float, b: float) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -149,12 +154,12 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def BetaSTD(a, b):
+<pre><code class="python">def BetaSTD(a: float, b: float) -&gt; float:
     return np.sqrt((a * b) / ((a + b)**2 * (a + b + 1)))</code></pre>
 </details>
 </dd>
 <dt id="PyNu.Fitter.Distributions.DifflogBetaPrior"><code class="name flex">
-<span>def <span class="ident">DifflogBetaPrior</span></span>(<span>x, m, s)</span>
+<span>def <span class="ident">DifflogBetaPrior</span></span>(<span>x: float, m: float, s: float) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -162,13 +167,13 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def DifflogBetaPrior(x, m, s):
+<pre><code class="python">def DifflogBetaPrior(x: float, m: float, s: float) -&gt; float:
     a, b = BetaPar(m, s)
     return 2 * (- (a - 1) / x + (b - 1) / (1 - x))</code></pre>
 </details>
 </dd>
-<dt id="PyNu.Fitter.Distributions.DifflogGaussianPrior"><code class="name flex">
-<span>def <span class="ident">DifflogGaussianPrior</span></span>(<span>x, m, s)</span>
+<dt id="PyNu.Fitter.Distributions.DifflogBetaPrior_wParameters"><code class="name flex">
+<span>def <span class="ident">DifflogBetaPrior_wParameters</span></span>(<span>x: float, a: float, b: float) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -176,12 +181,25 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def DifflogGaussianPrior(x, m, s):  # Actually, -2 ln(L/L0)
+<pre><code class="python">def DifflogBetaPrior_wParameters(x: float, a: float, b: float) -&gt; float:
+    return 2 * (- (a - 1) / x + (b - 1) / (1 - x))</code></pre>
+</details>
+</dd>
+<dt id="PyNu.Fitter.Distributions.DifflogGaussianPrior"><code class="name flex">
+<span>def <span class="ident">DifflogGaussianPrior</span></span>(<span>x: float, m: float, s: float) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def DifflogGaussianPrior(x: float, m: float, s: float) -&gt; float:  # Actually, -2 ln(L/L0)
     return 2 * (x - m) / s**2</code></pre>
 </details>
 </dd>
 <dt id="PyNu.Fitter.Distributions.GaussianDistribution"><code class="name flex">
-<span>def <span class="ident">GaussianDistribution</span></span>(<span>x, m, s)</span>
+<span>def <span class="ident">GaussianDistribution</span></span>(<span>x: numpy.ndarray, m: float, s: float) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -189,12 +207,12 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def GaussianDistribution(x, m, s):
+<pre><code class="python">def GaussianDistribution(x: np.ndarray, m: float, s: float) -&gt; np.ndarray:
     return np.exp(-0.5 * (x - m)**2 / s**2) / (s * np.sqrt(2 * pi))</code></pre>
 </details>
 </dd>
 <dt id="PyNu.Fitter.Distributions.logBetaPrior"><code class="name flex">
-<span>def <span class="ident">logBetaPrior</span></span>(<span>x, a, b)</span>
+<span>def <span class="ident">logBetaPrior</span></span>(<span>x: float, a: float, b: float) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -202,13 +220,13 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def logBetaPrior(x, a, b):
+<pre><code class="python">def logBetaPrior(x: float, a: float, b: float) -&gt; float:
     m = BetaMode(a, b)
     return 2 * ((a - 1) * np.log(m / x) + (b - 1) * np.log((1 - m) / (1 - x)))</code></pre>
 </details>
 </dd>
 <dt id="PyNu.Fitter.Distributions.logGaussianPrior"><code class="name flex">
-<span>def <span class="ident">logGaussianPrior</span></span>(<span>x, m, s)</span>
+<span>def <span class="ident">logGaussianPrior</span></span>(<span>x: float, m: float, s: float) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -216,7 +234,7 @@ def DifflogBetaPrior(x, m, s):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def logGaussianPrior(x, m, s):  # Actually, -2 ln(L/L0)
+<pre><code class="python">def logGaussianPrior(x: float, m: float, s: float) -&gt; float:  # Actually, -2 ln(L/L0)
     return (x - m)**2 / s**2</code></pre>
 </details>
 </dd>
@@ -244,6 +262,7 @@ def DifflogBetaPrior(x, m, s):
 <li><code><a title="PyNu.Fitter.Distributions.BetaPar" href="#PyNu.Fitter.Distributions.BetaPar">BetaPar</a></code></li>
 <li><code><a title="PyNu.Fitter.Distributions.BetaSTD" href="#PyNu.Fitter.Distributions.BetaSTD">BetaSTD</a></code></li>
 <li><code><a title="PyNu.Fitter.Distributions.DifflogBetaPrior" href="#PyNu.Fitter.Distributions.DifflogBetaPrior">DifflogBetaPrior</a></code></li>
+<li><code><a title="PyNu.Fitter.Distributions.DifflogBetaPrior_wParameters" href="#PyNu.Fitter.Distributions.DifflogBetaPrior_wParameters">DifflogBetaPrior_wParameters</a></code></li>
 <li><code><a title="PyNu.Fitter.Distributions.DifflogGaussianPrior" href="#PyNu.Fitter.Distributions.DifflogGaussianPrior">DifflogGaussianPrior</a></code></li>
 <li><code><a title="PyNu.Fitter.Distributions.GaussianDistribution" href="#PyNu.Fitter.Distributions.GaussianDistribution">GaussianDistribution</a></code></li>
 <li><code><a title="PyNu.Fitter.Distributions.logBetaPrior" href="#PyNu.Fitter.Distributions.logBetaPrior">logBetaPrior</a></code></li>

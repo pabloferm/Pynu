@@ -72,7 +72,8 @@ class SuperK_I(Experiment):
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        self.NumberOfSamples = 1 + np.amax(self.Samples) - np.amin(self.Samples)
+        self.NumberOfSamples = 1 + \
+            np.amax(self.Samples) - np.amin(self.Samples)
         self.Erec_max = 4e2
         self.Erec_min = 0.1
         self.Etrue_min = 0.1
@@ -291,7 +292,7 @@ class SuperK_V(SuperK_IV):
 
 
 class SuperK_VI(SuperK_IV):
-    def __init__(self, dict_of_details, scenario):
+    def __init__(self, dict_of_details, scenario) -&gt; None:
         super(SuperK_Gdtag, self).__init__(dict_of_details)
 
         self.Detector = &#39;SuperK_VI&#39;
@@ -356,7 +357,8 @@ class SuperK_VI(SuperK_IV):
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        self.NumberOfSamples = 1 + np.amax(self.Samples) - np.amin(self.Samples)
+        self.NumberOfSamples = 1 + \
+            np.amax(self.Samples) - np.amin(self.Samples)
         self.Erec_max = 4e2
         self.Erec_min = 0.1
         self.Etrue_min = 0.1
@@ -611,7 +613,8 @@ class SuperK_VI(SuperK_IV):
 
     self.NumberOfEvents = self.Sample.size
     self.Samples = np.unique(self.Sample)  # Samples in the analysis
-    self.NumberOfSamples = 1 + np.amax(self.Samples) - np.amin(self.Samples)
+    self.NumberOfSamples = 1 + \
+        np.amax(self.Samples) - np.amin(self.Samples)
     self.Erec_max = 4e2
     self.Erec_min = 0.1
     self.Etrue_min = 0.1
@@ -962,7 +965,7 @@ class SuperK_VI(SuperK_IV):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SuperK_VI(SuperK_IV):
-    def __init__(self, dict_of_details, scenario):
+    def __init__(self, dict_of_details, scenario) -&gt; None:
         super(SuperK_Gdtag, self).__init__(dict_of_details)
 
         self.Detector = &#39;SuperK_VI&#39;
