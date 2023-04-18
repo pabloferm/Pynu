@@ -1,12 +1,15 @@
 # Provides several functions for probability distributions
 from math import gamma, exp, sqrt, pi, log
 import numpy as np
+import numpy.typing as npt
 from typing import List, Tuple
+
+vector = npt.NDArray[np.float64]
 
 # Normal distribution
 
 
-def GaussianDistribution(x: np.ndarray, m: float, s: float) -> np.ndarray:
+def GaussianDistribution(x: vector, m: float, s: float) -> vector:
     return np.exp(-0.5 * (x - m)**2 / s**2) / (s * np.sqrt(2 * pi))
 
 
@@ -20,7 +23,7 @@ def DifflogGaussianPrior(x: float, m: float, s: float) -> float:  # Actually, -2
 
 # Beta distribution
 
-def BetaDistribution(x: np.ndarray, a: float, b: float) -> np.ndarray:
+def BetaDistribution(x: vector, a: float, b: float) -> vector:
     return x**(a - 1) * (1 - x)**(b - 1) * gamma(a + b) / gamma(a) / gamma(b)
 
 

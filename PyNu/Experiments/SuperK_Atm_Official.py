@@ -28,8 +28,8 @@ class SuperK_I(Experiment):
     def MCVariables(self):
         d_itype = self.MC['itype']
         d_pnu = self.MC['pnu']
-        condition = (d_itype > -1) * (d_pnu > 0.1) * (d_pnu < 1e5)
-        self.EReco = self.MC['amom'][condition]
+        condition = (d_itype > -1) 
+        self.EReco = self.MC['amom'][condition].astype(np.float64) * 1e-3
         self.CosZReco = self.MC['dir'][:, 2][condition]
         self.CosZTrue = self.MC['dirnu'][:, 2][condition].astype(np.float64)
         # self.AziTrue = self.MC['azi']d_azi[condition]
@@ -42,15 +42,18 @@ class SuperK_I(Experiment):
         self.Wall = self.MC['wall'][condition]
 
         self.NumberOfEvents = self.Sample.size
+        print(f'no events: {self.NumberOfEvents}')
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        First_Sample = np.min(self.Samples)
-        self.Samples -= First_Sample
+        self.First_Sample = np.min(self.Samples)
+        self.Samples -= self.First_Sample
+        self.Sample -= self.First_Sample
         self.NumberOfSamples = 1 + \
             np.amax(self.Samples) - np.amin(self.Samples)
-        self.Erec_max = 4e2
+        self.Erec_max = 1e5
         self.Erec_min = 0.1
-        self.Etrue_min = 0.1
-        self.Etrue_max = 1e5
+        self.Etrue_min = np.amin(self.ETrue)
+        self.Etrue_max = np.amax(self.ETrue)
+        print(f'energy is within {self.Etrue_min} and {self.Etrue_max}')
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
@@ -78,14 +81,16 @@ class SuperK_I(Experiment):
                     nuflux.NuMuBar, nu_energy, nu_cos_zenith)  # numu bar
                 AtmInitialFlux[ic][ie][0][2] = 0.  # nutau
                 AtmInitialFlux[ic][ie][1][2] = 0.  # nutau bar
+
         return AtmInitialFlux
 
     def DataVariables(self):
         d_itype = self.Data['itype']
-        condition = (d_itype < 16) * (d_itype > -1)
-        self.dEReco = self.Data['evis'][condition]
+        condition = (d_itype > -1)
+        self.dEReco = self.Data['evis'][condition].astype(np.float64) * 1e-3
         self.dCosZReco = self.Data['recodirZ'][condition]
         self.dSample = self.Data['itype'][condition]  # Sample of each event
+        self.dSample -= self.First_Sample
         self.dDecayE = self.Data['muedk'][condition]
         self.dWall = self.Data['wall'][condition]
         self.dNumberOfEvents = self.Sample.size
@@ -112,8 +117,8 @@ class SuperK_I(Experiment):
         mro_ebins = np.array([1.3, 2.5, 5.0, 10., 500.])
         pcs_ebins = np.array([0.1, 10., 1.0e5])
         pct_ebins = np.array([0.1, 10.0, 50., 1.0e5])
-        z10bins = np.linspace(-1,1,10+1)
-        z10bins_up = np.linspace(-1,0,10+1)
+        z10bins = np.linspace(-1, 1, 10 + 1)
+        z10bins_up = np.linspace(-1, 0, 10 + 1)
         z1bins = np.array([-1, 1.0])
         self.EnergyBins = {
             0: sge_ebins,
@@ -226,8 +231,8 @@ class SuperK_IV(SuperK_I):
         pct_ebins = np.array([0.1, 10.0, 50., 1.0e5])
         umstop_ebins = np.array([1.0, 8.0, 20., 1.0e5])
         um_ebins = np.array([1.0, 1.0e5])
-        z10bins = np.linspace(-1,1,10+1)
-        z10bins_up = np.linspace(-1,0,10+1)
+        z10bins = np.linspace(-1, 1, 10 + 1)
+        z10bins_up = np.linspace(-1, 0, 10 + 1)
         z1bins = np.array([-1, 1.0])
         self.EnergyBins = {
             0: sge_ebins,

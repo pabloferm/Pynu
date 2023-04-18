@@ -69,7 +69,8 @@ def Manager(detector, source, dict_of_details, scenario):
         else:
             sys.exit('No valid source for ' + detector)
     else:
-        sys.exit(f'Experiment not found!! \nPlease, include it at {os.path.dirname(os.path.abspath(__file__))}/MCReader.py .')
+        sys.exit(
+            f'Experiment not found!! \nPlease, include it at {os.path.dirname(os.path.abspath(__file__))}/MCReader.py .')
 
 
 def reader(filename):

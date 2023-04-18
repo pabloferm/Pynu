@@ -13,6 +13,7 @@ class AtmosphericOscillations(Oscillator):
     def __init__(self, scenario, neutrino_flavors, experiment):
         super().__init__(scenario, neutrino_flavors, source='Atmospheric')
 
+        self.E_nodes = 200
         self.Z_nodes = 40
         self.energy_nodes = nsq.logspace(
             experiment.Etrue_min,
@@ -43,4 +44,5 @@ class AtmosphericOscillations(Oscillator):
                      self.ETrue * self.units.GeV,
                      self.NSQneutype,
                      repeat(True)))
+        print(f'oscillation weights {w[100]}')
         return np.array(w)

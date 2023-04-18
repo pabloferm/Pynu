@@ -93,7 +93,8 @@ class PhysicsTunes:
             self.OscillationTunes = AtmosphericOscillations(
                 self.Scenario, self.NeutrinoFlavors, self._Experiment)
         else:
-            sys.exit(f'{self._Experiment.Scenario} oscillaiton scenario not found.')
+            sys.exit(
+                f'{self._Experiment.Scenario} oscillaiton scenario not found.')
 
 
 #############################################################################
