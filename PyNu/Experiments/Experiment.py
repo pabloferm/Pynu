@@ -102,13 +102,13 @@ class Experiment:
         else:
             E = self.EReco * shift_E + bias_E
 
-        v = [
-            hist.fill(
+        v = np.array([])
+        for i,hist in enumerate(self.Binner):
+            v = np.hstack((v, hist.fill(
                 E[self.Sample == i],
-                weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i,
-            hist in enumerate(self.Binner)]
+                weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values().reshape(-1)))
 
-        return np.concatenate(v).ravel()
+        return v
 
     def BinIt_MC_2D(self, array, shift_E=1, bias_E=0):  # 2D energy and cos(angle) binning
         for hist in self.Binner:
@@ -118,25 +118,29 @@ class Experiment:
             E = self.EReco
         else:
             E = self.EReco * shift_E + bias_E
-        v = [hist.fill(E[self.Sample == i],
-                       self.CosThetaReco[self.Sample == i],
-                       weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i,
-             hist in enumerate(self.Binner)]
+        # v = np.ndarray([hist.fill(E[self.Sample == i],
+        #                self.CosThetaReco[self.Sample == i],
+        #                weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i,
+        #      hist in enumerate(self.Binner)], dtype=object)
+        v = np.array([])
+        for i,hist in enumerate(self.Binner):
+            v = np.hstack((v,hist.fill(E[self.Sample == i], self.CosThetaReco[self.Sample == i], weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values().reshape(-1)))
 
-        return np.concatenate(v).ravel()
+        return v
 
     def BinIt_Data_1D(self):  # 1D energy binning
-        v = [hist.fill(self.dEReco[self.dSample == i]).values()
-             for i, hist in enumerate(self.Binner)]
-        return np.concatenate(v).ravel()
+        v = np.array([])
+        for i,hist in enumerate(self.Binner):
+            v = np.hstack((v, hist.fill(self.dEReco[self.dSample == i]).values().reshape(-1)))
+        return v
 
     def BinIt_Data_2D(self):  # 2D energy and cos(angle) binning
-        v = [
-            hist.fill(
+        v = np.array([])
+        for i,hist in enumerate(self.Binner):
+            v = np.hstack((v,hist.fill(
                 self.dEReco[self.dSample == i],
-                self.dCosThetaReco[self.dSample == i]).values() for i,
-            hist in enumerate(self.Binner)]
-        return np.concatenate(v).ravel()
+                self.dCosThetaReco[self.dSample == i]).values().reshape(-1)))
+        return v
 
     # Contains all default weights of the analysis
 

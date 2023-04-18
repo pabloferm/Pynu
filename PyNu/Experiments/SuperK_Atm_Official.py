@@ -27,15 +27,16 @@ class SuperK_I(Experiment):
 
     def MCVariables(self):
         d_itype = self.MC['itype']
-        condition = (d_itype > -1)
+        d_pnu = self.MC['pnu']
+        condition = (d_itype > -1) * (d_pnu > 0.1) * (d_pnu < 1e5)
         self.EReco = self.MC['amom'][condition]
         self.CosZReco = self.MC['dir'][:, 2][condition]
-        self.CosZTrue = self.MC['dirnu'][:, 2][condition]
+        self.CosZTrue = self.MC['dirnu'][:, 2][condition].astype(np.float64)
         # self.AziTrue = self.MC['azi']d_azi[condition]
         self.Mode = self.MC['mode'][condition]
         self.CC = np.abs(self.Mode) < 30
         self.nuPDG = self.MC['ipnu'][condition]
-        self.ETrue = self.MC['pnu'][condition]
+        self.ETrue = self.MC['pnu'][condition].astype(np.float64)
         self.Sample = self.MC['itype'][condition]  # Sample of each event
         self.DecayE = self.MC['muedk'][condition]
         self.Wall = self.MC['wall'][condition]
@@ -49,7 +50,7 @@ class SuperK_I(Experiment):
         self.Erec_max = 4e2
         self.Erec_min = 0.1
         self.Etrue_min = 0.1
-        self.Etrue_max = 1e3
+        self.Etrue_max = 1e5
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
