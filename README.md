@@ -7,7 +7,7 @@ The aim of this software is to perform neutrino analysis in the most general and
 - Plot: A plotting toolkit to extract all the information from the analysis (UNDER CONSTRUCTION).
 - Report: Automated module for preparing a report containing the detailed information of the analysis and the results (UNDER CONSTRUCTION).
 
-For a more complete documentation, please open the ```docs/html/``` folder with your browser.
+For a more complete documentation, please open the ```docs/PyNu/``` folder with your browser.
 
 
 # Dependencies
