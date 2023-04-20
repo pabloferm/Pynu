@@ -1,0 +1,8 @@
+boost_histogram==1.3.2
+h5py==3.8.0
+h5py._debian_h5py_serial==3.6.0
+matplotlib==3.5.1
+nuflux==2.0.3
+numpy==1.21.5
+pandas==1.4.2
+scipy==1.8.0
