@@ -28,7 +28,7 @@ class SuperK_I(Experiment):
     def MCVariables(self):
         d_itype = self.MC['itype']
         d_pnu = self.MC['pnu']
-        condition = (d_itype > -1) 
+        condition = (d_itype > -1)
         self.EReco = self.MC['amom'][condition].astype(np.float64) * 1e-3
         self.CosZReco = self.MC['dir'][:, 2][condition]
         self.CosZTrue = self.MC['dirnu'][:, 2][condition].astype(np.float64)
@@ -40,6 +40,7 @@ class SuperK_I(Experiment):
         self.Sample = self.MC['itype'][condition]  # Sample of each event
         self.DecayE = self.MC['muedk'][condition]
         self.Wall = self.MC['wall'][condition]
+        self.MCWeight = self.MC['flxho']
         self.Weight = self.SKFluxWeight()
 
         self.NumberOfEvents = self.Sample.size
@@ -62,15 +63,25 @@ class SuperK_I(Experiment):
 
     def SKFluxWeight(self):
         flux = nuflux.makeFlux('IPhonda2014_sk_solmin')
-        nus = {12:nuflux.NuE, -12:nuflux.NuEBar, 14:nuflux.NuMu, -14:nuflux.NuMuBar, 16:nuflux.NuMu, -16:nuflux.NuMuBar}
+        nus = {12: nuflux.NuE, -12: nuflux.NuEBar, 14: nuflux.NuMu, -
+               14: nuflux.NuMuBar, 16: nuflux.NuMu, -16: nuflux.NuMuBar}
 
-        inv_flux_weight = [1./flux.getFlux(nus[v], E, cz) for v, E, cz in zip(self.nuPDG, self.ETrue, self.CosZTrue)]
+        inv_flux_weight = [
+            1. /
+            flux.getFlux(
+                nus[v],
+                E,
+                cz) for v,
+            E,
+            cz in zip(
+                self.nuPDG,
+                self.ETrue,
+                self.CosZTrue)]
 
-        # print(inv_flux_weight)
+        # for here, there in zip(inv_flux_weight,self.MCWeight):
+        #     print(here, there)
 
         return np.array(inv_flux_weight)
-
-
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux('IPhonda2014_sk_solmin')

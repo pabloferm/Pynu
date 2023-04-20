@@ -8,6 +8,7 @@ import boost_histogram as bh
 
 vector = npt.NDArray[np.float64]
 
+
 class Experiment:
     def __init__(self, dict_of_details):
         self.Detector = None
@@ -112,7 +113,12 @@ class Experiment:
 
         return v
 
-    def BinIt_MC_2D(self, array: vector, shift_E: float = 1, bias_E: float = 0) -> vector:  # 2D energy and cos(angle) binning
+    # 2D energy and cos(angle) binning
+    def BinIt_MC_2D(
+            self,
+            array: vector,
+            shift_E: float = 1,
+            bias_E: float = 0) -> vector:
         for hist in self.Binner:
             hist.reset()
 
@@ -163,7 +169,8 @@ class Experiment:
 
     # Contains all weights of the analysis except for those relative to
     # nuisance parameters
-    def StartNuisanceWeights(self) -> None:  # Starts expected weights with fixed values
+    # Starts expected weights with fixed values
+    def StartNuisanceWeights(self) -> None:
         self.NuisanceWeight = 1
 
     def UpdateNuisanceWeights(self, w):
