@@ -40,9 +40,9 @@ class SuperK_I(Experiment):
         self.Sample = self.MC['itype'][condition]  # Sample of each event
         self.DecayE = self.MC['muedk'][condition]
         self.Wall = self.MC['wall'][condition]
+        self.Weight = self.SKFluxWeight()
 
         self.NumberOfEvents = self.Sample.size
-        print(f'no events: {self.NumberOfEvents}')
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
         self.First_Sample = np.min(self.Samples)
         self.Samples -= self.First_Sample
@@ -53,15 +53,24 @@ class SuperK_I(Experiment):
         self.Erec_min = 0.1
         self.Etrue_min = np.amin(self.ETrue)
         self.Etrue_max = np.amax(self.ETrue)
-        print(f'energy is within {self.Etrue_min} and {self.Etrue_max}')
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
-        self.Norm *= 1
-
-        self.BaseWeight = self.Norm
+        self.BaseWeight = self.Norm * self.Weight
 
         # del self.MC
+
+    def SKFluxWeight(self):
+        flux = nuflux.makeFlux('IPhonda2014_sk_solmin')
+        nus = {12:nuflux.NuE, -12:nuflux.NuEBar, 14:nuflux.NuMu, -14:nuflux.NuMuBar, 16:nuflux.NuMu, -16:nuflux.NuMuBar}
+
+        inv_flux_weight = [1./flux.getFlux(nus[v], E, cz) for v, E, cz in zip(self.nuPDG, self.ETrue, self.CosZTrue)]
+
+        # print(inv_flux_weight)
+
+        return np.array(inv_flux_weight)
+
+
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux('IPhonda2014_sk_solmin')

@@ -156,12 +156,10 @@ class Experiment:
     def UpdatePhysicsWeights(self, w: vector) -> None:
         '''Update physics weights for the experiment by mutiplying the existing weights with the input vector `w`'''
         self.PhysicsWeight = w * self.PhysicsWeight
-        print(f'physics weight updated by {w[100]} -> {self.PhysicsWeight[100]}')
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateBaseWeights(self, w: vector) -> None:
         self.BaseWeight = w * self.BaseWeight
-        print(f'base weight updated by {w[100]} -> {self.BaseWeight[100]}')
 
     # Contains all weights of the analysis except for those relative to
     # nuisance parameters
@@ -170,7 +168,6 @@ class Experiment:
 
     def UpdateNuisanceWeights(self, w):
         self.NuisanceWeight = w * self.NuisanceWeight
-        # print(f'nuisance weight updated by {w[100]} -> {self.NuisanceWeight[100]}')
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateNominalWeights(self, w):
@@ -188,6 +185,7 @@ class Experiment:
             self.ObservedBinned = self.BinData()
         else:
             self.ObservedBinned = self.BinMC(self.NominalWeight)
+
         self.FewEntries = self.ObservedBinned > 4
         self.RemoveFewEntries('Observed')
 

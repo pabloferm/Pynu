@@ -44,5 +44,4 @@ class AtmosphericOscillations(Oscillator):
                      self.ETrue * self.units.GeV,
                      self.NSQneutype,
                      repeat(True)))
-        print(f'oscillation weights {w[100]}')
         return np.array(w)

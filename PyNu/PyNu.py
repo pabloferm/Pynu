@@ -36,15 +36,10 @@ class PyNu:
 
     def ComputeBinnedObservation(self):
         self.ApplyFixedWeights()
-        for name, exp in self.Experiments.items(): print(f'Base weight @ observation {exp.BaseWeight}')
         self.ApplyNominalWeights()
-        for name, exp in self.Experiments.items(): print(f'Nominal weight @ observation {exp.NominalWeight}')
         self.ApplyTrueWeights()
-        for name, exp in self.Experiments.items(): print(f'True weight @ observation {exp.NominalWeight}')
         self.ApplyOscillations('Nominal')
-        for name, exp in self.Experiments.items(): print(f'Nominal weight @ observation {exp.NominalWeight}')
         self.SetBinnedObservedEvents()
-        print(self.Observation)
 
     def ComputeBinnedExpectation(
             self,
@@ -152,8 +147,6 @@ class PyNu:
     def ApplyPhysicsWeights(self, point):  # Physics parameters
         if self.verbosity:
             print('Applying Physics Point Weights')
-            print(*self.Analysis.PhysicsList)
-            print(self.Analysis.FullPhysicsGrid[point])
 
         self.ApplyWeights(
             'Physics',
