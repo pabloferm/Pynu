@@ -1,86 +1,3 @@
-'''
-====================================================
-Chebyshev Series (:mod:`numpy.polynomial.chebyshev`)
-====================================================
-
-This module provides a number of objects (mostly functions) useful for
-dealing with Chebyshev series, including a `Chebyshev` class that
-encapsulates the usual arithmetic operations.  (General information
-on how this module represents and works with such polynomials is in the
-docstring for its "parent" sub-package, `numpy.polynomial`).
-
-Class
--------
-
-.. autosummary::
-   :toctree: generated/
-
-   BinnedLogLikelihoodRatio
-
-
-Constants
----------
-
-.. autosummary::
-   :toctree: generated/
-
-   chebdomain
-   chebzero
-   chebone
-   chebx
-
-Arithmetic
-----------
-
-.. autosummary::
-   :toctree: generated/
-
-   chebadd
-   chebsub
-   chebmulx
-   chebmul
-   chebdiv
-   chebpow
-   chebval
-   chebval2d
-   chebval3d
-   chebgrid2d
-   chebgrid3d
-
-Calculus
---------
-
-.. autosummary::
-   :toctree: generated/
-
-   chebder
-   chebint
-
-Misc Functions
---------------
-
-.. autosummary::
-   :toctree: generated/
-
-   chebfromroots
-   chebroots
-   chebvander
-
-Notes
------
-The implementations of multiplication, division, integration, and
-differentiation use the algebraic identities [1]_:
-
-.. math ::
-    T_n(x) = \\frac{z^n + z^{-n}}{2} \\\\
-    z\\frac{dx}{dz} = \\frac{z - z^{-1}}{2}.
-
-where
-
-.. math :: x = \\frac{z + z^{-1}}{2}.
-
-'''
-
 import sys
 import numpy as np
 import numpy.typing as npt
@@ -91,7 +8,23 @@ vector = npt.NDArray[np.float64]
 
 
 class BinnedLogLikelihoodRatio:
-    def __init__(self, Observation_dict, NominalNuisance_list: vector,
+    '''Class containing all the information needed to perform an analysis and the methods for computing 
+    the log likelihood ratio or χ2 given a set of observed data, expected events at a given physics point 
+    and nuisance parameters.
+
+    Parameters:
+        Observation_dict (Dict): Produced by PyNy and follows the structue (Experiment(str): binned 
+        events (vector)).
+        NominalNuisance_list (vector): Produced from the xml analysis file, it contains the nominal 
+        values assumed for the nuisance parameters.
+        SigmaNuisance_list (vector): Produced from the xml analysis file, it contains the standard
+        deviation values assumed for the nuisance parameters.
+        DistNuisance_list (List): Produced from the xml analysis file, it contains the type of 
+        distribution which is assumed for each nuisance.
+
+   '''
+
+    def __init__(self, Observation_dict: Dict, NominalNuisance_list: vector,
                  SigmaNuisance_list: vector,
                  DistNuisance_list: List[str]) -> None:
 
