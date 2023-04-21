@@ -7,16 +7,16 @@ The aim of this software is to perform neutrino analysis in the most general and
 - Plot: A plotting toolkit to extract all the information from the analysis (UNDER CONSTRUCTION).
 - Report: Automated module for preparing a report containing the detailed information of the analysis and the results (UNDER CONSTRUCTION).
 
-For a more complete documentation, please open the ```docs/PyNu/``` folder with your browser.
+For a more complete documentation, please open the ```docs/pynu.html``` folder with your browser.
 
 
 # Dependencies
 This code uses python3.10.
-First, set the ```PYNU``` environment variable and add it to your ```PYTHONPATH```. On the top folder called ```PyNuFit``` do:
+First, set the ```PYNU``` environment variable and add it to your ```PYTHONPATH```. On the top folder called ```Pynu``` do:
 ```
-git clone https://github.com/pabloferm/PyNuFit.git
-cd PyNuFit
-export PYNU=$PWD
+git clone https://github.com/pabloferm/Pynu.git
+cd Pynu
+export PYNU=$PWD/pynu
 export PYTHONPATH=$PYTHONPATH:$PYNU
 ```
 
@@ -33,12 +33,12 @@ Others, need to be installed by hand and can be a bit tricky. Please, let me kno
 # Usage
 
 In the top directory there exist one simple python program for each of the modules. It is highly recommended that all input and output files of a given analysis is contained in a dedicated folder.
-- ```analysis_main.py``` for ```PyNu```.
+- ```analysis_main.py``` for ```PyNuFit```.
 - ```plot_main.py``` for ```Plot```.
 
 ## PyNu
 
-All the analysis information is passed to ```PyNu``` through an xml file. You can find examples for them at ```examples/AnalysisFiles/```.
+All the analysis information is passed to ```PyNuFit``` through an xml file. You can find examples for them at ```examples/AnalysisFiles/```.
 For running the example ```analysis_main.py```:
 ```
 usage: analysis_main.py [-h] [-p POINT [POINT ...]] [-rp RANGE_OF_POINTS [RANGE_OF_POINTS ...]] [-o [OUTFILE]] [--multi] [--cluster] [--mcmc] [xml_file]
@@ -76,6 +76,6 @@ options:
                         Path to folder to store the analysis.
 ```
 
-## Plot
+## Report
 
 Not yet...

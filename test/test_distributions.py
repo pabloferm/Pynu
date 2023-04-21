@@ -1,4 +1,4 @@
-from Fitter import Distributions as dt
+from Fitter import distributions as dt
 import matplotlib.pyplot as plt
 import numpy as np
 import os

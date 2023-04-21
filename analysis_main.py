@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 
-from PyNu import PyNu
+from pynu import PyNuFit
 
 
 def main():
@@ -64,24 +64,24 @@ def main():
 
     # Setup analysis from xml file
     ################################
-    pynu = PyNu(args.xml_file, verbosity=True)
+    pynufit = PyNuFit(args.xml_file, verbosity=True)
 
     # Setup running points and options
     ####################################
     if args.mcmc is False:
         if args.range_of_points is None and args.point is not None:
             points = [*set(args.point)]
-            if points >= pynu.Analysis.NumberOfPhysPoints:
+            if points >= pynufit.Analysis.NumberOfPhysPoints:
                 sys.exit('Point out of range for this analysis.')
         elif args.range_of_points is not None and args.point is None:
             points = list(
                 range(
                     int(args.range_of_points[0]),
                     1 + int(args.range_of_points[-1])))
-            if points[-1] >= pynu.Analysis.NumberOfPhysPoints:
+            if points[-1] >= pynufit.Analysis.NumberOfPhysPoints:
                 sys.exit('Point out of range for this analysis.')
         else:  # run over all analysis points
-            points = range(0, pynu.Analysis.NumberOfPhysPoints)
+            points = range(0, pynufit.Analysis.NumberOfPhysPoints)
 
     if args.multiproc:
         import multiprocessing
@@ -96,10 +96,10 @@ def main():
         # (os.path.isfile(args.outfile)):
     if not os.path.isfile(args.outfile):
         print(not os.path.isfile(args.outfile))
-        pynu.CreateOutFile(args.outfile)
+        pynufit.CreateOutFile(args.outfile)
     else:
         print('hey')
-        pynu.SetOutFile(args.outfile)
+        pynufit.SetOutFile(args.outfile)
 
     # Set analysis
     ################
@@ -114,7 +114,7 @@ def main():
             import emcee
             import numpy as np
             nwalkers = 2**4
-            ndim = pynu.Analysis.NumberOfPhys
+            ndim = pynufit.Analysis.NumberOfPhys
             nsteps = 200
             initial = np.zeros((nwalkers, ndim))
 
@@ -124,8 +124,8 @@ def main():
             # Compute weights at a given point of the physics grid (fixed part for
             # nuisance minimisation)
             print(
-                f'Processing point {p} of {pynu.Analysis.NumberOfPhysPoints} points in the analysis.')
-            pynu.FitModel(p)
+                f'Processing point {p} of {pynufit.Analysis.NumberOfPhysPoints} points in the analysis.')
+            pynufit.FitModel(p)
             print('=====================================================')
 
 

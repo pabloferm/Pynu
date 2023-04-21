@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 
-from PyNu import Plot
+from pynu import Plot
 
 
 def main():
