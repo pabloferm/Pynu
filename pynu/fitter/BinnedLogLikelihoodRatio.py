@@ -21,9 +21,9 @@ class BinnedLogLikelihoodRatio:
 
    '''
 
-    def __init__(self, Observation_dict: Dict, NominalNuisance_list: vector,
-                 SigmaNuisance_list: vector,
-                 DistNuisance_list: List[str]) -> None:
+    def __init__(self, Observation_dict, NominalNuisance_list,
+                 SigmaNuisance_list,
+                 DistNuisance_list):
 
         self.Observation_dict = Observation_dict
         self.NominalNuisance_list = NominalNuisance_list
@@ -31,7 +31,7 @@ class BinnedLogLikelihoodRatio:
         self.DistNuisance_list = DistNuisance_list
         self.number_of_nuisance = len(self.NominalNuisance_list)
 
-    def stats_only(self, Expectation_dict) -> float:
+    def stats_only(self, Expectation_dict):
         ''' Compute statistics only binned chi-squared '''
         X2 = 0
         for O, E in zip(self.Observation_dict.values(),
@@ -42,7 +42,7 @@ class BinnedLogLikelihoodRatio:
     def stats_and_systematics(
             self,
             Expectation_dict,
-            nuisance_vector: vector) -> float:
+            nuisance_vector):
         if set(nuisance_vector) == set(self.NominalNuisance_list):
             return self.stats_only(Expectation_dict)
         return self.stats_only(Expectation_dict) + \
@@ -52,8 +52,8 @@ class BinnedLogLikelihoodRatio:
             self,
             Expectation_dict,
             DiffExpectation_dict,
-            nuisance_vector: vector) -> vector:
-        nabla_X2: vector = np.zeros(len(self.NominalNuisance_list))
+            nuisance_vector):
+        nabla_X2 = np.zeros(len(self.NominalNuisance_list))
         for i, (dE, mu, sig, dist, nuis) in enumerate(zip(DiffExpectation_dict.values(
         ), self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list, nuisance_vector)):
             if dist == 'normal':
@@ -72,7 +72,7 @@ class BinnedLogLikelihoodRatio:
 
     def nuisance_pleantly(
             self,
-            nuisance_vector: vector) -> float:
+            nuisance_vector):
         X2: float = 0.0
         for mu, sig, dist, nuis in zip(
                 self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list,
@@ -85,9 +85,7 @@ class BinnedLogLikelihoodRatio:
 
     def analytic_priors_bounds(self,
                                Expectation_dict,
-                               DiffExpectation_dict) -> Tuple[vector,
-                                                              Tuple[Tuple[float,
-                                                                          float]]]:
+                               DiffExpectation_dict):
         ''' First order analytic computation of values for parameters to be mariginalized '''
         A = np.zeros(self.number_of_nuisance)
         B = np.zeros(self.number_of_nuisance)
@@ -118,7 +116,7 @@ class BinnedLogLikelihoodRatio:
     def parabolic_priors(self,
                          Expectation_dict_prior,
                          DiffExpectation_dict_prior,
-                         prior: vector) -> vector:
+                         prior):
         ''' Second order analytic computation of values for parameters to be mariginalized
         assuming we are close enough to the minimum , i.e. a parabola, i.e. linear derivative'''
 

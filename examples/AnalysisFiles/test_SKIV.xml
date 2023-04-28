@@ -79,7 +79,6 @@
 			<DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
 				<status> 0 </status>
 			</DataFiles>
- 
 		</source>
 <!-- 		<nuisance name='IceAbsorption'>
 			<status> 0 </status>

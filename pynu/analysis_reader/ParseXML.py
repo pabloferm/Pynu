@@ -62,11 +62,11 @@ class ParseXML:
         self.DetectorParameters = []
 
         # Reading
-        self.readSOURCEs()
+        self.readSources()
         self.readDetectors()
         self.readExperiments()
         self.readOscillations()
-        self.CheckSOURCEs()
+        self.CheckSources()
         self.makePhysicsGrid()
         self.CartesianPhysicsGrid()
 
@@ -86,8 +86,8 @@ class ParseXML:
             self.CheckPhysics()
             self.CheckFixed()
 
-    def readSOURCEs(self):
-        self.sources = self.reader('NeutrinoSOURCE')
+    def readSources(self):
+        self.sources = self.reader('NeutrinoSource')
         print('------------------------------------')
         print('Neutrino sources considered:')
         for s in self.sources:
@@ -122,7 +122,7 @@ class ParseXML:
         self.SCENARIO = self.oscillations[0]
         print('====================================')
 
-    def CheckSOURCEs(self):
+    def CheckSources(self):
         sources2 = []
         for i in self.Experiments.keys():
             for j in self.Experiments[i].keys():

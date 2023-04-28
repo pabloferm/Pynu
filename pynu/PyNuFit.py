@@ -23,7 +23,6 @@ class PyNuFit:
 
         ''' Set up basic analysis variables and structure to build full analysis '''
         self.Analysis = ar.ParseXML(analysis_file, check=self.verbosity)
-        print(self.Analysis.PhysGrid)
 
         ''' Define dictionary for PhysicsTunes '''
         self.PhysicsTunes = {}
