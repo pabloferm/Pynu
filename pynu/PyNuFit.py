@@ -1,9 +1,9 @@
-import AnalysisReader as AR  # contains parse class to read and setup the analysis
+import analysis_reader as ar  # contains parse class to read and setup the analysis
 import Experiments as Exp  # contains rd class to read and setup each experiment
 # contains everything to modify your simulations to help figuring out what
 # you have measured
 from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
-import Fitter as FT  # does all the fitting calculations
+import fitter as ft  # does all the fitting calculations
 
 
 class PyNuFit:
@@ -22,7 +22,8 @@ class PyNuFit:
         self.path = path
 
         ''' Set up basic analysis variables and structure to build full analysis '''
-        self.Analysis = AR.parse(analysis_file, check=self.verbosity)
+        self.Analysis = ar.ParseXML(analysis_file, check=self.verbosity)
+        print(self.Analysis.PhysGrid)
 
         ''' Define dictionary for PhysicsTunes '''
         self.PhysicsTunes = {}
@@ -49,7 +50,7 @@ class PyNuFit:
         if physics:
             self.StartPhysics()
             self.ApplyPhysicsWeights(point)
-            if not self.Analysis.Nuisance[self.Analysis.Scenario] and self.Analysis.Physics[self.Analysis.Scenario]:
+            if not self.Analysis.Nuisance[self.Analysis.SCENARIO] and self.Analysis.Physics[self.Analysis.SCENARIO]:
                 self.ApplyOscillations('Physics')
 
         self.StartNuisance()
@@ -57,7 +58,7 @@ class PyNuFit:
             self.ApplyNuisanceWeights(self.Analysis.NuisNominalList)
         else:
             self.ApplyNuisanceWeights(nuisance_vector)
-        if self.Analysis.Nuisance[self.Analysis.Scenario]:
+        if self.Analysis.Nuisance[self.Analysis.SCENARIO]:
             self.ApplyOscillations('Nuisance')
 
         self.SetExpectedWeights()
@@ -79,7 +80,7 @@ class PyNuFit:
                 details = self.Analysis.Experiments[det][src]
                 exp = det + '+' + src
                 experiment[exp] = Exp.Manager(
-                    det, src, details, self.Analysis.Scenario)
+                    det, src, details, self.Analysis.SCENARIO)
         self.Experiments = experiment
 
     def SetUpPhysicsTunes(self):
@@ -88,7 +89,7 @@ class PyNuFit:
         for name, exp in self.Experiments.items():
             self.PhysicsTunes[name] = PT(
                 exp,
-                self.Analysis.Scenario,
+                self.Analysis.SCENARIO,
                 self.Analysis.Flavors,
                 set_all=True)
 
@@ -166,7 +167,7 @@ class PyNuFit:
             elif tag == 'Nuisance':
                 exp.UpdateNuisanceWeights(w)
             elif tag == 'Nominal':
-                if not self.Analysis.Nuisance[self.Analysis.Scenario] and not self.Analysis.Physics[self.Analysis.Scenario]:
+                if not self.Analysis.Nuisance[self.Analysis.SCENARIO] and not self.Analysis.Physics[self.Analysis.SCENARIO]:
                     exp.UpdateBaseWeights(w)
                 else:
                     exp.UpdateNominalWeights(w)
@@ -254,7 +255,7 @@ class PyNuFit:
             from scipy.optimize import minimize
 
             ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
-            self.LLH = FT.BinnedLogLikelihoodRatio(
+            self.LLH = ft.BinnedLogLikelihoodRatio(
                 self.Observation,
                 self.Analysis.NuisNominalList,
                 self.Analysis.NuisSigmaList,
@@ -264,13 +265,13 @@ class PyNuFit:
             self.ComputeBinnedExpectation(
                 point, physics=True)  # Nominal expectation
             ''' Statistics only computation to start guiding the minimization '''
-            X2_stats = self.LLH.StatsOnly(self.Expectation)
+            X2_stats = self.LLH.stats_only(self.Expectation)
 
             '''Get Jacobian of expected events w.r.t. nuisance parameters'''
             self.ComputeBinnedDiffExpectation()
 
             '''Analytic estimate for priors and bounds at first order'''
-            AnalyticPrior, AnalyticBounds = self.LLH.AnalyticPriorsBounds(
+            AnalyticPrior, AnalyticBounds = self.LLH.analytic_priors_bounds(
                 self.Expectation, self.DiffExpectation)
 
             '''Combined chi^2 minimization'''
@@ -316,12 +317,12 @@ class PyNuFit:
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
         ''' Get -2 ln(H/H0) ~ χ2 '''
-        Chi2 = self.LLH.StatsAndSystematics(
+        Chi2 = self.LLH.stats_and_systematics(
             self.Expectation,
             nuisance_vector)
 
         ''' The gradient of the above '''
-        D_Chi2 = self.LLH.Gradient(
+        D_Chi2 = self.LLH.gradient(
             self.Expectation,
             self.DiffExpectation,
             nuisance_vector)

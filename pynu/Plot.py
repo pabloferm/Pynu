@@ -1,4 +1,4 @@
-import AnalysisReader as AR  # contains parse class to read and setup the analysis
+import analysis_reader as ar  # contains parse class to read and setup the analysis
 import h5py
 import numpy as np
 import os
@@ -18,7 +18,7 @@ class Plot:
             directory=''):
         ''' Set up basic analysis variables and structure to build full analysis '''
         if analysis_input_file:
-            self.AnalysisInput = AR.parse(analysis_input_file, check=True)
+            self.AnalysisInput = ar.ParseXML(analysis_input_file, check=True)
 
         self.directory = directory
 
@@ -176,7 +176,7 @@ class Plot:
         if not self.AnalysisInput:
             sys.exit('Please, specify analysis xml file')
 
-        from Fitter import distributions as dt
+        from fitter import distributions as dt
         if all_plots:
             if self.NumberOfPhysicsPars < 5:
                 fig, ax = plt.subplots(
@@ -206,8 +206,8 @@ class Plot:
                     prior_mu - 5 * prior_sig,
                     prior_mu + 5 * prior_sig,
                     100)
-                prior_dist = dt.logGaussianPrior(x, prior_mu, prior_sig)
-                post_dist = dt.logGaussianPrior(x, post_mu, post_sig)
+                prior_dist = dt.log_gaussian_ratio(x, prior_mu, prior_sig)
+                post_dist = dt.log_gaussian_ratio(x, post_mu, post_sig)
 
                 axis[i].plot(
                     x,
@@ -364,7 +364,7 @@ class Plot:
             new_string += r'$\theta_{' + string[-2] + string[-1] + '}$'
 
         if 'Eps' in string:
-            new_string += r'$\epsilon{' + string[-2] + string[-1] + '}$'
+            new_string += r'$\EPSilon{' + string[-2] + string[-1] + '}$'
 
         if 'Dm' in string:
             new_string += r'$\Delta m^2_{' + \
