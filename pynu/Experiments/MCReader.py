@@ -45,12 +45,16 @@ def Manager(detector, source, dict_of_details, scenario):
         elif source in ['Accelerator', 'LBL', 'T2K']:
             pass
         else:
-            sys.exit('Source not found for ' + detector)
+            sys.exit('SOURCE not found for ' + detector)
 
     elif detector in ['HK', 'HyperK', 'Hyper-Kamiokande']:
         if source == 'Atmospheric':
-            from .HyperK_Atm import HyperK_Atm
-            return HyperK_Atm(dict_of_details, scenario)
+            if 'Pheno' in detector:
+                from .HyperK_from_SuperK_Atm_Pheno import HyperK
+                return HyperK(dict_of_details, scenario)
+            else:
+                from .HyperK_from_SuperK_Atm_Official import HyperK
+                return HyperK(dict_of_details, scenario)
         elif source == 'Solar':
             pass
         elif source == 'Reactors':

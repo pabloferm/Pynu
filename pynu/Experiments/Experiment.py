@@ -5,6 +5,8 @@ from .MCReader import reader
 import numpy as np
 import numpy.typing as npt
 import boost_histogram as bh
+import KDEpy
+from KDEpy import FFTKDE
 
 vector = npt.NDArray[np.float64]
 
@@ -13,13 +15,13 @@ class Experiment:
     def __init__(self, dict_of_details):
         self.Detector = None
         self.Target = None
-        self.Source = None
-        self.Scenario = None
+        self.SOURCE = None
+        self.SCENARIO = None
 
         self.TotalMCexposure = dict_of_details['TotalMCexposure']
         self.FitExposure = dict_of_details['Exposure']
         self.FewEntries = None
-        self.Norm = self.FitExposure / self.TotalMCexposure
+        self.NORM = self.FitExposure / self.TotalMCexposure
         self.MCFiles = dict_of_details['MCFiles']
         self.DataFiles = dict_of_details['DataFiles']
 
@@ -47,8 +49,8 @@ class Experiment:
         self.Definition = {
             self.Detector: 'Detector',
             self.Target: 'XSection',
-            self.Source: 'Flux',
-            self.Scenario: 'Osc'}
+            self.SOURCE: 'Flux',
+            self.SCENARIO: 'Osc'}
 
     def MCVariables(self):
         pass
@@ -80,6 +82,20 @@ class Experiment:
                         else:
                             print(
                                 'Warning: Data files have not the same variables, it may produce errors.')
+
+    def set_KDE_1D(self):
+        self.KDEer = []
+        kde = FFTKDE(bw='silverman', kernel='gaussian')
+        data = self.EReco[self.Sample == 0]
+        norm = data.size
+        x, y = kde.fit(data)(2**10)
+        import matplotlib.pyplot as plt
+        y *= norm / np.sum(y)
+        plt.plot(x, y, label='FFTKDE')
+        plt.hist(data, bins=15)
+        plt.show()
+
+        pass
 
     def SetBinner_1D(self) -> None:  # 1D energy binning
         self.Binner = [

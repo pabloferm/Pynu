@@ -10,9 +10,9 @@ class SuperK_I(Experiment):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_I, self).__init__(dict_of_details)
         self.Detector = 'SuperK_I'
-        self.Source = 'Atmospheric'
+        self.SOURCE = 'Atmospheric'
         self.Target = 'Water'
-        self.Scenario = scenario
+        self.SCENARIO = scenario
 
         self.SetDefinition()
 
@@ -57,7 +57,7 @@ class SuperK_I(Experiment):
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
-        self.BaseWeight = self.Norm * self.Weight
+        self.BaseWeight = self.NORM * self.Weight
 
         # del self.MC
 
@@ -216,6 +216,8 @@ class SuperK_IV(SuperK_I):
 
         self.AddMCVariables()
 
+        # self.set_KDE_1D()
+
         self.DeleteBinner()
         self.Binning()
         self.SetBinner_2D()
@@ -224,6 +226,8 @@ class SuperK_IV(SuperK_I):
             self.AddDataVariables()
             self.DataVariables()
             self.BinData()
+
+        # del self.MC
 
     def AddMCVariables(self):
         d_itype = self.MC['itype']

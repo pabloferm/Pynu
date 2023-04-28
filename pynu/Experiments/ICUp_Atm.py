@@ -11,8 +11,8 @@ class ICUp_Atm(Experiment):
 
         self.Detector = 'IceCube-Upgrade'
         self.Target = 'Water'
-        self.Source = 'Atmospheric'
-        self.Scenario = scenario
+        self.SOURCE = 'Atmospheric'
+        self.SCENARIO = scenario
 
         self.SetDefinition()
 
@@ -51,9 +51,9 @@ class ICUp_Atm(Experiment):
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
-        self.Norm *= 365 * 24 * 60 * 60 * 1e4
+        self.NORM *= 365 * 24 * 60 * 60 * 1e4
 
-        self.BaseWeight = self.Weight * self.Norm
+        self.BaseWeight = self.Weight * self.NORM
 
         del self.MC
 

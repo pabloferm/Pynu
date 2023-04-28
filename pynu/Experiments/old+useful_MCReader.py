@@ -14,7 +14,7 @@ class Reader:
     def __init__(self, source, experiment, exposure, filename):
 
         self.Experiment = experiment
-        self.Source = source
+        self.SOURCE = source
         self.Exposure = exposure
         self.FewEntries = None
         self.Physics = 0  # list of physics parameters
@@ -59,7 +59,7 @@ class Reader:
                 d_weightSKTable[condition])
             MCyears = norma / SKrateyr
             print(f'Your simulation file has {MCyears} years')
-            self.Norm = self.Exposure / MCyears
+            self.NORM = self.Exposure / MCyears
 
         elif self.Experiment == 'SuperK-Gd' or self.Experiment == 'SKIV' or self.Experiment == 'SuperK_Htag' or self.Experiment == 'SuperK_Gdtag':
             self.Detector = 'Water'
@@ -104,7 +104,7 @@ class Reader:
                 d_weightSKTable[condition])
             MCyears = norma / SKrateyr
             print(f'Your simulation file has {MCyears} years')
-            self.Norm = self.Exposure / MCyears
+            self.NORM = self.Exposure / MCyears
 
         elif self.Experiment == 'IceCube-Upgrade' or self.Experiment == 'IC' or self.Experiment == 'DeepCore':
             self.Detector = 'Water'
@@ -144,7 +144,7 @@ class Reader:
             self.ETrue = d_ETrue[condition]
             self.Weight = d_Weight[condition]
             self.Sample = d_Sample[condition]
-            self.Norm = Time * meter_to_cm_sq
+            self.NORM = Time * meter_to_cm_sq
             self.NumberOfSamples = 2
             self.NumberOfEvents = self.nuPDG.size
 
@@ -186,7 +186,7 @@ class Reader:
             self.ETrue = d_ETrue[condition]
             self.Weight = d_Weight[condition]
             self.Sample = d_Sample[condition]
-            self.Norm = Time * meter_to_cm_sq
+            self.NORM = Time * meter_to_cm_sq
             self.NumberOfSamples = 2
             self.NumberOfEvents = self.nuPDG.size
 
@@ -406,7 +406,7 @@ class Reader:
         return v
 
     def wBinIt(self, array, shift_E=1):
-        return self.BinIt(array * self.Weight * self.Norm, shift_E=shift_E)
+        return self.BinIt(array * self.Weight * self.NORM, shift_E=shift_E)
 
     def Exp_wBinIt(self, array, shift_E=1):
         return self.wBinIt(array * self.weightOscBF, shift_E=shift_E)
@@ -421,9 +421,9 @@ class Reader:
             E_min = 1.0
             E_max = 1.0e3
 
-        E_nodes = 100
-        energy_range = nsq.logspace(E_min, E_max, E_nodes)
-        energy_nodes = nsq.logspace(E_min, E_max, E_nodes)
+        E_NODES = 100
+        energy_range = nsq.logspace(E_min, E_max, E_NODES)
+        energy_nodes = nsq.logspace(E_min, E_max, E_NODES)
         cth_min = -1.0
         cth_max = 1.0
         cth_nodes = 40
@@ -469,8 +469,8 @@ class Reader:
             neutrino_flavors,
             nsq.NeutrinoType.both,
             interactions)
-        AtmOsc.Set_rel_error(1.0e-4)
-        AtmOsc.Set_abs_error(1.0e-4)
+        AtmOsc.Set_REL_ERROR(1.0e-4)
+        AtmOsc.Set_ABS_ERROR(1.0e-4)
         AtmOsc.Set_MixingAngle(0, 1, asin(sqrt(t12)))
         AtmOsc.Set_MixingAngle(0, 2, asin(sqrt(t13)))
         AtmOsc.Set_MixingAngle(1, 2, asin(sqrt(t23)))

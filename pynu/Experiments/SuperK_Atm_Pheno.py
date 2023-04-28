@@ -10,9 +10,9 @@ class SuperK(Experiment):
     def __init__(self, dict_of_details, scenario):
         super(SuperK, self).__init__(dict_of_details)
         self.Detector = 'SuperK_Pheno'
-        self.Source = 'Atmospheric'
+        self.SOURCE = 'Atmospheric'
         self.Target = 'Water'
-        self.Scenario = scenario
+        self.SCENARIO = scenario
 
         self.Definition()
 
@@ -51,9 +51,9 @@ class SuperK(Experiment):
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
-        self.Norm *= 1
+        self.NORM *= 1
 
-        self.BaseWeight = self.Weight * self.Norm
+        self.BaseWeight = self.Weight * self.NORM
 
         del self.MC
 
