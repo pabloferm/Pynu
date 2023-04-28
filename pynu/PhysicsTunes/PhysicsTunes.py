@@ -12,15 +12,15 @@ class PhysicsTunes:
         __slots__ = (
             'Detector',
             'Target',
-            'Source',
-            'Scenario',
+            'SOURCE',
+            'SCENARIO',
             'NeutrinoFlavors',
             '_Experiment')
         self.Detector = experiment.Detector
         self.Target = experiment.Target
-        self.Source = experiment.Source
+        self.SOURCE = experiment.SOURCE
 
-        self.Scenario = scenario
+        self.SCENARIO = scenario
         self.NeutrinoFlavors = neutrino_flavors
 
         self._Experiment = experiment
@@ -56,19 +56,19 @@ class PhysicsTunes:
         return self.OscillationTunes.Get(func_name, self._Experiment, x)
 
     def SetFlux(self):
-        if self.Source == 'Atmospheric':
+        if self.SOURCE == 'Atmospheric':
             from .Flux.AtmoFlux import AtmosphericFlux
             self.FluxTunes = AtmosphericFlux()
-        elif self.Source == 'Solar':
+        elif self.SOURCE == 'Solar':
             pass
-        elif self.Source == 'Reactors':
+        elif self.SOURCE == 'Reactors':
             pass
-        elif self.Source in ['Accelerator', 'LBL', 'T2K']:
+        elif self.SOURCE in ['Accelerator', 'LBL', 'T2K']:
             # from .SuperK.SuperK import SuperK_LBL
             # return SuperK_LBL(experiment)
             pass
         else:
-            sys.exit(f'{self._Experiment.Source} source not found.')
+            sys.exit(f'{self._Experiment.SOURCE} source not found.')
 
     def SetXSection(self):
         if self.Target == 'Water':
@@ -88,13 +88,13 @@ class PhysicsTunes:
             sys.exit(f'{self.Detector} detector not found.')
 
     def SetOscillation(self):
-        if self.Source == 'Atmospheric':
+        if self.SOURCE == 'Atmospheric':
             from .Oscillations.AtmOsc import AtmosphericOscillations
             self.OscillationTunes = AtmosphericOscillations(
-                self.Scenario, self.NeutrinoFlavors, self._Experiment)
+                self.SCENARIO, self.NeutrinoFlavors, self._Experiment)
         else:
             sys.exit(
-                f'{self._Experiment.Scenario} oscillaiton scenario not found.')
+                f'{self._Experiment.SCENARIO} oscillaiton scenario not found.')
 
 
 #############################################################################

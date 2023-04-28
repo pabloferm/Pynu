@@ -1,19 +1,21 @@
 import sys
 import numpy as np
+import KDEpy
+from .distributions import *
+
 import numpy.typing as npt
 from typing import List, Tuple, Dict
-from .distributions import *
 
 vector = npt.NDArray[np.float64]
 
 
-class BinnedLogLikelihoodRatio:
+class UnbinnedLogLikelihoodRatio:
     '''Class containing all the information needed to perform an analysis and the methods for computing
     the log likelihood ratio or χ2 given a set of observed data, expected events at a given physics point
     and nuisance parameters.
 
     Parameters:
-        Observation_dict (Dict): Produced by PyNy and follows the structue (Experiment(str): binned
+        Observation_dict (Dict): Produced by PyNy and follows the structue (Experiment(str):
         events (vector)).
         NominalNuisance_list (vector): Produced from the xml analysis file, it contains the nominal
         values assumed for the nuisance parameters.
@@ -24,17 +26,17 @@ class BinnedLogLikelihoodRatio:
 
    '''
 
-    def __init__(self, Observation_dict: Dict, NominalNuisance_list: vector,
+    def __init__(self, observed_KDE_dict: Dict, NominalNuisance_list: vector,
                  SigmaNuisance_list: vector,
                  DistNuisance_list: List[str]) -> None:
 
-        self.Observation_dict = Observation_dict
+        self.observed_KDE_dict = observed_KDE_dict
         self.NominalNuisance_list = NominalNuisance_list
         self.SigmaNuisance_list = SigmaNuisance_list
         self.DistNuisance_list = DistNuisance_list
         self.number_of_nuisance = len(self.NominalNuisance_list)
 
-    def StatsOnly(self, Expectation_dict) -> float:
+    def stats_only(self, Expectation_dict) -> float:
         ''' Compute statistics only binned chi-squared '''
         X2 = 0
         for O, E in zip(self.Observation_dict.values(),
@@ -42,16 +44,16 @@ class BinnedLogLikelihoodRatio:
             X2 += 2 * np.sum(E - O + O * np.log(O / E))
         return X2
 
-    def StatsAndSystematics(
+    def stats_and_systematics(
             self,
             Expectation_dict,
             nuisance_vector: vector) -> float:
         if set(nuisance_vector) == set(self.NominalNuisance_list):
-            return self.StatsOnly(Expectation_dict)
-        return self.StatsOnly(Expectation_dict) + \
-            self.NuisancePenalty(nuisance_vector)
+            return self.stats_only(Expectation_dict)
+        return self.stats_only(Expectation_dict) + \
+            self.nuisance_pleantly(nuisance_vector)
 
-    def Gradient(
+    def gradient(
             self,
             Expectation_dict,
             DiffExpectation_dict,
@@ -60,9 +62,9 @@ class BinnedLogLikelihoodRatio:
         for i, (dE, mu, sig, dist, nuis) in enumerate(zip(DiffExpectation_dict.values(
         ), self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list, nuisance_vector)):
             if dist == 'normal':
-                nabla_X2[i] += DifflogGaussianPrior(nuis, mu, sig)
+                nabla_X2[i] += diff_log_gaussian_ratio(nuis, mu, sig)
             elif dist == 'beta':
-                nabla_X2[i] += DifflogBetaPrior(nuis, mu, sig)
+                nabla_X2[i] += diff_log_beta_ratio(nuis, mu, sig)
             else:
                 sys.exit(
                     f'Not an implemented distribution for nuisance {list(DiffExpectation_dict.keys())[i]}.')
@@ -73,7 +75,7 @@ class BinnedLogLikelihoodRatio:
 
         return nabla_X2
 
-    def NuisancePenalty(
+    def nuisance_pleantly(
             self,
             nuisance_vector: vector) -> float:
         X2: float = 0.0
@@ -81,16 +83,16 @@ class BinnedLogLikelihoodRatio:
                 self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list,
                 nuisance_vector):
             if 'normal' in dist:
-                X2 += logGaussianPrior(nuis, mu, sig)
+                X2 += log_gaussian_ratio(nuis, mu, sig)
             elif dist == 'beta':
-                X2 += logBetaPrior(nuis, mu, sig)
+                X2 += log_beta_ratio(nuis, mu, sig)
         return X2
 
-    def AnalyticPriorsBounds(self,
-                             Expectation_dict,
-                             DiffExpectation_dict) -> Tuple[vector,
-                                                            Tuple[Tuple[float,
-                                                                        float]]]:
+    def analytic_priors_bounds(self,
+                               Expectation_dict,
+                               DiffExpectation_dict) -> Tuple[vector,
+                                                              Tuple[Tuple[float,
+                                                                          float]]]:
         ''' First order analytic computation of values for parameters to be mariginalized '''
         A = np.zeros(self.number_of_nuisance)
         B = np.zeros(self.number_of_nuisance)
@@ -118,10 +120,10 @@ class BinnedLogLikelihoodRatio:
 
         return priors, bounds
 
-    def AnalyticPriors_2ndOrder(self,
-                                Expectation_dict_prior,
-                                DiffExpectation_dict_prior,
-                                prior: vector) -> vector:
+    def parabolic_priors(self,
+                         Expectation_dict_prior,
+                         DiffExpectation_dict_prior,
+                         prior: vector) -> vector:
         ''' Second order analytic computation of values for parameters to be mariginalized
         assuming we are close enough to the minimum , i.e. a parabola, i.e. linear derivative'''
 
@@ -132,13 +134,13 @@ class BinnedLogLikelihoodRatio:
             sys.exit(
                 'Derivative of the expectation for nominal values of nuisance not defined.')
 
-        D_Chi2_1 = self.Gradient(
+        D_Chi2_1 = self.gradient(
             Expectation_dict_prior,
             DiffExpectation_dict_prior,
             prior)
         X_1 = prior
 
-        D_Chi2_0 = self.Gradient(
+        D_Chi2_0 = self.gradient(
             self.Expectation_dict_Nominal,
             self.DiffExpectation_dict_Nominal,
             self.NominalNuisance_list)

@@ -1,15 +1,13 @@
 # Provides several functions for probability distributions
 from math import gamma, exp, sqrt, pi, log
 import numpy as np
-import numpy.typing as npt
-from typing import Tuple
 
 
 ##############################################
 ############ Gaussian distribution ###########
 ##############################################
 
-def GaussianDistribution(x, m, s):
+def gaussian(x, m, s):
     r"""Returns the values of Gaussian or Normal probability distribution,
     $\mathcal{N}(x;\mu,\sigma) = \frac{1}{\sigma\sqrt{2\pi}}
     e^{\frac{(x-\mu)^2}{2\sigma^2}}$
@@ -25,7 +23,7 @@ def GaussianDistribution(x, m, s):
     return np.exp(-0.5 * (x - m)**2 / s**2) / (s * np.sqrt(2 * pi))
 
 
-def logGaussianPrior(x, m, s):
+def log_gaussian_ratio(x, m, s):
     r"""Returns the values of -2 times the logarithm of the likelihood ratio
     assuming Gaussian or Normal probability distribution.
 
@@ -41,7 +39,7 @@ def logGaussianPrior(x, m, s):
     return (x - m)**2 / s**2
 
 
-def DifflogGaussianPrior(x, m, s):  # Actually, -2 ln(L/L0)
+def diff_log_gaussian_ratio(x, m, s):  # Actually, -2 ln(L/L0)
     r"""Returns the values of the derivative with respect to 'x´ of -2 times
     the logarithm of the likelihood ratio assuming Gaussian or Normal
     probability distribution, $ -2 \ln{\Big(\frac{\mathcal{N}(x;\mu,\sigma)}
@@ -65,7 +63,7 @@ def DifflogGaussianPrior(x, m, s):  # Actually, -2 ln(L/L0)
 ############## Beta distribution #############
 ##############################################
 
-def BetaDistribution(x, a, b):
+def beta(x, a, b):
     r"""Returns the values of Beta probability distribution,
     $B(x;\alpha,\beta) = \frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}
     x^{\alpha-1} (1-x)^{\beta-1}$.
@@ -81,7 +79,7 @@ def BetaDistribution(x, a, b):
     return x**(a - 1) * (1 - x)**(b - 1) * gamma(a + b) / gamma(a) / gamma(b)
 
 
-def BetaPar(m, s):  # Mode and std
+def beta_param(m, s):  # Mode and std
     r"""Returns the α and β parameters of the Beta probability distribution from
     the mode and standrd deviation
 
@@ -97,7 +95,7 @@ def BetaPar(m, s):  # Mode and std
     return alpha, beta
 
 
-def BetaMean(a, b):
+def beta_mean(a, b):
     r"""Returns the mean of the Beta probability distribution, provided the
     α and β parameters.
 
@@ -113,7 +111,7 @@ def BetaMean(a, b):
     return a / (a + b)
 
 
-def BetaMode(a, b):
+def beta_mode(a, b):
     r"""Returns the mode of the Beta probability distribution, provided the
     α and β parameters.
 
@@ -129,7 +127,7 @@ def BetaMode(a, b):
     return (a - 1) / (a + b - 2)
 
 
-def BetaSTD(a, b):
+def beta_std(a, b):
     r"""Returns the standard deviation of the Beta probability distribution,
     provided the α and β parameters.
 
@@ -145,7 +143,7 @@ def BetaSTD(a, b):
     return np.sqrt((a * b) / ((a + b)**2 * (a + b + 1)))
 
 
-def logBetaPrior(x, a, b):
+def log_beta_ratio(x, a, b):
     r"""Returns the values of -2 times the logarithm of the likelihood ratio
     assuming Beta probability distribution.
 
@@ -158,11 +156,11 @@ def logBetaPrior(x, a, b):
         Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}
         {B(\mu;\alpha,\beta)}\Big)}$.
    """
-    m = BetaMode(a, b)
+    m = beta_mode(a, b)
     return 2 * ((a - 1) * np.log(m / x) + (b - 1) * np.log((1 - m) / (1 - x)))
 
 
-def DifflogBetaPrior(x, m, s):
+def diff_log_beta_ratio(x, m, s):
     r"""Returns the values of of the derivative with respect to 'x´ of -2 times
     the logarithm of the likelihood ratio assuming Beta probability distribution.
 
@@ -176,11 +174,11 @@ def DifflogBetaPrior(x, m, s):
         Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}
         \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$
     """
-    a, b = BetaPar(m, s)
-    return DifflogBetaPrior_wArgs(x, a, b)
+    a, b = beta_param(m, s)
+    return diff_log_beta_ratio_wArgs(x, a, b)
 
 
-def DifflogBetaPrior_wArgs(x, a, b):
+def diff_log_beta_ratio_wArgs(x, a, b):
     r"""Returns the values of of the derivative with respect to 'x´ of -2
     times the logarithm of the likelihood ratio assuming Beta probability
     distribution.
