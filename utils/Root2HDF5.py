@@ -24,7 +24,7 @@ dt = h5py.special_dtype(vlen=np.float32)
 
 with h5py.File(infile + '.hdf5', 'w') as hf:
     for i, br in enumerate(keep_columns):
-        dummy = f.get('gst')[br].array(
+        dummy = f.get(tree)[br].array(
             interpretation=None,
             entry_start=None,
             entry_stop=None,

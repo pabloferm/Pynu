@@ -1,4 +1,4 @@
-import AnalysisReader as AR  # contains parse class to read and setup the analysis
+import analysis_reader as ar  # contains parse class to read and setup the analysis
 import h5py
 import numpy as np
 import os
@@ -6,6 +6,7 @@ import sys
 from scipy.interpolate import interp1d, interp2d
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+
 plt.style.use(os.environ['PYNU'] + '/utils/plot.mplstyle')
 
 
@@ -18,7 +19,8 @@ class Plot:
             directory=''):
         ''' Set up basic analysis variables and structure to build full analysis '''
         if analysis_input_file:
-            self.AnalysisInput = AR.parse(analysis_input_file, check=True)
+
+            self.AnalysisInput = ar.ParseXML(analysis_input_file, check=True)
 
         self.directory = directory
 
@@ -176,7 +178,7 @@ class Plot:
         if not self.AnalysisInput:
             sys.exit('Please, specify analysis xml file')
 
-        from Fitter import Distributions as dt
+        from fitter import distributions as dt
         if all_plots:
             if self.NumberOfPhysicsPars < 5:
                 fig, ax = plt.subplots(
@@ -206,8 +208,8 @@ class Plot:
                     prior_mu - 5 * prior_sig,
                     prior_mu + 5 * prior_sig,
                     100)
-                prior_dist = dt.logGaussianPrior(x, prior_mu, prior_sig)
-                post_dist = dt.logGaussianPrior(x, post_mu, post_sig)
+                prior_dist = dt.log_gaussian_ratio(x, prior_mu, prior_sig)
+                post_dist = dt.log_gaussian_ratio(x, post_mu, post_sig)
 
                 axis[i].plot(
                     x,
@@ -298,7 +300,10 @@ class Plot:
                             np.amin(x), np.amax(x), 10 * x.size)
                         y_dense = spl(x_dense)
                         axis[i].plot(
-                            x_dense, y_dense, linewidth=0.5, label='Stats. only')
+
+                            x_dense, y_dense, linewidth=0.5,
+                            label='Stats. only')
+
                     else:
                         axis[i].plot(x, y, linewidth=0.5, label='Stats. only')
                 axis[i].set_ylim(0, 25)

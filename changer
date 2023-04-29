@@ -1,0 +1,8 @@
+grep -rl 'SCENARIO' ./ | xargs sed -i 's/SCENARIO/SCENARIO/g'
+grep -rl 'SOURCE' ./ | xargs sed -i 's/SOURCE/SOURCE/g'
+grep -rl 'UNITS' ./ | xargs sed -i 's/UNITS/UNITS/g'
+grep -rl 'INTERACTIONS' ./ | xargs sed -i 's/INTERACTIONS/INTERACTIONS/g'
+grep -rl 'REL_ERROR' ./ | xargs sed -i 's/REL_ERROR/REL_ERROR/g'
+grep -rl 'ABS_ERROR' ./ | xargs sed -i 's/ABS_ERROR/ABS_ERROR/g'
+grep -rl 'EPS' ./ | xargs sed -i 's/EPS/EPS/g'
+

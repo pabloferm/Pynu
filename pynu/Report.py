@@ -1,4 +1,4 @@
-from PyNu import Plot
+from pynu import Plot
 
 
 class Report:
