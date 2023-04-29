@@ -6,7 +6,8 @@ import sys
 from scipy.interpolate import interp1d, interp2d
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-plt.style.use(os.environ['PYNU'] + '/../utils/plot.mplstyle')
+
+plt.style.use(os.environ['PYNU'] + '/utils/plot.mplstyle')
 
 
 class Plot:
@@ -18,6 +19,7 @@ class Plot:
             directory=''):
         ''' Set up basic analysis variables and structure to build full analysis '''
         if analysis_input_file:
+
             self.AnalysisInput = ar.ParseXML(analysis_input_file, check=True)
 
         self.directory = directory
@@ -298,8 +300,10 @@ class Plot:
                             np.amin(x), np.amax(x), 10 * x.size)
                         y_dense = spl(x_dense)
                         axis[i].plot(
+
                             x_dense, y_dense, linewidth=0.5,
                             label='Stats. only')
+
                     else:
                         axis[i].plot(x, y, linewidth=0.5, label='Stats. only')
                 axis[i].set_ylim(0, 25)
@@ -364,7 +368,7 @@ class Plot:
             new_string += r'$\theta_{' + string[-2] + string[-1] + '}$'
 
         if 'Eps' in string:
-            new_string += r'$\EPSilon{' + string[-2] + string[-1] + '}$'
+            new_string += r'$\epsilon{' + string[-2] + string[-1] + '}$'
 
         if 'Dm' in string:
             new_string += r'$\Delta m^2_{' + \
@@ -401,3 +405,4 @@ class Plot:
         if new_string == '':
             return string
         return new_string
+
