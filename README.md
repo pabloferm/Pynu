@@ -1,9 +1,9 @@
 <img src="/resources/pynu_logo.png" width="150" />
 
-# PyNuFit Framework
+# PyNu Framework
 
 The aim of this software is to perform neutrino analysis in the most general and flexible way. There are three modules:
-- PyNu: It is the core of the package handling simulations, data and fitting.
+- PyNuFit: It is the core of the package handling simulations, data and fitting.
 - Plot: A plotting toolkit to extract all the information from the analysis (UNDER CONSTRUCTION).
 - Report: Automated module for preparing a report containing the detailed information of the analysis and the results (UNDER CONSTRUCTION).
 

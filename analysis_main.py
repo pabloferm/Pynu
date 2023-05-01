@@ -118,6 +118,21 @@ def main():
             nsteps = 200
             initial = np.zeros((nwalkers, ndim))
 
+        else:
+            processes = []
+            for i,p in enumerate(points):
+                print(
+                    f'Processing point {p} of {pynufit.Analysis.NumberOfPhysPoints} points in the analysis.')
+                if (i+1) % cores == 0:
+                    for proc in processes:
+                        proc.join()
+                    processes = []
+                else:
+                    proc = multiprocessing.Process(target=pynufit.FitModel, args=[p,])
+                    proc.start()
+                    processes.append(proc)
+                
+
     # Loop over specified points of analysis
     else:
         for p in points:
