@@ -45,6 +45,9 @@ class Experiment:
         self.NuisanceWeight = 1
         self.NominalWeight = 1
 
+        self.bias_E = 0
+        self.scale_E = 1
+
     def SetDefinition(self):
         self.Definition = {
             self.Detector: 'Detector',
@@ -112,14 +115,20 @@ class Experiment:
     def DeleteBinner(self) -> None:
         self.Binner = []
 
-    def BinIt_MC_1D(self, array: vector, shift_E: float = 1, bias_E: float = 0) -> vector:  # 1D energy binning
+    def set_energy_bias(self, bias_E):
+        self.bias_E = bias_E
+
+    def set_energy_scale(self, scale_E):
+        self.scale_E = scale_E
+
+    def BinIt_MC_1D(self, array: vector) -> vector:  # 1D energy binning
         for hist in self.Binner:
             hist.reset()
 
-        if shift_E == 1 and bias_E == 0:
+        if self.shift_E == 1 and self.bias_E == 0:
             E = self.EReco
         else:
-            E = self.EReco * shift_E + bias_E
+            E = self.EReco * self.shift_E + self.bias_E
 
         v = np.array([])
         for i, hist in enumerate(self.Binner):
@@ -134,20 +143,15 @@ class Experiment:
     # 2D energy and cos(angle) binning
     def BinIt_MC_2D(
             self,
-            array: vector,
-            shift_E: float = 1,
-            bias_E: float = 0) -> vector:
+            array: vector) -> vector:
         for hist in self.Binner:
             hist.reset()
 
-        if shift_E == 1 and bias_E == 0:
+        if self.shift_E == 1 and self.bias_E == 0:
             E = self.EReco
         else:
-            E = self.EReco * shift_E + bias_E
-        # v = np.ndarray([hist.fill(E[self.Sample == i],
-        #                self.CosThetaReco[self.Sample == i],
-        #                weight=array[self.Sample == i] * self.BaseWeight[self.Sample == i]).values() for i,
-        #      hist in enumerate(self.Binner)], dtype=object)
+            E = self.EReco * self.shift_E + self.bias_E
+
         v = np.array([])
         for i, hist in enumerate(self.Binner):
             v = np.hstack(
