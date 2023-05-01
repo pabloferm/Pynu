@@ -26,7 +26,7 @@
 		</nuisance>
 		<nuisance name='FluxTilt'>
 			<status> 1 </status>
-			<sigma> 0.02 </sigma>
+			<sigma> 0.2 </sigma>
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
@@ -49,6 +49,12 @@
 		<nuisance name='DIS'>
 			<status> 1 </status>
 			<sigma> 0.05 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CCQE'>
+			<status> 1 </status>
+			<sigma> 0.1 </sigma>
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>

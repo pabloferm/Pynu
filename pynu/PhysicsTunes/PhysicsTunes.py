@@ -84,6 +84,9 @@ class PhysicsTunes:
         elif self.Detector == 'SuperK_IV':
             from .Detector.SuperKIV_Detector import SuperK_IV
             self.DetectorTunes = SuperK_IV()
+        elif self.Detector == 'HyperK': # to be changed
+            from .Detector.SuperKIV_Detector import SuperK_IV
+            self.DetectorTunes = SuperK_IV()
         else:
             sys.exit(f'{self.Detector} detector not found.')
 

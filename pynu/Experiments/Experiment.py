@@ -125,10 +125,10 @@ class Experiment:
         for hist in self.Binner:
             hist.reset()
 
-        if self.shift_E == 1 and self.bias_E == 0:
+        if self.scale_E == 1 and self.bias_E == 0:
             E = self.EReco
         else:
-            E = self.EReco * self.shift_E + self.bias_E
+            E = self.EReco * self.scale_E + self.bias_E
 
         v = np.array([])
         for i, hist in enumerate(self.Binner):
@@ -147,10 +147,10 @@ class Experiment:
         for hist in self.Binner:
             hist.reset()
 
-        if self.shift_E == 1 and self.bias_E == 0:
+        if self.scale_E == 1 and self.bias_E == 0:
             E = self.EReco
         else:
-            E = self.EReco * self.shift_E + self.bias_E
+            E = self.EReco * self.scale_E + self.bias_E
 
         v = np.array([])
         for i, hist in enumerate(self.Binner):

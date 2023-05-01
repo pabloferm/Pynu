@@ -117,9 +117,9 @@ class SuperK_I(Experiment):
 
         # del self.Data
 
-    def BinMC(self, array, shift_E=1, bias_E=0):
+    def BinMC(self, array):
         self.CosThetaReco = self.CosZReco
-        return self.BinIt_MC_2D(array, shift_E=1, bias_E=0)
+        return self.BinIt_MC_2D(array)
 
     def BinData(self):
         self.dCosThetaReco = self.dCosZReco

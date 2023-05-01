@@ -8,7 +8,7 @@ from .SuperK_Atm_Official import SuperK_IV
 
 class HyperK(SuperK_IV):
     def __init__(self, dict_of_details, scenario):
-        super(HyperK, self).__init__(dict_of_details)
+        super(HyperK, self).__init__(dict_of_details, scenario)
         self.Detector = 'HyperK'
         self.SOURCE = 'Atmospheric'
         self.Target = 'Water'

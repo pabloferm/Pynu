@@ -274,10 +274,10 @@ class PyNuFit:
                 self.Expectation, self.DiffExpectation)
 
             '''Combined chi^2 minimization'''
-            if X2_stats > 200:
-                tol = 1e-4
+            if X2_stats > 100:
+                tol = 1e-3
             else:
-                tol = None
+                tol = 1e-7
             res = minimize(
                 self.ModelTester,
                 AnalyticPrior,
