@@ -71,7 +71,7 @@ def main():
     if args.mcmc is False:
         if args.range_of_points is None and args.point is not None:
             points = [*set(args.point)]
-            if points >= pynufit.Analysis.NumberOfPhysPoints:
+            if points[-1] >= pynufit.Analysis.NumberOfPhysPoints:
                 sys.exit('Point out of range for this analysis.')
         elif args.range_of_points is not None and args.point is None:
             points = list(
@@ -107,7 +107,7 @@ def main():
     ''' Parallelization '''
     if args.multiproc:
         import multiprocessing
-        cores = multiprocessing.cpu_count()
+        cores = multiprocessing.cpu_count() - 1
 
         ''' Markov chain wandering '''
         if args.mcmc:
@@ -127,10 +127,9 @@ def main():
                     for proc in processes:
                         proc.join()
                     processes = []
-                else:
-                    proc = multiprocessing.Process(target=pynufit.FitModel, args=[p,])
-                    proc.start()
-                    processes.append(proc)
+                proc = multiprocessing.Process(target=pynufit.FitModel, args=[p,])
+                proc.start()
+                processes.append(proc)
                 
 
     # Loop over specified points of analysis

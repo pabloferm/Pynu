@@ -4,6 +4,7 @@ import numpy.typing as npt
 from typing import List, Tuple, Dict
 from .distributions import *
 
+
 class BinnedLogLikelihoodRatio:
     '''Class containing all the information needed to perform an analysis and the methods for computing
     the log likelihood ratio or χ2 given a set of binned observed data, binned expected events at a given physics point

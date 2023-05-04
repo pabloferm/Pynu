@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 
-from pynu import Plot
+from pynu import Report
 
 
 def main():
@@ -31,14 +31,20 @@ def main():
 
     args = parse.parse_args()
 
-    pynuplot = Plot(
+    pynureport = Report(
         args.hdf5_file,
-        directory=args.directory,
-        analysis_input_file=args.xml_file)
+        args.xml_file,
+        directory = args.directory,
+        doctype = 'article',
+        # doctype = 'beamer',
+        author = 'Pablo')
 
-    pynuplot.ResultPlotsMatrix()
+    pynureport.make_title()
+    pynureport.make_introduction()
+    pynureport.make_results()
+    pynureport.make_nuisance()
 
-    # pynuplot.NuisancePlots()
+    pynureport.write_report()
 
 
 if __name__ == '__main__':

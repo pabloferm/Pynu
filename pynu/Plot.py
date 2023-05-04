@@ -20,11 +20,20 @@ class Plot:
         ''' Set up basic analysis variables and structure to build full analysis '''
         if analysis_input_file:
 
-            self.AnalysisInput = ar.ParseXML(analysis_input_file, check=True)
+            self.AnalysisInput = ar.ParseXML(analysis_input_file, check=False)
 
         self.directory = directory
 
-        with h5py.File(analysis_output_file, 'r') as hf:
+        self.read_analysis_output(analysis_output_file)
+
+        self.colors()
+
+        self.check_zeroes()
+
+
+    def read_analysis_output(self, file):
+
+        with h5py.File(file, 'r') as hf:
 
             self.X2_stats = np.array(hf['Analysis/Chi2 Stats. Only'])
             self.X2 = np.array(hf['Analysis/Chi2 Systs.'])
@@ -55,6 +64,8 @@ class Plot:
                 for item, dset in hf['Fixed Parameters/' + source].items():
                     self.Fixed[source][item] = np.array(dset)
 
+        
+    def colors(self):
         self.levels_2d = (4.61, 9.21)
         self.levels_txt_2d = {4.61: r'$90\%$ C.L.', 9.21: r'$99\%$ C.L.'}
         # self.colors = ('darkblue','orange','limegreen','mediumvioletred','crimson')
@@ -172,7 +183,8 @@ class Plot:
         fig.tight_layout()
         plt.tight_layout()
         plt.show()
-        fig.savefig(self.directory + '/ResultPlotsMatrix.png')
+        if not os.path.isfile(self.directory + '/ResultPlotsMatrix.png'):
+            fig.savefig(self.directory + '/ResultPlotsMatrix.png')
 
     def NuisancePlots(self, all_plots=True, interpolate=True):
         if not self.AnalysisInput:
@@ -259,7 +271,8 @@ class Plot:
 
             plt.tight_layout()
             plt.show()
-            fig.savefig(self.directory + '/NuisancePlots.png')
+            if not os.path.isfile(self.directory + '/NuisancePlots.png'):
+                fig.savefig(self.directory + '/NuisancePlots.png')
 
     def Plot1D(self, all_plots=True, also_stats_only=False, interpolate=True):
         if all_plots:
@@ -406,3 +419,7 @@ class Plot:
             return string
         return new_string
 
+    def check_zeroes(self):
+        zeroes = np.where(self.X2 == 0)[0]
+        for zero in zeroes:
+            print(zero)

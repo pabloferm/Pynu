@@ -103,10 +103,10 @@ class ParseXML:
         print('====================================')
 
     def readExperiments(self):
-        self.experiments = self.reader('NeutrinoExperiment')
+        self.detectors = self.reader('NeutrinoExperiment')
         print('------------------------------------')
-        print('Experiments considered:')
-        for s in self.experiments:
+        print('Detectors considered:')
+        for s in self.detectors:
             print(' + ', s)
         print('====================================')
         # print(f' + {self.Nuisance}')

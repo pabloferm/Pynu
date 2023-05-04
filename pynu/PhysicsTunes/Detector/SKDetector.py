@@ -8,15 +8,17 @@ sys.path.append('../')
 # Super-Kamiokande #
 ####################
 
+
 class SuperK_Pheno(Tune):
 
     def SKEnergyScale(self, x, experiment):
         if np.abs(x - 1) > 5e-4:
             experiment.set_energy_scale(x)
         return 1
+
     def Diff_SKEnergyScale(self, x, experiment):
         pass
-        
+
     def FCPCSeparation(self, x, experiment):
         fcpc = np.ones(experiment.NumberOfEvents)
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
@@ -37,7 +39,6 @@ class SuperK_Pheno(Tune):
                                experiment.Sample == 15)] = y
         return fcpc
 
-
     def FCReduction(self, x, experiment):
         fc = np.ones(experiment.NumberOfEvents)
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
@@ -46,25 +47,23 @@ class SuperK_Pheno(Tune):
             fc[experiment.Sample < 14] = x
         return fc
 
-
     def FiducialVolume(self, x, experiment):
         return x
-
 
     def PCReduction(self, x, experiment):
         pc = np.ones(experiment.NumberOfEvents)
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
-            pc[np.logical_or(experiment.Sample == 16, experiment.Sample == 17)] = x
+            pc[np.logical_or(experiment.Sample == 16,
+                             experiment.Sample == 17)] = x
         else:
-            pc[np.logical_or(experiment.Sample == 14, experiment.Sample == 15)] = x
+            pc[np.logical_or(experiment.Sample == 14,
+                             experiment.Sample == 15)] = x
         return experiment.Exp_wBinIt(pc) / experiment.weightOscBF_binned - 1
-
 
     def SubGeV2ringPi0(self, x, experiment):
         pi02r = np.ones(experiment.NumberOfEvents)
         pi02r[experiment.Sample == 6] = x
         return experiment.Exp_wBinIt(pi02r) / experiment.weightOscBF_binned - 1
-
 
     def SubGeV1ringPi0(self, x, experiment):
         pi01r = np.ones(experiment.NumberOfEvents)
@@ -73,7 +72,6 @@ class SuperK_Pheno(Tune):
         else:
             pi01r[experiment.Sample == 2] = x
         return experiment.Exp_wBinIt(pi01r) / experiment.weightOscBF_binned - 1
-
 
     def MultiRing_NuNuBarSeparation(self, x, experiment):
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
@@ -89,7 +87,6 @@ class SuperK_Pheno(Tune):
         mr[experiment.Sample == nu] = x
         mr[experiment.Sample == nub] = 1 + r - r * x
         return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned - 1
-
 
     def MultiRing_EMuSeparation(self, x, experiment):
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
@@ -115,7 +112,6 @@ class SuperK_Pheno(Tune):
         mr[experiment.Sample == mu] = 1 + r - r * x
         return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned - 1
 
-
     def MultiRing_EOtherSeparation(self, x, experiment):
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
             e0 = 12
@@ -135,7 +131,6 @@ class SuperK_Pheno(Tune):
         mr[experiment.Sample == o0] = 1 + r - r * x
         return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned - 1
 
-
     def PC_StopThruSeparation(self, x, experiment):
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
             pcs = 16
@@ -151,7 +146,6 @@ class SuperK_Pheno(Tune):
         mr[experiment.Sample == pct] = 1 + r - r * x
         return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned - 1
 
-
     def Pi0_RingSeparation(self, x, experiment):
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
             r1 = 3
@@ -166,7 +160,6 @@ class SuperK_Pheno(Tune):
         mr[experiment.Sample == r1] = x
         mr[experiment.Sample == r2] = 1 + r - r * x
         return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned - 1
-
 
     def E_RingSeparation(self, x, experiment):
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
@@ -189,7 +182,6 @@ class SuperK_Pheno(Tune):
             mr[experiment.Sample == sample] = 1 + r - r * x
         return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned - 1
 
-
     def Mu_RingSeparation(self, x, experiment):
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
             r1 = [4, 5, 10, 11]
@@ -210,7 +202,6 @@ class SuperK_Pheno(Tune):
         for sample in r2:
             mr[experiment.Sample == sample] = 1 + r - r * x
         return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned - 1
-
 
     def SingleRing_PID(self, x, experiment):
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
@@ -233,7 +224,6 @@ class SuperK_Pheno(Tune):
             mr[experiment.Sample == sample] = 1 + r - r * x
         return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned - 1
 
-
     def MultiRing_PID(self, x, experiment):
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
             e = [12, 13, 15]
@@ -255,7 +245,6 @@ class SuperK_Pheno(Tune):
             mr[experiment.Sample == sample] = 1 + r - r * x
         return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned - 1
 
-
     def NeutronTagging(self, x, experiment):
         nn = np.ones(experiment.NumberOfEvents)
         if experiment.Detector == 'SuperK-Gd' or experiment.Detector == 'SKIV' or experiment.Detector == 'SuperK_Htag' or experiment.Detector == 'SuperK_Gdtag':
@@ -264,10 +253,10 @@ class SuperK_Pheno(Tune):
             r = n0 / n1
             nn[experiment.Neutron == 0] = x
             nn[experiment.Neutron > 0] = 1 + r - r * x
-            return experiment.Exp_wBinIt(nn) / experiment.weightOscBF_binned - 1
+            return experiment.Exp_wBinIt(
+                nn) / experiment.weightOscBF_binned - 1
         else:
             return 0
-
 
     def DecayETagging(self, x, experiment):
         mue = np.ones(experiment.NumberOfEvents)
