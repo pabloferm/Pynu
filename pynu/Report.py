@@ -14,7 +14,10 @@ class Report:
                  doctype='article',
                  author=''):
 
-        self.pynuplot = Plot(analysis_output_file, analysis_input_file = analysis_input_file, directory=directory)
+        self.pynuplot = Plot(
+            analysis_output_file,
+            analysis_input_file=analysis_input_file,
+            directory=directory)
 
         self.reportfile = directory + 'report_' + doctype
         self.author = author
@@ -23,7 +26,9 @@ class Report:
         self.analysis = self.pynuplot.AnalysisInput
 
         geometry_options = {"tmargin": "2cm", "lmargin": "2cm"}
-        self.doc = pylatex.Document(documentclass=doctype, geometry_options=geometry_options)
+        self.doc = pylatex.Document(
+            documentclass=doctype,
+            geometry_options=geometry_options)
 
         self.analysis_interpreter()
 
@@ -49,16 +54,23 @@ class Report:
         self.pynuplot.ResultPlotsMatrix()
         with self.doc.create(Section('Results')):
             with self.doc.create(Figure(position='h!')) as results_plot:
-                results_plot.add_image(self.directory + '/ResultPlotsMatrix.png', width='15 cm')
-                results_plot.add_caption('Grid of plots summarizing the results of this analysis.')
+                results_plot.add_image(
+                    self.directory +
+                    '/ResultPlotsMatrix.png',
+                    width='15 cm')
+                results_plot.add_caption(
+                    'Grid of plots summarizing the results of this analysis.')
 
     def make_nuisance(self):
         self.pynuplot.NuisancePlots()
         with self.doc.create(Section('Nuisance Parameters')):
             with self.doc.create(Figure(position='h!')) as results_plot:
-                results_plot.add_image(self.directory + '/NuisancePlots.png', width='15 cm')
-                results_plot.add_caption('Grid of plots summarizing the nuisance of this analysis.')
-
+                results_plot.add_image(
+                    self.directory +
+                    '/NuisancePlots.png',
+                    width='15 cm')
+                results_plot.add_caption(
+                    'Grid of plots summarizing the nuisance of this analysis.')
 
     def analysis_interpreter(self):
         self.source, sources = self.list_items('sources')

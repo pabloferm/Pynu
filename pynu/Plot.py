@@ -30,7 +30,6 @@ class Plot:
 
         self.check_zeroes()
 
-
     def read_analysis_output(self, file):
 
         with h5py.File(file, 'r') as hf:
@@ -64,7 +63,6 @@ class Plot:
                 for item, dset in hf['Fixed Parameters/' + source].items():
                     self.Fixed[source][item] = np.array(dset)
 
-        
     def colors(self):
         self.levels_2d = (4.61, 9.21)
         self.levels_txt_2d = {4.61: r'$90\%$ C.L.', 9.21: r'$99\%$ C.L.'}
