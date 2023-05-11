@@ -5,73 +5,73 @@ from .JacobianSKDetector import *
 ####################
 
 
-def Diff_SKGd_SKEnergyScale(x, experiment):
-    return Diff_SKEnergyScale(x, experiment)
+def diff_SKGd_SKEnergyScale(x, experiment):
+    return diff_SKEnergyScale(x, experiment)
 
 
-def Diff_SKGd_FCPCSeparation(x, experiment):
-    return Diff_FCPCSeparation(x, experiment)
+def diff_SKGd_FCPCSeparation(x, experiment):
+    return diff_FCPCSeparation(x, experiment)
 
 
-def Diff_SKGd_FCReduction(x, experiment):
-    return Diff_FCReduction(x, experiment)
+def diff_SKGd_FCReduction(x, experiment):
+    return diff_FCReduction(x, experiment)
 
 
-def Diff_SKGd_PCReduction(x, experiment):
-    return Diff_PCReduction(x, experiment)
+def diff_SKGd_PCReduction(x, experiment):
+    return diff_PCReduction(x, experiment)
 
 
-def Diff_SKGd_FiducialVolume(x, experiment):
-    return Diff_FiducialVolume(x, experiment)
+def diff_SKGd_FiducialVolume(x, experiment):
+    return diff_FiducialVolume(x, experiment)
 
 
-def Diff_SKGd_SubGeV2ringPi0(x, experiment):
-    return Diff_SubGeV2ringPi0(x, experiment)
+def diff_SKGd_SubGeV2ringPi0(x, experiment):
+    return diff_SubGeV2ringPi0(x, experiment)
 
 
-def Diff_SKGd_SubGeV1ringPi0(x, experiment):
-    return Diff_SubGeV1ringPi0(x, experiment)
+def diff_SKGd_SubGeV1ringPi0(x, experiment):
+    return diff_SubGeV1ringPi0(x, experiment)
 
 
-def Diff_SKGd_MultiRing_NuNuBarSeparation(x, experiment):
-    return Diff_MultiRing_NuNuBarSeparation(x, experiment)
+def diff_SKGd_MultiRing_NuNuBarSeparation(x, experiment):
+    return diff_MultiRing_NuNuBarSeparation(x, experiment)
 
 
-def Diff_SKGd_MultiRing_EMuSeparation(x, experiment):
-    return Diff_MultiRing_EMuSeparation(x, experiment)
+def diff_SKGd_MultiRing_EMuSeparation(x, experiment):
+    return diff_MultiRing_EMuSeparation(x, experiment)
 
 
-def Diff_SKGd_MultiRing_EOtherSeparation(x, experiment):
-    return Diff_MultiRing_EOtherSeparation(x, experiment)
+def diff_SKGd_MultiRing_EOtherSeparation(x, experiment):
+    return diff_MultiRing_EOtherSeparation(x, experiment)
 
 
-def Diff_SKGd_PC_StopThruSeparation(x, experiment):
-    return Diff_PC_StopThruSeparation(x, experiment)
+def diff_SKGd_PC_StopThruSeparation(x, experiment):
+    return diff_PC_StopThruSeparation(x, experiment)
 
 
-def Diff_SKGd_Pi0_RingSeparation(x, experiment):
-    return Diff_Pi0_RingSeparation(x, experiment)
+def diff_SKGd_Pi0_RingSeparation(x, experiment):
+    return diff_Pi0_RingSeparation(x, experiment)
 
 
-def Diff_SKGd_E_RingSeparation(x, experiment):
-    return Diff_E_RingSeparation(x, experiment)
+def diff_SKGd_E_RingSeparation(x, experiment):
+    return diff_E_RingSeparation(x, experiment)
 
 
-def Diff_SKGd_Mu_RingSeparation(x, experiment):
-    return Diff_Mu_RingSeparation(x, experiment)
+def diff_SKGd_Mu_RingSeparation(x, experiment):
+    return diff_Mu_RingSeparation(x, experiment)
 
 
-def Diff_SKGd_SingleRing_PID(x, experiment):
-    return Diff_SingleRing_PID(x, experiment)
+def diff_SKGd_SingleRing_PID(x, experiment):
+    return diff_SingleRing_PID(x, experiment)
 
 
-def Diff_SKGd_MultiRing_PID(x, experiment):
-    return Diff_MultiRing_PID(x, experiment)
+def diff_SKGd_MultiRing_PID(x, experiment):
+    return diff_MultiRing_PID(x, experiment)
 
 
-def Diff_SKGd_NeutronTagging(x, experiment):
-    return Diff_NeutronTagging(x, experiment)
+def diff_SKGd_NeutronTagging(x, experiment):
+    return diff_NeutronTagging(x, experiment)
 
 
-def Diff_SKGd_DecayETagging(x, experiment):
-    return Diff_DecayETagging(x, experiment)
+def diff_SKGd_DecayETagging(x, experiment):
+    return diff_DecayETagging(x, experiment)

@@ -94,7 +94,7 @@ class Oscillator(Tune):
         self.Parameters['Sin2Theta13'] = x
         return self.GetOscillations()
 
-    def Diff_Sin2Theta13(self, experiment, x):  # Numerical derivation
+    def diff_Sin2Theta13(self, experiment, x):  # Numerical derivation
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.Sin2Theta13(experiment, h0)
@@ -109,7 +109,7 @@ class Oscillator(Tune):
         self.Parameters['Sin2Theta12'] = x
         return self.GetOscillations()
 
-    def Diff_Sin2Theta12(self, experiment, x):  # Numerical derivation
+    def diff_Sin2Theta12(self, experiment, x):  # Numerical derivation
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.Sin2Theta12(experiment, h0)
@@ -123,7 +123,7 @@ class Oscillator(Tune):
         self.Parameters['Sin2Theta23'] = x
         return self.GetOscillations()
 
-    def Diff_Sin2Theta23(self, experiment, x):  # Numerical derivation
+    def diff_Sin2Theta23(self, experiment, x):  # Numerical derivation
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.Sin2Theta23(experiment, h0)
@@ -137,7 +137,7 @@ class Oscillator(Tune):
         self.Parameters['dCP'] = x
         return self.GetOscillations()
 
-    def Diff_dCP(self, experiment, x):  # Numerical derivation
+    def diff_dCP(self, experiment, x):  # Numerical derivation
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.dCP(experiment, h0)
@@ -151,7 +151,7 @@ class Oscillator(Tune):
         self.Parameters['Dm221'] = x
         return self.GetOscillations()
 
-    def Diff_Dm221(self, experiment, x):  # Numerical derivation
+    def diff_Dm221(self, experiment, x):  # Numerical derivation
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.Dm221(experiment, h0)
@@ -165,7 +165,7 @@ class Oscillator(Tune):
         self.Parameters['Dm231'] = x
         return self.GetOscillations()
 
-    def Diff_Dm231(self, experiment, x):  # Numerical derivation
+    def diff_Dm231(self, experiment, x):  # Numerical derivation
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.Dm231(experiment, h0)

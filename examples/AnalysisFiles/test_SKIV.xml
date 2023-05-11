@@ -6,25 +6,25 @@
 <!-- Atmospheric neutrinos -->
 	<NeutrinoSource name="Atmospheric">
 		<status> 1 </status>
-        <nuisance name='FluxNormalization'>
+        <nuisance name='normalization'>
 			<status> 1 </status>
 			<sigma> 0.1 </sigma>
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
-		<nuisance name='NuNuBarRatio'>
+		<nuisance name='nunubar_ratio'>
 			<status> 1 </status>
 			<sigma> 0.05 </sigma>
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
-		<nuisance name='FlavorRatio'>
+		<nuisance name='flavor_ratio'>
 			<status> 1 </status>
 			<sigma> 0.02 </sigma>
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
-		<physics name='FluxTilt'>
+		<physics name='tilt'>
 			<points> 9 </points>
 			<min> 0.9 </min>
 			<max> 1.1 </max>

@@ -6,42 +6,42 @@
 <!-- Atmospheric neutrinos -->
 	<NeutrinoSource name="Atmospheric">
 		<status name='status'> 1 </status>
-        <nuisance name='FluxNormalization_Below1GeV'>
+        <nuisance name='normalization_below1GeV'>
 			<status> 1 </status>
 			<sigma> 0.25 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
-		<nuisance name='FluxNormalization_Above1GeV'>
+		<nuisance name='normalization_above1GeV'>
 			<status> 1 </status>
 			<sigma> 0.15 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
-		<nuisance name='FluxTilt'>
+		<nuisance name='tilt'>
 			<status> 1 </status>
 			<sigma> 0.2 </sigma>
 			<nominal> 0.0 </nominal>
 		</nuisance>
-		<nuisance name='NuNuBarRatio'>
+		<nuisance name='nunubar_ratio'>
 			<status> 1 </status>
 			<sigma> 0.02 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
-		<nuisance name='FlavorRatio'>
+		<nuisance name='flavor_ratio'>
 			<status> 1 </status>
 			<sigma> 0.05 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
-		<physics name='FlavorRatio'>
+		<physics name='flavor_ratio'>
 			<status> 1 </status>
 			<sigma> 0.05 </sigma>
 			<nominal> 1.0 </nominal>
 		</physics>
-		<nuisance name='ZenithFluxUp'>
+		<nuisance name='zenith_up'>
 			<status> 1 </status>
 			<sigma> 0.2 </sigma>
 			<nominal> 0.0 </nominal>
 		</nuisance>
-		<nuisance name='ZenithFluxDown'>
+		<nuisance name='zenith_down'>
 			<status> 1 </status>
 			<sigma> 0.2 </sigma>
 			<nominal> 0.0 </nominal>

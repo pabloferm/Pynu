@@ -1,27 +1,27 @@
 import sys
 import numpy as np
-import numpy.typing as npt
-from typing import List, Tuple, Dict
-from .distributions import *
+from .distributions import diff_log_gaussian_ratio, diff_log_beta_ratio, log_gaussian_ratio, log_beta_ratio
 
 
 class BinnedLogLikelihoodRatio:
     r"""Class containing all the information needed to perform an analysis and the methods for computing
-    the log likelihood ratio ($-2\ln\big(\frac{L(Exp.)}{L(Obs.)}\big)\sim\chi^2$) given a set of binned 
-    observed data, binned expected events at a given physics point and nuisance parameters, and assuming 
+    the log likelihood ratio ($-2\ln\big(\frac{L(Exp.)}{L(Obs.)}\big)\sim\chi^2$) given a set of binned
+    observed data, binned expected events at a given physics point and nuisance parameters, and assuming
     Poisson statistics.
-
-    Args:
-        obervation (dict): Produced by PyNuFit and follows the structue (Experiment(str): binned events (numpy.array).
-        nominal_nuisance (list of float): Produced from the xml analysis file, it contains the nominal values assumed for the nuisance parameters.
-        sigma_nuisance (list of float): Produced from the xml analysis file, it contains the standard deviation values assumed for the nuisance parameters.
-        dist_nuisance (list of str): Produced from the xml analysis file, it contains the type of distribution which is assumed for each nuisance.
-
    """
 
     def __init__(self, obervation, nominal_nuisance,
                  sigma_nuisance,
                  dist_nuisance):
+        r"""Initiates the class by storing the non-changing items of the $\chi^2$ calculation.
+
+        Args:
+            obervation (dict): Produced by PyNuFit and follows the structue (Experiment(str): binned events (numpy.array).
+            nominal_nuisance (list of float): Produced from the xml analysis file, it contains the nominal values assumed for the nuisance parameters.
+            sigma_nuisance (list of float): Produced from the xml analysis file, it contains the standard deviation values assumed for the nuisance parameters.
+            dist_nuisance (list of str): Produced from the xml analysis file, it contains the type of distribution which is assumed for each nuisance.
+
+       """
         self.obervation = obervation
         self.nominal_nuisance = nominal_nuisance
         self.sigma_nuisance = sigma_nuisance
@@ -30,16 +30,16 @@ class BinnedLogLikelihoodRatio:
 
     def stats_only(self, expectation):
         r"""Returns the value of binned $\chi^2 = 2\sum_i \Big(
-        E_i-O_i+O_i\ln\big(\frac{O_i}{E_i}\big)\Big)$, given the dictionary of binned expected number of events 
+        E_i-O_i+O_i\ln\big(\frac{O_i}{E_i}\big)\Big)$, given the dictionary of binned expected number of events
         for each experiment of the analysis.
 
         Args:
-            expectation (dict): Produced by PyNuFit and follows the structue (Experiment(str): binned events (numpy.array): similarly to obervation, but for a given physics and nuisance values.
+            expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events (numpy.array): similarly to obervation, but for a given physics and nuisance values.
 
         Returns:
             Float with the value of $\chi^2$.
        """
-        X2 : float = 0
+        X2: float = 0
         for O, E in zip(self.obervation.values(),
                         expectation.values()):
             X2 += 2 * np.sum(E - O + O * np.log(O / E))
@@ -50,8 +50,8 @@ class BinnedLogLikelihoodRatio:
             expectation,
             nuisance):
         r"""Returns the value of binned $\chi^2 = 2\sum_i \Big(
-        E_i-O_i+O_i\ln\big(\frac{O_i}{E_i}\big)\Big) + 2\sum_j \ln\Big(\frac{P^{nuis}_j(x)}{P^{nuis}_j(x=\mu)}\Big)$, 
-        given the dictionary of binned expected number of events for each experiment of the analysis and taking 
+        E_i-O_i+O_i\ln\big(\frac{O_i}{E_i}\big)\Big) + 2\sum_j \ln\Big(\frac{P^{nuis}_j(x)}{P^{nuis}_j(x=\mu)}\Big)$,
+        given the dictionary of binned expected number of events for each experiment of the analysis and taking
         into account the nuisance penalty terms.
 
         Args:
@@ -61,12 +61,12 @@ class BinnedLogLikelihoodRatio:
         Returns:
             Float with the value of $\chi^2$ with nuisance.
        """
-        X2 : float 
+        X2: float
         if set(nuisance) == set(self.nominal_nuisance):
             X2 = self.stats_only(expectation)
         else:
             X2 = self.stats_only(expectation) + \
-            self.nuisance_penalty(nuisance)
+                self.nuisance_penalty(nuisance)
         return X2
 
     def gradient(
@@ -74,8 +74,8 @@ class BinnedLogLikelihoodRatio:
             expectation,
             diff_expectation,
             nuisance):
-        r"""Returns the gradient of binned $\chi^2$ computed analytically, given the dictionary of binned 
-        expected number of events for each experiment of the analysis and its derivative with respect to every 
+        r"""Returns the gradient of binned $\chi^2$ computed analytically, given the dictionary of binned
+        expected number of events for each experiment of the analysis and its derivative with respect to every
         nuisance parameter.
 
         $\nabla_j \chi^2 = 2~\sum_{i} \Big( 1 - \frac{O_i}{E_i}\Big)\frac{\partial E_i}{\partial x_j} + \frac{2}{P^{nuis}_j(x)} \frac{d~P^{nuis}_j(x)}{dx_j}$
@@ -84,8 +84,8 @@ class BinnedLogLikelihoodRatio:
         like Beta will come soon.
 
         Args:
-            expectation (dict): Produced by PyNuFit and follows the structue (Experiment(str): binned events (numpy.array) similarly to obervation, but for a given physics and nuisance values.
-            diff_expectation (dict): Produced by PyNuFit and follows the structue (nuisance parameter (str): (Experiment(str): binned events (numpy.array)).
+            expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events (numpy.array) similarly to obervation, but for a given physics and nuisance values.
+            diff_expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (nuisance parameter (str): (Experiment(str): binned events (numpy.array)).
             nuisance (list of float): Values for the nuisance parameters ordered as provided by ParseXML class.
 
         Returns:
@@ -114,7 +114,8 @@ class BinnedLogLikelihoodRatio:
         r"""Returns the penalty term associated to nuisance parameters for the $\chi^2$ computation.
 
         Args:
-            nuisance (list of float): Values for the nuisance parameters ordered as provided by ParseXML class.
+            nuisance (list of float): Values for the nuisance parameters ordered as provided by 
+            `pynu.analysis_reader.ParseXML` class.
 
         Returns:
             Float with $\sum_j \ln\big(\frac{P^{nuis}_j(x)}{P^{nuis}_j(x=\mu)}\big)$.
@@ -132,8 +133,8 @@ class BinnedLogLikelihoodRatio:
     def analytic_priors_bounds(self,
                                expectation,
                                diff_expectation):
-        r"""Returns the first-order values of the nuisance parameters which minimize the $\chi^2$ at a given 
-        physics points. Here, first-order means we assume that the binned expected number of events is not 
+        r"""Returns the first-order values of the nuisance parameters which minimize the $\chi^2$ at a given
+        physics points. Here, first-order means we assume that the binned expected number of events is not
         modified by nuisance parameters, i.e. nuisance parameters are assumed to take the default value in this
         approximation.
 
@@ -146,16 +147,16 @@ class BinnedLogLikelihoodRatio:
 
         $x_j\in[\widetilde{x_j}-\delta_j,\widetilde{x_j}+\delta_j]$, where $\delta_j = \min(2\cdot|\widetilde{x_j} - \mu_j|, \sigma)$
 
-        All this information is very useful for the minimizer to find faster the values of nuisance parameters 
+        All this information is very useful for the minimizer to find faster the values of nuisance parameters
         minimizing the $\chi^2$.
 
         Args:
-            expectation (dict): Produced by PyNuFit and follows the structue (Experiment(str): binned events (numpy.array) similarly to obervation, but for a given physics and nuisance values.
-            diff_expectation (dict): Produced by PyNuFit and follows the structue (nuisance parameter (str): (Experiment(str): binned events (numpy.array)).
+            expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events (numpy.array) similarly to obervation, but for a given physics and nuisance values.
+            diff_expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (nuisance parameter (str): (Experiment(str): binned events (numpy.array)).
 
         Returns:
             Numpy array with the estimate for the nuisance parameters.
-            Tuple with the lower and upper bounds for the nuisance parameters. Tuple(lower,upper).
+            Tuple with the lower and upper bounds for the nuisance parameters. Tuple(Tuple(lower,upper)).
        """
         A = np.zeros(self.number_of_nuisance)
         B = np.zeros(self.number_of_nuisance)
@@ -195,8 +196,8 @@ class BinnedLogLikelihoodRatio:
         NOTE: This method does not work well and needs more thought so use it carefully.
 
         Args:
-            expectation (dict): Produced by PyNuFit and follows the structue (Experiment(str): binned events (numpy.array) similarly to obervation, but for a given physics and nuisance values.
-            diff_expectation (dict): Produced by PyNuFit and follows the structue (nuisance parameter (str): (Experiment(str): binned events (numpy.array)).
+            expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events (numpy.array) similarly to obervation, but for a given physics and nuisance values.
+            diff_expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (nuisance parameter (str): (Experiment(str): binned events (numpy.array)).
             priors (list of float): Values of nuisance parameter estimates other than the nominal values.
 
         Returns:

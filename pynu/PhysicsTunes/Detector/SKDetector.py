@@ -10,13 +10,36 @@ sys.path.append('../')
 
 
 class SuperK_Pheno(Tune):
+    r"""Class containing general implementation of a Super-Kamiokande like detectors."""
 
     def SKEnergyScale(self, x, experiment):
+        r"""Method for modifying the energy scale of the simulation by multiplying by x the
+        reconstructed energy.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
+            of special interest are the Monte Carlos simulations.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
         if np.abs(x - 1) > 5e-4:
             experiment.set_energy_scale(x)
         return 1
 
-    def Diff_SKEnergyScale(self, x, experiment):
+    def diff_SKEnergyScale(self, x, experiment):
+        r"""Method for computing the derivative of the weights of the energy scale w.r.t. the
+        tuning parameter.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
+            of special interest are the Monte Carlos simulations.
+
+        Returns:
+            Numpy.array or float with the derivative of the `SKEnergyScale` weights.
+        """
         pass
 
     def FCPCSeparation(self, x, experiment):
@@ -35,6 +58,26 @@ class SuperK_Pheno(Tune):
             wPC = np.sum(experiment.Weight[np.logical_or(
                 experiment.Sample == 14, experiment.Sample == 15)])
             y = ((wPC + wFC) - x * wFC) / wPC
+            fcpc[np.logical_or(experiment.Sample == 14,
+                               experiment.Sample == 15)] = y
+        return fcpc
+
+    def diff_FCPCSeparation(x, experiment):
+        fcpc = np.zeros(experiment.NumberOfEvents)
+        if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
+            fcpc[experiment.Sample < 16] = 1
+            wFC = np.sum(experiment.Weight[experiment.Sample < 16])
+            wPC = np.sum(experiment.Weight[np.logical_or(
+                experiment.Sample == 16, experiment.Sample == 17)])
+            y = (-wFC) / wPC
+            fcpc[np.logical_or(experiment.Sample == 16,
+                               experiment.Sample == 17)] = y
+        else:
+            fcpc[experiment.Sample < 14] = 1
+            wFC = np.sum(experiment.Weight[experiment.Sample < 14])
+            wPC = np.sum(experiment.Weight[np.logical_or(
+                experiment.Sample == 14, experiment.Sample == 15)])
+            y = (-wFC) / wPC
             fcpc[np.logical_or(experiment.Sample == 14,
                                experiment.Sample == 15)] = y
         return fcpc

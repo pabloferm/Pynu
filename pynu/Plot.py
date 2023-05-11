@@ -21,6 +21,7 @@ class Plot:
         if analysis_input_file:
 
             self.AnalysisInput = ar.ParseXML(analysis_input_file, check=False)
+            self.AnalysisInput.get_analysis()
 
         self.directory = directory
 

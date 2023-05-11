@@ -6,19 +6,24 @@ import itertools
 
 
 class ParseXML:
+    """Class handling the xml input analysis file, reading all the items for the analysis and
+    storing them to be used elsewhere.
+    """
+
     def __init__(self, xmlfile='AnalysisFiles/test.xml', check=False):
+        """Initiates class with input analysis file, declares the necessary lists and dicts.
 
-        __slots__ = ('xmlfile', 'tree', 'root')
+        Args:
+            xmlfile (str): Name of the xml analysis input file.
+            check (bool): Optional. Checks consistency of the analysis.
+        """
+        __slots__ = ('xmlfile', 'tree', 'root', 'check')
 
-        # create element tree object
-        self.xmlfile = xmlfile
-        self.tree = ET.parse(xmlfile)
+        self.check = check
+        self.tree = ET.parse(xmlfile)  # create element tree object
+        self.root = self.tree.getroot()  # get root element of XML file
 
-        # get root element of XML file
-        self.root = self.tree.getroot()
-
-        # Nuisance / Nuisematics
-        self.disabledNuis = []
+        # Declare lists and dicts for Nuisance parameters
         self.NuisanceList = []
         self.Nuisance = {}
         self.NuisNominal = {}
@@ -28,8 +33,7 @@ class ParseXML:
         self.NuisDistribution = {}
         self.NuisDistributionList = []
 
-        # Physics
-        self.disabledPhys = []
+        # Declare lists and dicts for Physics parameters
         self.PhysicsList = []
         self.Physics = {}
         self.PhysTrue = {}
@@ -40,14 +44,13 @@ class ParseXML:
         self.PhysPointsList = []
         self.PhysEdges = {}
 
-        # Fixed
-        self.disabledFixed = []
+        # Declare lists and dicts for Fixed parameters
         self.FixedList = []
         self.Fixed = {}
         self.FixedValue = {}
         self.FixedValueList = []
 
-        # Experiments
+        # Declare lists and dicts for Experiments details and files
         self.MCFiles = {}
         self.MCyears = {}
         self.DataFiles = {}
@@ -55,38 +58,65 @@ class ParseXML:
         self.Experiments = {}
         self.ExpTarget = {}
 
-        # Oscillation parameters
-        self.OscParameters = []
-        self.FluxParameters = []
-        self.XSectionParameters = []
-        self.DetectorParameters = []
+    def get_analysis(self):
+        """Sets all analysis variables, that is all the sources, targets, detectors and oscillation
+        parameters of the given analysis. It also computes the number of nuisance and physics parameters,
+        in case it is useful at some point.
+        Further, if the option 'check' is `True`, it performs consistency checks to the analysis file.
 
-        # Reading
-        self.readSources()
-        self.readDetectors()
-        self.readExperiments()
-        self.readOscillations()
-        self.CheckSources()
-        self.makePhysicsGrid()
-        self.CartesianPhysicsGrid()
+        Args:
+            None
 
-        self.OscNominalParameters = self.GetNominalValues(self.SCENARIO)
+        Returns:
+            None
+        """
+        self.read_sources()
+        self.read_detectors()
+        self.read_experiments()
+        self.read_oscillations()
+        # dict of arrays with all physics points for each parameter
+        self.PhysGrid = self.physics_grid()
+        # cartesian product of the previous arrays
+        self.FullPhysicsGrid = self.cartesian_physics_grid()
 
-        self.wSyst = False
-        if len(self.NuisanceList) > 0:
-            self.wSyst = True
+        self.wSyst = self.with_nuisance()  # True if analysis with nuisance
 
+        # number of physics parameters.
         self.NumberOfPhys = len(self.PhysicsList)
+        # number of physics points.
         self.NumberOfPhysPoints = np.prod(self.PhysPointsList)
+        # number of nuisance parameters.
         self.NumberOfNuis = len(self.NuisanceList)
 
         # Optional checks
-        if check:
-            self.CheckNuisance()
-            self.CheckPhysics()
-            self.CheckFixed()
+        if self.check:
+            self.check_nuisance()
+            self.check_physics()
+            self.check_fixed()
+            self.check_sources()
 
-    def readSources(self):
+    def with_nuisance(self):
+        """Checks if the analysis contains nuisance parameters or it's stats. only.
+
+        Args:
+            None
+
+        Returns:
+            Bool
+        """
+        if self.NuisanceList:
+            return True
+        return False
+
+    def read_sources(self):
+        """Reads the neutrino source to be included in the analysis
+
+        Args:
+            None
+
+        Returns:
+            Bool
+        """
         self.sources = self.reader('NeutrinoSource')
         print('------------------------------------')
         print('Neutrino sources considered:')
@@ -94,7 +124,15 @@ class ParseXML:
             print(' + ', s)
         print('====================================')
 
-    def readDetectors(self):
+    def read_detectors(self):
+        """Reads the neutrino targets from each detector to be included in the analysis
+
+        Args:
+            None
+
+        Returns:
+            Bool
+        """
         self.targets = self.reader('NeutrinoTarget')
         print('------------------------------------')
         print('Neutrino targets considered:')
@@ -102,7 +140,16 @@ class ParseXML:
             print(' + ', s)
         print('====================================')
 
-    def readExperiments(self):
+    def read_experiments(self):
+        """Reads the neutrino experiments to be included in the analysis associating detectors
+        with neutrino sources.
+
+        Args:
+            None
+
+        Returns:
+            Bool
+        """
         self.detectors = self.reader('NeutrinoExperiment')
         print('------------------------------------')
         print('Detectors considered:')
@@ -111,7 +158,15 @@ class ParseXML:
         print('====================================')
         # print(f' + {self.Nuisance}')
 
-    def readOscillations(self):
+    def read_oscillations(self):
+        """Reads the neutrino oscillation scenario and parameters of the analysis.
+
+        Args:
+            None
+
+        Returns:
+            Bool
+        """
         self.oscillations = self.reader('NeutrinoOscillations')
         print('------------------------------------')
         print('Oscillation scenario:')
@@ -122,7 +177,15 @@ class ParseXML:
         self.SCENARIO = self.oscillations[0]
         print('====================================')
 
-    def CheckSources(self):
+    def check_sources(self):
+        """Checks that the neutrino sources declared are the same of the experiments.
+
+        Args:
+            None
+
+        Returns:
+            None. Raises error if finds a mismatch.
+        """
         sources2 = []
         for i in self.Experiments.keys():
             for j in self.Experiments[i].keys():
@@ -143,49 +206,79 @@ class ParseXML:
                 'You are missing some files for some sources or experiments. Please, check your xml file.')
         print('====================================')
 
-    def makePhysicsGrid(self):
+    def physics_grid(self):
+        """Builds the arrays with all the physics points to be sampled from in the analysis.
+
+        Args:
+            None
+
+        Returns:
+            Dict with the structure {parameter (str): numpy.array}
+        """
+        phys_grid = {}
         for par in self.Physics:
-            self.PhysGrid[par] = {}
+            phys_grid[par] = {}
             for j, item in enumerate(self.Physics[par]):
                 if item == 'Ordering':
-                    self.PhysGrid[par][item] = np.array(self.PhysEdges[par][j])
+                    phys_grid[par][item] = np.array(self.PhysEdges[par][j])
                 elif item[-1].isdigit():
                     if int(item[-1]) > 3:
-                        self.PhysGrid[par][item] = np.geomspace(
+                        phys_grid[par][item] = np.geomspace(
                             self.PhysEdges[par][j][0],
                             self.PhysEdges[par][j][-1],
                             self.PhysPoints[par][j])
                     else:
-                        self.PhysGrid[par][item] = np.linspace(
+                        phys_grid[par][item] = np.linspace(
                             self.PhysEdges[par][j][0],
                             self.PhysEdges[par][j][-1],
                             self.PhysPoints[par][j])
                 else:
-                    self.PhysGrid[par][item] = np.linspace(
+                    phys_grid[par][item] = np.linspace(
                         self.PhysEdges[par][j][0],
                         self.PhysEdges[par][j][-1],
                         self.PhysPoints[par][j])
+        return phys_grid
 
-    def CartesianPhysicsGrid(self):
+    def cartesian_physics_grid(self):
+        """Builds the grid of physics points to be sampled from in the analysis. It is computed as the cartesian
+        product of the 'self.PhysGrid' arrays and ordered in the same way.
+        the
+
+        Args:
+            None
+
+        Returns:
+            List of lists with all the pysics points.
+        """
         v = []
         for par in self.PhysGrid.keys():
             for item, values in self.PhysGrid[par].items():
                 v.append(values)
+        return [*itertools.product(*v)]
 
-        self.FullPhysicsGrid = [*itertools.product(*v)]
+    def check_nuisance(self):
+        """Prints each nuisance parameter to be checked by user.
 
-    def CheckNuisance(self):
+        Args:
+            None
+
+        Returns:
+            None
+        """
         print('List of Nuisance')
         for source in self.Nuisance:
             print(f' + From {source}: {self.Nuisance[source]}')
-        if len(self.NuisanceList) == 0:
-            self.stats_only = True
-            print('Stats. only analysis?!')
-        else:
-            self.stats_only = False
         print('====================================')
 
-    def CheckPhysics(self):
+    def check_physics(self):
+        """Prints each physics parameter to be checked by user.
+
+        Args:
+            None
+
+        Returns:
+            None. Exits if there are no physics parameters.
+        """
         print('List of Physics/Fit')
         for source in self.Physics:
             print(f' + From {source}: {self.Physics[source]}')
@@ -193,23 +286,61 @@ class ParseXML:
             sys.exit('I am done, you requested nothing to fit.')
         print('====================================')
 
-    def CheckFixed(self):
+    def check_fixed(self):
+        """Prints each fixec parameter to be checked by user.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         print('List of Fixed')
         for source in self.Fixed:
             print(f' + From {source}: {self.Fixed[source]}')
         print('====================================')
 
-    def GetNominalValues(self, keyw):
+    def get_nominal_values(self, keyw):
+        """Returns the values (if fixed), nominal values (if nuisance) or true values (if physics)
+        of the input parameter.
+
+        Args:
+            keyw (str): Name of the parameter.
+
+        Returns:
+            Float: Value of the parameter.
+        """
         values = self.FixedValue[keyw] | self.NuisNominal[keyw] | self.PhysTrue[keyw]
         return values
 
-    def GetSourceOfTune(self, tune):
+    def get_tune(self, tune):
+        """Returns the source or Physics Tunes block of a given parameter/tune.
+
+        Args:
+            tune (str): Name  of the parameter or tune.
+
+        Returns:
+            Str of the block of the given tune.
+        """
         for all_parameters in [self.Nuisance, self.Physics, self.Fixed]:
             for source, pars in all_parameters.items():
                 if tune in pars:
                     return source
 
     def reader(self, item, atrib='name'):
+        """Main general method for reading a given item or block from the analysis xml file. It adds the
+        read information into the class variables classifying each of the tunes as fixed, nuisance or
+        physics as stated in the xml file.
+
+        Args:
+            item (str): It provides the block to be read. 'NeutrinoSource', 'NeutrinoTarget', etc.
+            atrib (str, optional): By default this variable is set to 'name' as it is the most common use
+            to read a whole block. However, further functionality is provided to read a given tune or
+            parameter in a block.
+
+        Returns:
+            None if atrib == 'name' and a list of items in the rest of the cases.
+        """
         itemList = []
         osc = item == 'NeutrinoOscillations'
         for source in self.root.iter(item):
@@ -247,8 +378,6 @@ class ParseXML:
                     for nuis in source.findall('nuisance'):
                         if int(nuis.find('status').text):
                             s = nuis.attrib['name']
-                            if osc:
-                                self.OscParameters.append(s)
                             if s == 'Ordering':
                                 sys.exit(
                                     'Neutrino mass ordering cannot be a nuisance parameter. Please, test both ordering hypotheses.')
@@ -272,8 +401,6 @@ class ParseXML:
                     for fix in source.findall('fixed'):
                         if int(fix.find('status').text):
                             s = fix.attrib['name']
-                            if osc:
-                                self.OscParameters.append(s)
                             if s == 'Ordering':
                                 self.FixedValue[sname][s] = fix.find(
                                     'value').text
@@ -294,8 +421,6 @@ class ParseXML:
                     self.PhysEdges[sname] = []
                     for phys in source.findall('physics'):
                         s = phys.attrib['name']
-                        if osc:
-                            self.OscParameters.append(s)
                         if s == 'Ordering':
                             points = int(phys.find('points').text)
                             no = 0

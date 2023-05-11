@@ -1,6 +1,6 @@
 import PhysicsTunes as PT
 
-s = 'FluxNormalization'
+s = 'normalization'
 (T, dT) = PT.Flux('Atmospheric')
 getattr(dT, s)
 print(getattr(dT, s)(1, 2))

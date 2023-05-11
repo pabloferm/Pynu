@@ -23,6 +23,7 @@ class PyNuFit:
 
         ''' Set up basic analysis variables and structure to build full analysis '''
         self.Analysis = ar.ParseXML(analysis_file, check=self.verbosity)
+        self.Analysis.get_analysis()
 
         ''' Define dictionary for PhysicsTunes '''
         self.PhysicsTunes = {}
@@ -237,16 +238,16 @@ class PyNuFit:
                         idx = self.Analysis.NuisanceList.index(tune)
                         if tune_block == 'Flux':
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetFlux(
-                                'Diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetFlux(tune, vector[idx])
+                                'diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetFlux(tune, vector[idx])
                         elif tune_block == 'XSection':
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetXSection(
-                                'Diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetXSection(tune, vector[idx])
+                                'diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetXSection(tune, vector[idx])
                         elif tune_block == 'Detector':
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetDetector(
-                                'Diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetDetector(tune, vector[idx])
+                                'diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetDetector(tune, vector[idx])
                         elif tune_block == 'Osc':
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetOscillation(
-                                'Diff_' + tune, vector[idx]) / self.PhysicsTunes[name].OscillationTunes.GetOscillations()
+                                'diff_' + tune, vector[idx]) / self.PhysicsTunes[name].OscillationTunes.GetOscillations()
         return dWoverW
 
     def FitModel(self, point, mode='BinnedLogLikelihoodRatio'):
@@ -375,7 +376,7 @@ class PyNuFit:
         with h5py.File(self.outfile, 'r+') as hf:
             try:
                 for par, val in zip(item, value):
-                    source = self.Analysis.GetSourceOfTune(par)
+                    source = self.Analysis.get_tune(par)
                     hf[block + '/' + source + '/' + par][point] = val
             except BaseException:
                 hf[block + '/' + item][point] = value

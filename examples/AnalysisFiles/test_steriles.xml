@@ -6,23 +6,23 @@
 <!-- Atmospheric neutrinos -->
 	<NeutrinoSource name="Atmospheric">
 		<status> 1 </status>
-        <nuisance name='FluxNormalization_Below1GeV'>
+        <nuisance name='normalization_below1GeV'>
 			<status> 1 </status>
 			<sigma> 0.25 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
-		<nuisance name='NuNuBarRatio'>
+		<nuisance name='nunubar_ratio'>
 			<status> 1 </status>
 			<sigma> 0.05 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
-		<physics name='FlavorRatio'>
+		<physics name='flavor_ratio'>
 			<points> 1 </points>
 			<min> 0.65 </min>
 			<max> 1.25 </max>
 			<true> 1.0 </true>
 		</physics>
-		<fixed name='FluxTilt'>
+		<fixed name='tilt'>
 			<status> 1 </status>
 			<value> 1.2 </value>
 		</fixed>
@@ -30,18 +30,18 @@
 
 	<NeutrinoSource name="Accelerator">
 		<status> 0 </status>
-        <nuisance name='FluxNormalization'>
+        <nuisance name='normalization'>
 			<status> 1 </status>
 			<sigma> 0.25 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
-		<physics name='FlavorRatio'>
+		<physics name='flavor_ratio'>
 			<points> 1 </points>
 			<min> 0.65 </min>
 			<max> 1.25 </max>
 			<true> 1.0 </true>
 		</physics>
-		<fixed name='FluxTilt'>
+		<fixed name='tilt'>
 			<status> 1 </status>
 			<value> 1.2 </value>
 		</fixed>

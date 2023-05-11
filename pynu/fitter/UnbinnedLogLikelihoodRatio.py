@@ -3,32 +3,24 @@ import numpy as np
 import KDEpy
 from .distributions import *
 
-import numpy.typing as npt
-from typing import List, Tuple, Dict
-
-vector = npt.NDArray[np.float64]
-
 
 class UnbinnedLogLikelihoodRatio:
-    '''Class containing all the information needed to perform an analysis and the methods for computing
-    the log likelihood ratio or χ2 given a set of observed data, expected events at a given physics point
-    and nuisance parameters.
+    r"""Class containing all the information needed to perform an analysis and the methods for computing
+    the log likelihood ratio ($-2\ln\big(\frac{L(Exp.)}{L(Obs.)}\big)\sim\chi^2$) given a set of binned
+    observed data, binned expected events at a given physics point and nuisance parameters, and assuming
+    Poisson statistics.
 
-    Parameters:
-        Observation_dict (Dict): Produced by PyNy and follows the structue (Experiment(str):
-        events (vector)).
-        NominalNuisance_list (vector): Produced from the xml analysis file, it contains the nominal
-        values assumed for the nuisance parameters.
-        SigmaNuisance_list (vector): Produced from the xml analysis file, it contains the standard
-        deviation values assumed for the nuisance parameters.
-        DistNuisance_list (List): Produced from the xml analysis file, it contains the type of
-        distribution which is assumed for each nuisance.
+    Args:
+        obervation (dict): Produced by PyNuFit and follows the structue (Experiment(str): binned events (numpy.array).
+        nominal_nuisance (list of float): Produced from the xml analysis file, it contains the nominal values assumed for the nuisance parameters.
+        sigma_nuisance (list of float): Produced from the xml analysis file, it contains the standard deviation values assumed for the nuisance parameters.
+        dist_nuisance (list of str): Produced from the xml analysis file, it contains the type of distribution which is assumed for each nuisance.
 
-   '''
+   """
 
-    def __init__(self, observed_KDE_dict: Dict, NominalNuisance_list: vector,
-                 SigmaNuisance_list: vector,
-                 DistNuisance_list: List[str]) -> None:
+    def __init__(self, observed_KDE_dict, NominalNuisance_list,
+                 SigmaNuisance_list,
+                 DistNuisance_list):
 
         self.observed_KDE_dict = observed_KDE_dict
         self.NominalNuisance_list = NominalNuisance_list
@@ -36,7 +28,7 @@ class UnbinnedLogLikelihoodRatio:
         self.DistNuisance_list = DistNuisance_list
         self.number_of_nuisance = len(self.NominalNuisance_list)
 
-    def stats_only(self, Expectation_dict) -> float:
+    def stats_only(self, Expectation_dict):
         ''' Compute statistics only binned chi-squared '''
         X2 = 0
         for O, E in zip(self.Observation_dict.values(),
@@ -47,7 +39,7 @@ class UnbinnedLogLikelihoodRatio:
     def stats_and_systematics(
             self,
             Expectation_dict,
-            nuisance_vector: vector) -> float:
+            nuisance_vector):
         if set(nuisance_vector) == set(self.NominalNuisance_list):
             return self.stats_only(Expectation_dict)
         return self.stats_only(Expectation_dict) + \
@@ -57,8 +49,8 @@ class UnbinnedLogLikelihoodRatio:
             self,
             Expectation_dict,
             DiffExpectation_dict,
-            nuisance_vector: vector) -> vector:
-        nabla_X2: vector = np.zeros(len(self.NominalNuisance_list))
+            nuisance_vector):
+        nabla_X2 = np.zeros(len(self.NominalNuisance_list))
         for i, (dE, mu, sig, dist, nuis) in enumerate(zip(DiffExpectation_dict.values(
         ), self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list, nuisance_vector)):
             if dist == 'normal':
@@ -77,7 +69,7 @@ class UnbinnedLogLikelihoodRatio:
 
     def nuisance_pleantly(
             self,
-            nuisance_vector: vector) -> float:
+            nuisance_vector):
         X2: float = 0.0
         for mu, sig, dist, nuis in zip(
                 self.NominalNuisance_list, self.SigmaNuisance_list, self.DistNuisance_list,
@@ -90,9 +82,7 @@ class UnbinnedLogLikelihoodRatio:
 
     def analytic_priors_bounds(self,
                                Expectation_dict,
-                               DiffExpectation_dict) -> Tuple[vector,
-                                                              Tuple[Tuple[float,
-                                                                          float]]]:
+                               DiffExpectation_dict):
         ''' First order analytic computation of values for parameters to be mariginalized '''
         A = np.zeros(self.number_of_nuisance)
         B = np.zeros(self.number_of_nuisance)
@@ -123,7 +113,7 @@ class UnbinnedLogLikelihoodRatio:
     def parabolic_priors(self,
                          Expectation_dict_prior,
                          DiffExpectation_dict_prior,
-                         prior: vector) -> vector:
+                         prior):
         ''' Second order analytic computation of values for parameters to be mariginalized
         assuming we are close enough to the minimum , i.e. a parabola, i.e. linear derivative'''
 

@@ -19,7 +19,7 @@ class ICUpgrade(Tune):
             experiment.ExpFracNC * experiment.ice_absorption['NC']
         return xx * d
 
-    def Diff_IceAbsorption(self, experiment, x):
+    def diff_IceAbsorption(self, experiment, x):
         d = experiment.ExpFracNuECC * experiment.ice_absorption['nueCC'] + \
             experiment.ExpFracNuMuCC * experiment.ice_absorption['numuCC'] + \
             experiment.ExpFracNuTauCC * experiment.ice_absorption['nutauCC'] + \
@@ -34,7 +34,7 @@ class ICUpgrade(Tune):
             experiment.ExpFracNC * experiment.ice_absorption['NC']
         return xx * d
 
-    def Diff_IceScattering(self, experiment, x):
+    def diff_IceScattering(self, experiment, x):
         d = experiment.ExpFracNuECC * experiment.ice_absorption['nueCC'] + \
             experiment.ExpFracNuMuCC * experiment.ice_absorption['numuCC'] + \
             experiment.ExpFracNuTauCC * experiment.ice_absorption['nutauCC'] + \
@@ -49,7 +49,7 @@ class ICUpgrade(Tune):
             experiment.ExpFracNC * experiment.ice_absorption['NC']
         return xx * d
 
-    def Diff_OffSet(self, experiment, x):
+    def diff_OffSet(self, experiment, x):
         d = experiment.ExpFracNuECC * experiment.ice_absorption['nueCC'] + \
             experiment.ExpFracNuMuCC * experiment.ice_absorption['numuCC'] + \
             experiment.ExpFracNuTauCC * experiment.ice_absorption['nutauCC'] + \
@@ -64,7 +64,7 @@ class ICUpgrade(Tune):
             experiment.ExpFracNC * experiment.ice_absorption['NC']
         return xx * d
 
-    def Diff_OptEffHeadon(self, experiment, x):
+    def diff_OptEffHeadon(self, experiment, x):
         d = experiment.ExpFracNuECC * experiment.ice_absorption['nueCC'] + \
             experiment.ExpFracNuMuCC * experiment.ice_absorption['numuCC'] + \
             experiment.ExpFracNuTauCC * experiment.ice_absorption['nutauCC'] + \
@@ -79,7 +79,7 @@ class ICUpgrade(Tune):
             experiment.ExpFracNC * experiment.ice_absorption['NC']
         return xx * d
 
-    def Diff_OptEffLateral(self, experiment, x):
+    def diff_OptEffLateral(self, experiment, x):
         d = experiment.ExpFracNuECC * experiment.ice_absorption['nueCC'] + \
             experiment.ExpFracNuMuCC * experiment.ice_absorption['numuCC'] + \
             experiment.ExpFracNuTauCC * experiment.ice_absorption['nutauCC'] + \
@@ -94,7 +94,7 @@ class ICUpgrade(Tune):
             experiment.ExpFracNC * experiment.ice_absorption['NC']
         return xx * d
 
-    def Diff_OptEffOverall(self, experiment, x):
+    def diff_OptEffOverall(self, experiment, x):
         d = experiment.ExpFracNuECC * experiment.ice_absorption['nueCC'] + \
             experiment.ExpFracNuMuCC * experiment.ice_absorption['numuCC'] + \
             experiment.ExpFracNuTauCC * experiment.ice_absorption['nutauCC'] + \
@@ -109,7 +109,7 @@ class ICUpgrade(Tune):
             experiment.ExpFracNC * experiment.ice_absorption['NC']
         return xx * d
 
-    def Diff_CoinFraction(self, experiment, x):
+    def diff_CoinFraction(self, experiment, x):
         d = experiment.ExpFracNuECC * experiment.ice_absorption['nueCC'] + \
             experiment.ExpFracNuMuCC * experiment.ice_absorption['numuCC'] + \
             experiment.ExpFracNuTauCC * experiment.ice_absorption['nutauCC'] + \

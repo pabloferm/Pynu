@@ -24,6 +24,7 @@ class Report:
         self.directory = directory
 
         self.analysis = self.pynuplot.AnalysisInput
+        self.analysis.get_analysis()
 
         geometry_options = {"tmargin": "2cm", "lmargin": "2cm"}
         self.doc = pylatex.Document(

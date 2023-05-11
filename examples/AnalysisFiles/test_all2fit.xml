@@ -5,37 +5,37 @@
 <!-- Atmospheric neutrinos -->
 	<NeutrinoSource name="Atmospheric">
 		<status> 1 </status>
-        <physics name='FluxNormalization_Above1GeV'>
+        <physics name='normalization_above1GeV'>
 			<points> 10 </points>
 			<min> 0.9 </min>
 			<max> 1.1 </max>
 			<true> 1 </true>
 		</physics>
-		<physics name='NuNuBarRatio'>
+		<physics name='nunubar_ratio'>
 			<points> 10 </points>
 			<min> 0.9 </min>
 			<max> 1.1 </max>
 			<true> 1 </true>
 		</physics>
-		<physics name='FlavorRatio'>
+		<physics name='flavor_ratio'>
 			<points> 10 </points>
 			<min> 0.9 </min>
 			<max> 1.1 </max>
 			<true> 1 </true>
 		</physics>
-		<physics name='FluxTilt'>
+		<physics name='tilt'>
 			<points> 10 </points>
 			<min> -0.1 </min>
 			<max> 0.1 </max>
 			<true> 0 </true>
 		</physics>
-		<physics name='ZenithFluxUp'>
+		<physics name='zenith_up'>
 			<points> 10 </points>
 			<min> -0.1 </min>
 			<max> 0.1 </max>
 			<true> 0 </true>
 		</physics>
-		<physics name='ZenithFluxDown'>
+		<physics name='zenith_down'>
 			<points> 10 </points>
 			<min> -0.1 </min>
 			<max> 0.1 </max>

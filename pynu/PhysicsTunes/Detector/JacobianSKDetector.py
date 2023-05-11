@@ -6,7 +6,7 @@ from .SKDetector import SKEnergyScale
 ####################
 
 
-def Diff_SKEnergyScale(x, experiment):
+def diff_SKEnergyScale(x, experiment):
     if np.abs(x - 1) < 1e-3:
         return 0
     h0 = x + 1e-3
@@ -17,7 +17,7 @@ def Diff_SKEnergyScale(x, experiment):
     return dw
 
 
-def Diff_FCPCSeparation(x, experiment):
+def diff_FCPCSeparation(x, experiment):
     fcpc = np.zeros(experiment.NumberOfEvents)
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         fcpc[experiment.Sample < 16] = 1
@@ -38,7 +38,7 @@ def Diff_FCPCSeparation(x, experiment):
     return experiment.Exp_wBinIt(fcpc) / experiment.weightOscBF_binned
 
 
-def Diff_FCReduction(x, experiment):
+def diff_FCReduction(x, experiment):
     fc = np.zeros(experiment.NumberOfEvents)
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         fc[experiment.Sample < 16] = 1
@@ -47,11 +47,11 @@ def Diff_FCReduction(x, experiment):
     return experiment.Exp_wBinIt(fc) / experiment.weightOscBF_binned
 
 
-def Diff_FiducialVolume(x, experiment):
+def diff_FiducialVolume(x, experiment):
     return 1
 
 
-def Diff_PCReduction(x, experiment):
+def diff_PCReduction(x, experiment):
     pc = np.zeros(experiment.NumberOfEvents)
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         pc[np.logical_or(experiment.Sample == 16, experiment.Sample == 17)] = 1
@@ -60,13 +60,13 @@ def Diff_PCReduction(x, experiment):
     return experiment.Exp_wBinIt(pc) / experiment.weightOscBF_binned
 
 
-def Diff_SubGeV2ringPi0(x, experiment):
+def diff_SubGeV2ringPi0(x, experiment):
     pi02r = np.zeros(experiment.NumberOfEvents)
     pi02r[experiment.Sample == 6] = 1
     return experiment.Exp_wBinIt(pi02r) / experiment.weightOscBF_binned
 
 
-def Diff_SubGeV1ringPi0(x, experiment):
+def diff_SubGeV1ringPi0(x, experiment):
     pi01r = np.zeros(experiment.NumberOfEvents)
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         pi01r[experiment.Sample == 3] = 1
@@ -75,7 +75,7 @@ def Diff_SubGeV1ringPi0(x, experiment):
     return experiment.Exp_wBinIt(pi01r) / experiment.weightOscBF_binned
 
 
-def Diff_MultiRing_NuNuBarSeparation(x, experiment):
+def diff_MultiRing_NuNuBarSeparation(x, experiment):
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         nu = 12
         nub = 13
@@ -91,7 +91,7 @@ def Diff_MultiRing_NuNuBarSeparation(x, experiment):
     return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned
 
 
-def Diff_MultiRing_EMuSeparation(x, experiment):
+def diff_MultiRing_EMuSeparation(x, experiment):
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         e0 = 12
         e1 = 13
@@ -116,7 +116,7 @@ def Diff_MultiRing_EMuSeparation(x, experiment):
     return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned
 
 
-def Diff_MultiRing_EOtherSeparation(x, experiment):
+def diff_MultiRing_EOtherSeparation(x, experiment):
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         e0 = 12
         e1 = 13
@@ -136,7 +136,7 @@ def Diff_MultiRing_EOtherSeparation(x, experiment):
     return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned
 
 
-def Diff_PC_StopThruSeparation(x, experiment):
+def diff_PC_StopThruSeparation(x, experiment):
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         pcs = 16
         pct = 17
@@ -152,7 +152,7 @@ def Diff_PC_StopThruSeparation(x, experiment):
     return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned
 
 
-def Diff_Pi0_RingSeparation(x, experiment):
+def diff_Pi0_RingSeparation(x, experiment):
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         r1 = 3
         r2 = 6
@@ -168,7 +168,7 @@ def Diff_Pi0_RingSeparation(x, experiment):
     return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned
 
 
-def Diff_E_RingSeparation(x, experiment):
+def diff_E_RingSeparation(x, experiment):
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         r1 = [0, 1, 2, 7, 8, 9]
         r2 = [12, 13, 14]
@@ -190,7 +190,7 @@ def Diff_E_RingSeparation(x, experiment):
     return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned
 
 
-def Diff_Mu_RingSeparation(x, experiment):
+def diff_Mu_RingSeparation(x, experiment):
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         r1 = [4, 5, 10, 11]
         r2 = [14]
@@ -212,7 +212,7 @@ def Diff_Mu_RingSeparation(x, experiment):
     return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned
 
 
-def Diff_SingleRing_PID(x, experiment):
+def diff_SingleRing_PID(x, experiment):
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         e = [0, 1, 2, 3, 7, 8, 9]
         mu = [4, 5, 10, 11]
@@ -234,7 +234,7 @@ def Diff_SingleRing_PID(x, experiment):
     return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned
 
 
-def Diff_MultiRing_PID(x, experiment):
+def diff_MultiRing_PID(x, experiment):
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         e = [12, 13, 15]
         mu = [14]
@@ -256,7 +256,7 @@ def Diff_MultiRing_PID(x, experiment):
     return experiment.Exp_wBinIt(mr) / experiment.weightOscBF_binned
 
 
-def Diff_NeutronTagging(x, experiment):
+def diff_NeutronTagging(x, experiment):
     nn = np.zeros(experiment.NumberOfEvents)
     if experiment.Experiment == 'SuperK-Gd' or experiment.Experiment == 'SKIV' or experiment.Experiment == 'SuperK_Htag' or experiment.Experiment == 'SuperK_Gdtag':
         n0 = np.sum(experiment.Neutron == 0)
@@ -269,7 +269,7 @@ def Diff_NeutronTagging(x, experiment):
         return 0
 
 
-def Diff_DecayETagging(x, experiment):
+def diff_DecayETagging(x, experiment):
     mue = np.zeros(experiment.NumberOfEvents)
     n0 = np.sum(experiment.DecayE == 0)
     n1 = np.sum(experiment.DecayE == 1)
