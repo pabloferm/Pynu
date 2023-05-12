@@ -66,8 +66,7 @@ class SuperK_I(Experiment):
         nus = {12: nuflux.NuE, -12: nuflux.NuEBar, 14: nuflux.NuMu, -
                14: nuflux.NuMuBar, 16: nuflux.NuMu, -16: nuflux.NuMuBar}
 
-        inv_flux_weight = [
-            1. /
+        flux_weight = np.array([
             flux.getFlux(
                 nus[v],
                 E,
@@ -76,7 +75,10 @@ class SuperK_I(Experiment):
             cz in zip(
                 self.nuPDG,
                 self.ETrue,
-                self.CosZTrue)]
+                self.CosZTrue)], dtype=np.double)
+
+        inv_flux_weight = np.zeros_like(flux_weight)
+        inv_flux_weight[flux_weight > 0] = 1 / flux_weight[flux_weight > 0]
 
         # for here, there in zip(inv_flux_weight,self.MCWeight):
         #     print(here, there)

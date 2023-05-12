@@ -98,7 +98,6 @@ def main():
         print(not os.path.isfile(args.outfile))
         pynufit.CreateOutFile(args.outfile)
     else:
-        print('hey')
         pynufit.SetOutFile(args.outfile)
 
     # Set analysis

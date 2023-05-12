@@ -1,3 +1,4 @@
+import h5py
 import analysis_reader as ar  # contains parse class to read and setup the analysis
 import Experiments as Exp  # contains rd class to read and setup each experiment
 # contains everything to modify your simulations to help figuring out what
@@ -328,7 +329,6 @@ class PyNuFit:
         self.outfile = fname
 
     def CreateOutFile(self, fname):
-        import h5py
         self.outfile = fname
         with h5py.File(fname, 'w') as hf:
             grp = hf.create_group('Fixed Parameters')
@@ -372,7 +372,6 @@ class PyNuFit:
                     compression='gzip')
 
     def WriteToOutFile(self, point, block, item, value):
-        import h5py
         with h5py.File(self.outfile, 'r+') as hf:
             try:
                 for par, val in zip(item, value):

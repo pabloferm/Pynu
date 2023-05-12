@@ -6,6 +6,7 @@ import sys
 from scipy.interpolate import interp1d, interp2d
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+from pynu import PyNuFit
 
 plt.style.use(os.environ['PYNU'] + '/../utils/plot.mplstyle')
 
@@ -19,9 +20,10 @@ class Plot:
             directory=''):
         ''' Set up basic analysis variables and structure to build full analysis '''
         if analysis_input_file:
-
             self.AnalysisInput = ar.ParseXML(analysis_input_file, check=False)
             self.AnalysisInput.get_analysis()
+            self.pynufit = PyNuFit(analysis_input_file, verbosity=False)
+
 
         self.directory = directory
 
@@ -29,7 +31,7 @@ class Plot:
 
         self.colors()
 
-        self.check_zeroes()
+        # self.check_zeroes()
 
     def read_analysis_output(self, file):
 
@@ -39,6 +41,7 @@ class Plot:
             self.X2 = np.array(hf['Analysis/Chi2 Systs.'])
             self.minX2 = np.amin(self.X2)
             self.BestFit = self.X2 == self.minX2
+            self.BestFitPoint = np.where(self.X2 == self.minX2)
 
             self.Physics = {}
             self.PhysicsFlat = {}
@@ -182,8 +185,26 @@ class Plot:
         fig.tight_layout()
         plt.tight_layout()
         plt.show()
-        if not os.path.isfile(self.directory + '/ResultPlotsMatrix.png'):
-            fig.savefig(self.directory + '/ResultPlotsMatrix.png')
+        # if not os.path.isfile(self.directory + '/ResultPlotsMatrix.png'):
+        #     fig.savefig(self.directory + '/ResultPlotsMatrix.png')
+
+    def best_fit_nuisance(self):
+        nuis = np.zeros(self.NumberOfNuisancePars)
+        for i, value in enumerate(self.NuisanceFlat.values()):
+            nuis[i] = value[self.BestFitPoint]
+        return nuis
+
+    def posterior_nuisance(self, index):
+        nuisance_vector_0 = self.best_fit_nuisance()
+        nuisance_vector_1 = self.best_fit_nuisance()
+        nuisance_vector_1[index] += 1e-3
+        
+        # __, dX2 = self.pynufit.ModelTester(nuisance_vector_1, self.BestFitPoint)
+        # fisher = (dX2[index]) / (nuisance_vector_1[index] - nuisance_vector_0[index])
+        fisher = (5e-1) / (nuisance_vector_1[index] - nuisance_vector_0[index])
+
+        return np.sqrt(2/fisher)
+
 
     def NuisancePlots(self, all_plots=True, interpolate=True):
         if not self.AnalysisInput:
@@ -191,7 +212,7 @@ class Plot:
 
         from fitter import distributions as dt
         if all_plots:
-            if self.NumberOfPhysicsPars < 5:
+            if self.NumberOfNuisancePars < 5:
                 fig, ax = plt.subplots(
                     nrows=1, ncols=self.NumberOfPhysicsPars, figsize=(
                         14, 4))
@@ -212,9 +233,9 @@ class Plot:
                 prior_mu = self.AnalysisInput.NuisNominal[block][source]
                 prior_sig = self.AnalysisInput.NuisSigma[block][source]
 
-                post_mu = values[self.BestFit]
-                post_sig = self.AnalysisInput.NuisSigma[block][source] * 0.9
-
+                post_mu = values[self.BestFitPoint]
+                post_sig = self.posterior_nuisance(i)
+    
                 x = np.linspace(
                     prior_mu - 5 * prior_sig,
                     prior_mu + 5 * prior_sig,
@@ -236,14 +257,14 @@ class Plot:
                     linewidth=self.nuislinewidths_1d[0])
                 axis[i].axvline(
                     x=prior_mu,
-                    label='Prior best',
+                    # label='Prior best',
                     color=self.nuiscolors_1d[1],
                     linestyle='--',
                     alpha=0.7,
                     linewidth=1)
                 axis[i].axvline(
                     x=post_mu,
-                    label='Posterior best',
+                    # label='Posterior best',
                     color=self.nuiscolors_1d[0],
                     linestyle='--',
                     alpha=0.7,
@@ -252,7 +273,7 @@ class Plot:
                 axis[i].set_xlabel(self.Format(item), fontsize=14)
                 axis[i].set_ylim(0, 25)
 
-                axmin, axmax = ax[i].get_xlim()
+                axmin, axmax = axis[i].get_xlim()
                 for lv in self.levels_1d:
                     axis[i].axhline(
                         y=lv,
@@ -270,8 +291,8 @@ class Plot:
 
             plt.tight_layout()
             plt.show()
-            if not os.path.isfile(self.directory + '/NuisancePlots.png'):
-                fig.savefig(self.directory + '/NuisancePlots.png')
+            # if not os.path.isfile(self.directory + '/NuisancePlots.png'):
+            #     fig.savefig(self.directory + '/NuisancePlots.png')
 
     def Plot1D(self, all_plots=True, also_stats_only=False, interpolate=True):
         if all_plots:
@@ -293,7 +314,7 @@ class Plot:
             for i, (item, values) in enumerate(self.PhysicsFlat.items()):
                 x = np.unique(values)
                 y = np.zeros_like(x)
-                print(item)
+
                 for j, t in enumerate(x):
                     y[j] = np.amin(self.X2[values == t])
                 if interpolate:
@@ -304,6 +325,7 @@ class Plot:
                 else:
                     axis[i].plot(x, y, label='w/ systemtics')
                 if also_stats_only:
+
                     for j, t in enumerate(x):
                         y[j] = np.amin(self.X2_stats[values == t])
                     if interpolate:
@@ -412,7 +434,6 @@ class Plot:
                     new_string += r'$_{CCQE}$'
                 elif 'CC1Pi' in string:
                     new_string += r'$_{CC 1\pi}$'
-        # print(new_string)
 
         if new_string == '':
             return string

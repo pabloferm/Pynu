@@ -3,12 +3,9 @@
 import pathlib
 from .MCReader import reader
 import numpy as np
-import numpy.typing as npt
 import boost_histogram as bh
 import KDEpy
 from KDEpy import FFTKDE
-
-vector = npt.NDArray[np.float64]
 
 
 class Experiment:
@@ -100,19 +97,19 @@ class Experiment:
 
         pass
 
-    def SetBinner_1D(self) -> None:  # 1D energy binning
+    def SetBinner_1D(self):  # 1D energy binning
         self.Binner = [
             bh.Histogram(bh.axis.Variable(self.EnergyBins[s]))
             for s in range(self.NumberOfSamples)]
 
-    def SetBinner_2D(self) -> None:  # 2D energy binning
+    def SetBinner_2D(self):  # 2D energy binning
         self.Binner = [
             bh.Histogram(
                 bh.axis.Variable(self.EnergyBins[s]),
                 bh.axis.Variable(self.CTBins[s]))
             for s in range(self.NumberOfSamples)]
 
-    def DeleteBinner(self) -> None:
+    def DeleteBinner(self):
         self.Binner = []
 
     def set_energy_bias(self, bias_E):
@@ -121,7 +118,7 @@ class Experiment:
     def set_energy_scale(self, scale_E):
         self.scale_E = scale_E
 
-    def BinIt_MC_1D(self, array: vector) -> vector:  # 1D energy binning
+    def BinIt_MC_1D(self, array):  # 1D energy binning
         for hist in self.Binner:
             hist.reset()
 
@@ -143,7 +140,7 @@ class Experiment:
     # 2D energy and cos(angle) binning
     def BinIt_MC_2D(
             self,
-            array: vector) -> vector:
+            array):
         for hist in self.Binner:
             hist.reset()
 
@@ -158,18 +155,18 @@ class Experiment:
                 (v, hist.fill(
                     E[self.Sample == i],
                     self.CosThetaReco[self.Sample == i],
-                    weight=array[self.Sample == i] * self.BaseWeight
+                    weight = array[self.Sample == i] * self.BaseWeight
                     [self.Sample == i]).values().reshape(-1)))
         return v
 
-    def BinIt_Data_1D(self) -> vector:  # 1D energy binning
+    def BinIt_Data_1D(self):  # 1D energy binning
         v = np.array([])
         for i, hist in enumerate(self.Binner):
             v = np.hstack(
                 (v, hist.fill(self.dEReco[self.dSample == i]).values().reshape(-1)))
         return v
 
-    def BinIt_Data_2D(self) -> vector:  # 2D energy and cos(angle) binning
+    def BinIt_Data_2D(self):  # 2D energy and cos(angle) binning
         v = np.array([])
         for i, hist in enumerate(self.Binner):
             v = np.hstack((v, hist.fill(
@@ -179,22 +176,22 @@ class Experiment:
 
     # Contains all default weights of the analysis
 
-    def StartPhysicsWeights(self) -> None:
+    def StartPhysicsWeights(self):
         '''Start physics weights from scratch, i.e. equal to 1'''
         self.PhysicsWeight = 1
 
-    def UpdatePhysicsWeights(self, w: vector) -> None:
+    def UpdatePhysicsWeights(self, w):
         '''Update physics weights for the experiment by mutiplying the existing weights with the input vector `w`'''
         self.PhysicsWeight = w * self.PhysicsWeight
 
     # Contains all non-changing weights of the analysis, i.e. fixed
-    def UpdateBaseWeights(self, w: vector) -> None:
+    def UpdateBaseWeights(self, w):
         self.BaseWeight = w * self.BaseWeight
 
     # Contains all weights of the analysis except for those relative to
     # nuisance parameters
     # Starts expected weights with fixed values
-    def StartNuisanceWeights(self) -> None:
+    def StartNuisanceWeights(self):
         self.NuisanceWeight = 1
 
     def UpdateNuisanceWeights(self, w):
