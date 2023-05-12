@@ -251,60 +251,63 @@ class PyNuFit:
                                 'diff_' + tune, vector[idx]) / self.PhysicsTunes[name].OscillationTunes.GetOscillations()
         return dWoverW
 
-    def FitModel(self, point, mode='BinnedLogLikelihoodRatio'):
+    def set_likelihood(self, mode):
         if mode == 'BinnedLogLikelihoodRatio':
-            from scipy.optimize import minimize
-
-            ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
-            self.LLH = ft.BinnedLogLikelihoodRatio(
+            self.LLH =  ft.BinnedLogLikelihoodRatio(
                 self.Observation,
                 self.Analysis.NuisNominalList,
                 self.Analysis.NuisSigmaList,
                 self.Analysis.NuisDistributionList)
 
-            ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
-            self.ComputeBinnedExpectation(
-                point, physics=True)  # Nominal expectation
-            ''' Statistics only computation to start guiding the minimization '''
-            X2_stats = self.LLH.stats_only(self.Expectation)
+    def FitModel(self, point, mode='BinnedLogLikelihoodRatio'):
+        from scipy.optimize import minimize
 
-            '''Get Jacobian of expected events w.r.t. nuisance parameters'''
-            self.ComputeBinnedDiffExpectation()
+        ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
+        self.set_likelihood(mode)
 
-            '''Analytic estimate for priors and bounds at first order'''
-            AnalyticPrior, AnalyticBounds = self.LLH.analytic_priors_bounds(
-                self.Expectation, self.DiffExpectation)
+        ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
+        self.ComputeBinnedExpectation(
+            point, physics=True)  # Nominal expectation
+        ''' Statistics only computation to start guiding the minimization '''
+        X2_stats = self.LLH.stats_only(self.Expectation)
 
-            '''Combined chi^2 minimization'''
-            res = minimize(
-                self.ModelTester,
-                AnalyticPrior,
-                args=(point),
-                # method='L-BFGS-B',
-                jac=True,
-                bounds=AnalyticBounds,
-                options={
-                    'disp': False})
+        '''Get Jacobian of expected events w.r.t. nuisance parameters'''
+        self.ComputeBinnedDiffExpectation()
 
-            self.WriteToOutFile(
-                point,
-                'Analysis',
-                'Chi2 Stats. Only',
-                X2_stats)
+        '''Analytic estimate for priors and bounds at first order'''
+        AnalyticPrior, AnalyticBounds = self.LLH.analytic_priors_bounds(
+            self.Expectation, self.DiffExpectation)
 
-            self.WriteToOutFile(
-                point,
-                'Nuisance Parameters',
-                self.Analysis.NuisanceList,
-                res.x.tolist())
+        '''Combined chi^2 minimization'''
+        res = minimize(
+            self.ModelTester,
+            AnalyticPrior,
+            args=(point),
+            # method='L-BFGS-B',
+            jac=True,
+            bounds=AnalyticBounds,
+            options={
+                'disp': False})
 
-            self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', res.fun)
+        self.WriteToOutFile(
+            point,
+            'Analysis',
+            'Chi2 Stats. Only',
+            X2_stats)
 
-            if self.verbosity:
-                print(f'Fitted nuisances: {res.x}')
-                print(f'-2 ln(H/H0) = {res.fun}')
+        self.WriteToOutFile(
+            point,
+            'Nuisance Parameters',
+            self.Analysis.NuisanceList,
+            res.x.tolist())
 
-            return - 0.5 * res.fun
+        self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', res.fun)
+
+        if self.verbosity:
+            print(f'Fitted nuisances: {res.x}')
+            print(f'-2 ln(H/H0) = {res.fun}')
+
+        return - 0.5 * res.fun
 
     def ModelTester(self, nuisance_vector, point):
         ''' Compute expected and its derivatives '''

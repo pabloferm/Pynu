@@ -19,17 +19,19 @@ class Plot:
             analysis_input_file=False,
             directory=''):
         ''' Set up basic analysis variables and structure to build full analysis '''
-        if analysis_input_file:
-            self.AnalysisInput = ar.ParseXML(analysis_input_file, check=False)
-            self.AnalysisInput.get_analysis()
-            self.pynufit = PyNuFit(analysis_input_file, verbosity=False)
-
 
         self.directory = directory
 
         self.read_analysis_output(analysis_output_file)
 
         self.colors()
+
+        if analysis_input_file:
+            self.AnalysisInput = ar.ParseXML(analysis_input_file, check=False)
+            self.AnalysisInput.get_analysis()
+            self.pynufit = PyNuFit(analysis_input_file, verbosity=False)
+            self.pynufit.set_likelihood('BinnedLogLikelihoodRatio')
+            self.pynufit.ComputeBinnedExpectation(self.BestFitPoint, physics=True)
 
         # self.check_zeroes()
 
@@ -41,7 +43,7 @@ class Plot:
             self.X2 = np.array(hf['Analysis/Chi2 Systs.'])
             self.minX2 = np.amin(self.X2)
             self.BestFit = self.X2 == self.minX2
-            self.BestFitPoint = np.where(self.X2 == self.minX2)
+            self.BestFitPoint = np.where(self.X2 == self.minX2)[0][0]
 
             self.Physics = {}
             self.PhysicsFlat = {}
@@ -84,12 +86,12 @@ class Plot:
             9: r'$3\sigma$',
             16: r'$4\sigma$'}
 
-        self.nuislevels_1d = [1, 9]
+        self.nuislevels_1d = [1, 4]
         self.nuislinewidths_1d = (1.3, 0.8)
         self.nuiscolors_1d = ('limegreen', 'peru')
         self.nuislevels_txt_1d = {
             1: r'$1\sigma$',
-            9: r'$3\sigma$'}
+            4: r'$2\sigma$'}
 
         # self.levels_1d = [1,2.71,4,6.63,9]
         # self.levels_txt_1d = {1:r'$1\sigma$',2.71:r'$90\%$',4:r'$2\sigma$',6.63:r'$99\%$',9:r'$3\sigma$'}
@@ -199,9 +201,9 @@ class Plot:
         nuisance_vector_1 = self.best_fit_nuisance()
         nuisance_vector_1[index] += 1e-3
         
-        # __, dX2 = self.pynufit.ModelTester(nuisance_vector_1, self.BestFitPoint)
-        # fisher = (dX2[index]) / (nuisance_vector_1[index] - nuisance_vector_0[index])
-        fisher = (5e-1) / (nuisance_vector_1[index] - nuisance_vector_0[index])
+        X2, dX2 = self.pynufit.ModelTester(nuisance_vector_1, self.BestFitPoint)
+        fisher = (dX2[index]) / (nuisance_vector_1[index] - nuisance_vector_0[index])
+        # fisher = (5e-1) / (nuisance_vector_1[index] - nuisance_vector_0[index])
 
         return np.sqrt(2/fisher)
 
@@ -237,9 +239,9 @@ class Plot:
                 post_sig = self.posterior_nuisance(i)
     
                 x = np.linspace(
-                    prior_mu - 5 * prior_sig,
-                    prior_mu + 5 * prior_sig,
-                    100)
+                    prior_mu - 3 * prior_sig,
+                    prior_mu + 3 * prior_sig,
+                    51)
                 prior_dist = dt.log_gaussian_ratio(x, prior_mu, prior_sig)
                 post_dist = dt.log_gaussian_ratio(x, post_mu, post_sig)
 
@@ -271,10 +273,10 @@ class Plot:
                     linewidth=1)
                 axis[i].set_ylabel(r'$\chi^2$', fontsize=14)
                 axis[i].set_xlabel(self.Format(item), fontsize=14)
-                axis[i].set_ylim(0, 25)
+                axis[i].set_ylim(0, 10)
 
                 axmin, axmax = axis[i].get_xlim()
-                for lv in self.levels_1d:
+                for lv in self.nuislevels_1d:
                     axis[i].axhline(
                         y=lv,
                         color='grey',
@@ -284,7 +286,7 @@ class Plot:
                     axis[i].text(
                         0.95 * axmin + 0.05 * axmax,
                         lv,
-                        self.levels_txt_1d[lv],
+                        self.nuislevels_txt_1d[lv],
                         fontsize=10)
 
                 axis[i].legend()
