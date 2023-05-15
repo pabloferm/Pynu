@@ -27,13 +27,13 @@ class Plot:
         self.colors()
 
         if analysis_input_file:
-            self.AnalysisInput = ar.ParseXML(analysis_input_file, check=False)
+            self.AnalysisInput = ar.ParseXML(analysis_input_file, check=True)
             self.AnalysisInput.get_analysis()
             self.pynufit = PyNuFit(analysis_input_file, verbosity=False)
             self.pynufit.set_likelihood('BinnedLogLikelihoodRatio')
             self.pynufit.ComputeBinnedExpectation(self.BestFitPoint, physics=True)
 
-        # self.check_zeroes()
+        self.check_zeroes()
 
     def read_analysis_output(self, file):
 
@@ -187,8 +187,8 @@ class Plot:
         fig.tight_layout()
         plt.tight_layout()
         plt.show()
-        # if not os.path.isfile(self.directory + '/ResultPlotsMatrix.png'):
-        #     fig.savefig(self.directory + '/ResultPlotsMatrix.png')
+        if not os.path.isfile(self.directory + '/ResultPlotsMatrix.png'):
+            fig.savefig(self.directory + '/ResultPlotsMatrix.png')
 
     def best_fit_nuisance(self):
         nuis = np.zeros(self.NumberOfNuisancePars)
@@ -291,10 +291,10 @@ class Plot:
 
                 axis[i].legend()
 
-            plt.tight_layout()
+            fig.tight_layout()
             plt.show()
-            # if not os.path.isfile(self.directory + '/NuisancePlots.png'):
-            #     fig.savefig(self.directory + '/NuisancePlots.png')
+            if not os.path.isfile(self.directory + '/NuisancePlots.png'):
+                fig.savefig(self.directory + '/NuisancePlots.png')
 
     def Plot1D(self, all_plots=True, also_stats_only=False, interpolate=True):
         if all_plots:
@@ -412,13 +412,13 @@ class Plot:
 
         if 'Atmos' in string:
             new_string += 'Atm. Flux '
-            if 'Tilt' in string:
+            if 'tilt' in string:
                 new_string += r'Tilt ($\gamma$)'
-            elif 'Norm' in string:
+            elif 'norm' in string:
                 new_string += 'Normalization '
-                if 'Above1GeV' in string:
+                if 'above1GeV' in string:
                     new_string += r'$>$ 1 GeV'
-                elif 'Below1GeV' in string:
+                elif 'below1GeV' in string:
                     new_string += r'$<$ 1 GeV'
 
         if 'Water' in string:
@@ -443,5 +443,6 @@ class Plot:
 
     def check_zeroes(self):
         zeroes = np.where(self.X2 == 0)[0]
+        print('Your analysis has multiple zeroes, please check if this is correct or there are some missing points.')
         for zero in zeroes:
             print(zero)

@@ -253,7 +253,7 @@ class PyNuFit:
 
     def set_likelihood(self, mode):
         if mode == 'BinnedLogLikelihoodRatio':
-            self.LLH =  ft.BinnedLogLikelihoodRatio(
+            self.LLH = ft.BinnedLogLikelihoodRatio(
                 self.Observation,
                 self.Analysis.NuisNominalList,
                 self.Analysis.NuisSigmaList,

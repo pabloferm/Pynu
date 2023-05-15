@@ -2,14 +2,14 @@ from numba import jit, njit
 import numpy as np
 import time
 
-nen = 100000
+nen = 1000000
 x = np.random.random(nen)
 y = np.random.random(nen)
 
 
 @njit(parallel=True)
 def go_fast(a, b):  # Function is compiled and runs in machine code
-    return a * b
+    return a * np.log(b)
 
 
 # DO NOT REPORT THIS... COMPILATION TIME IS INCLUDED IN THE EXECUTION TIME!

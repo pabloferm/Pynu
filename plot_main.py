@@ -36,7 +36,7 @@ def main():
         directory=args.directory,
         analysis_input_file=args.xml_file)
 
-    # pynuplot.ResultPlotsMatrix()
+    pynuplot.ResultPlotsMatrix()
 
     pynuplot.NuisancePlots()
 

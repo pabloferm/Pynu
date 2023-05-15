@@ -68,7 +68,7 @@
 
 <!--Anything common to a given neutrino experiment-->
 
-<!-- IceCube Upgrade -->
+<!-- Hyper-Kamiokande -->
 	<NeutrinoExperiment name="HyperK">
 		<status> 1 </status>
 		<target name="Water"> </target>
@@ -79,24 +79,10 @@
 			</MCFiles>
 			<exposure> 10 </exposure> <!-- years-->
 			<MCexposure> 500 </MCexposure> <!-- This is total exposure of all the specified MC files-->
-<!-- 	    <MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
-				<status> 1 </status>
-			</MCFiles> -->
-			<DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
+			<DataFiles name='...'>
 				<status> 0 </status>
 			</DataFiles>
 		</source>
-<!-- 		<nuisance name='IceAbsorption'>
-			<status> 0 </status>
-			<sigma> 0.1 </sigma>
-			<nominal> 1.0 </nominal>
-		</nuisance>
- --><!-- 		<physics name='IceScattering'>
-			<points> 10 </points>
-			<min> 0.85 </min>
-			<max> 1.15 </max>
-			<true> 1.0 </true>
-		</physics> -->
 	</NeutrinoExperiment>
 
 
@@ -112,12 +98,6 @@
 			<status> 1 </status>
 			<value> 0.304 </value>
 		</fixed>
-<!-- 		<nuisance name='Sin2Theta13'>
-			<status> 1 </status>
-			<sigma> 0.005 </sigma>
-			<nominal> 0.022 </nominal>
-			<distribution> normal </distribution>
-		</nuisance> -->
 		<fixed name='Sin2Theta13'>
 			<status> 1 </status>
 			<value> 0.022 </value>

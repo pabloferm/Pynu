@@ -4,9 +4,14 @@ import pathlib
 from .MCReader import reader
 import numpy as np
 import boost_histogram as bh
+# from numba import jit
 import KDEpy
 from KDEpy import FFTKDE
 
+
+# @jit(nopython=True)
+def fast_multiply(a,b):
+    return a*b
 
 class Experiment:
     def __init__(self, dict_of_details):
@@ -180,9 +185,16 @@ class Experiment:
         '''Start physics weights from scratch, i.e. equal to 1'''
         self.PhysicsWeight = 1
 
+    # @staticmethod
+    # def update_weights(w, w_up):
+    #     return fast_multiply(w, w_up)
+
     def UpdatePhysicsWeights(self, w):
-        '''Update physics weights for the experiment by mutiplying the existing weights with the input vector `w`'''
+        '''Update physics weights for the experiment by mutiplying the existing weights 
+        with the input vector `w`'''
         self.PhysicsWeight = w * self.PhysicsWeight
+        # self.PhysicsWeight = fast_multiply(w, self.PhysicsWeight)
+        # self.PhysicsWeight = self.update_weights(self.PhysicsWeight, w)
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateBaseWeights(self, w):
@@ -196,6 +208,8 @@ class Experiment:
 
     def UpdateNuisanceWeights(self, w):
         self.NuisanceWeight = w * self.NuisanceWeight
+        # self.NuisanceWeight = fast_multiply(w, self.NuisanceWeight)
+        # self.NuisanceWeight = self.update_weights(self.NuisanceWeight, w)
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateNominalWeights(self, w):

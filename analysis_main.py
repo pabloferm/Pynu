@@ -49,6 +49,12 @@ def main():
         action='store_true',
         help='Option for running the analysis with multiprocessing (recommended locally).')
     parse.add_argument(
+        "--ncores",
+        nargs='?',
+        type=int,
+        default=None,
+        help='Option for especifying the number of cores to be used by multiprocessing.')
+    parse.add_argument(
         "--cluster",
         dest='cluster',
         default=False,
@@ -106,7 +112,10 @@ def main():
     ''' Parallelization '''
     if args.multiproc:
         import multiprocessing
-        cores = multiprocessing.cpu_count() - 1
+        if args.ncores:
+            cores = arg.ncores
+        else:
+            cores = multiprocessing.cpu_count()
 
         ''' Markov chain wandering '''
         if args.mcmc:
@@ -143,17 +152,17 @@ def main():
 
 
 if __name__ == '__main__':
-    # import cProfile
-    # from pstats import SortKey
-    # import pstats
-    # cProfile.run('main()', 'output.dat')
+     # import cProfile
+     # from pstats import SortKey
+     # import pstats
+     # cProfile.run('main()', 'output.dat')
 
-    # with open('output_time.txt', 'w') as f:
-    #     p = pstats.Stats('output.dat', stream=f)
-    #     p.sort_stats('time').print_stats()
+     # with open('output_time.txt', 'w') as f:
+     #     p = pstats.Stats('output.dat', stream=f)
+     #     p.sort_stats('time').print_stats()
 
-    # with open('output_calls.txt', 'w') as f:
-    #     p = pstats.Stats('output.dat', stream=f)
-    #     p.sort_stats('calls').print_stats()
+     # with open('output_calls.txt', 'w') as f:
+     #     p = pstats.Stats('output.dat', stream=f)
+     #     p.sort_stats('calls').print_stats()
 
     main()
