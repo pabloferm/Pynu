@@ -138,10 +138,10 @@ class BinnedLogLikelihoodRatio:
         modified by nuisance parameters, i.e. nuisance parameters are assumed to take the default value in this
         approximation.
 
-        $\nabla_j \chi^2  =0 \overset{{E'}_i^0 = E_i}{\xrightarrow{\hspace{2cm}}} \nabla_j^{0} \chi^2 = 2~\sum \big( 1 - \frac{O_i}{E_i}\big)\left.\frac{\partial~E_i}{\partial x_j}\right\vert_{x_j=\mu_j} +2~\frac{\mu_j-x_j}{\sigma_j^2} \approx 0$
+        $\nabla_j \chi^2  =0$, and at first order, $E'_i \approx E_i + \frac{\partial E_i}{\partial x_j} (x_j-\mu_j)$,
+        where $E_i$ is the number of expected events with nuisance at their nomnial values.
 
-        $\widetilde{x_j} = \mu_j + \frac{\sigma_j}{2} \cdot \sum_{i} \big( E_i - O_i\big)\frac{d~f_{i}(x_j)}{dx_j}$
-        (The factor 2 dividing the second term is introduced to make the estimate closer to the nominal value.)
+        $\widetilde{x_j} = \mu_j + \frac{\sum \Big(1 - \frac{O_i}{E_i} \Big) \left.\frac{\partial~E_i}{\partial x_j}\right\vert_{x_j=\mu_j} } {\sum \frac{O_i}{{E_i}^2} \Big( \left.\frac{\partial~E_i}{\partial x_j}\right\vert_{x_j=\mu_j}\Big)^2 - \frac{1}{\sigma^2_j}}$
 
         Further, bounds for the final values of the nuisance parameters as follows.
 
@@ -167,11 +167,11 @@ class BinnedLogLikelihoodRatio:
         for i, dE in enumerate(diff_expectation.values()):
             for O, E, dEdx in zip(self.obervation.values(),
                                   expectation.values(), dE.values()):
-                A[i] += np.sum((O / E - 1) * dEdx)
+                A[i] += np.sum((1 - O / E) * dEdx)
                 B[i] += np.sum(O / E**2 * dEdx**2)
 
         # Missing non-normal distribution cases
-        priors = mu + 0.5 * A / (B + 1 / sig**2)
+        priors = mu + 0.5 * A / (B - 1 / sig**2)
 
         delta = np.minimum(2 * np.abs(priors - mu), sig)
         delta[delta == 0] = sig[delta == 0]
