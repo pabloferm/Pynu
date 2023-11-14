@@ -68,7 +68,7 @@
 		<target name="Water"> </target>
 		<source name='Atmospheric'>
 			<status> 1 </status>
-			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/SuperK/data/output/SK_Htag/combined.hdf5'>
+			<MCFiles name='/home/SuperK.hdf5'>
 				<status> 1 </status>
 			</MCFiles>
 			<exposure> 12 </exposure> <!-- years-->
@@ -76,9 +76,9 @@
 <!-- 	    <MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
 				<status> 1 </status>
 			</MCFiles> -->
-			<DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
+			<!-- <DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
 				<status> 0 </status>
-			</DataFiles>
+			</DataFiles> -->
  
 		</source>
 <!-- 		<nuisance name='IceAbsorption'>
