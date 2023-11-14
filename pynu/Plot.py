@@ -31,7 +31,8 @@ class Plot:
             self.AnalysisInput.get_analysis()
             self.pynufit = PyNuFit(analysis_input_file, verbosity=False)
             self.pynufit.set_likelihood('BinnedLogLikelihoodRatio')
-            self.pynufit.ComputeBinnedExpectation(self.BestFitPoint, physics=True)
+            self.pynufit.ComputeBinnedExpectation(
+                self.BestFitPoint, physics=True)
 
         self.check_zeroes()
 
@@ -159,7 +160,7 @@ class Plot:
                             w = np.append(w, np.amin(self.X2[cut]))
                     X, Y = np.meshgrid(x, y)
                     f = interp2d(x, y, w, kind='cubic')
-                    Chi2 = np.reshape(w, (x.size, y.size)).T
+                    np.reshape(w, (x.size, y.size)).T
                     if interpolate:
                         x_dense = np.linspace(np.amin(x), np.amax(x), 50)
                         y_dense = np.linspace(np.amin(y), np.amax(y), 50)
@@ -200,13 +201,14 @@ class Plot:
         nuisance_vector_0 = self.best_fit_nuisance()
         nuisance_vector_1 = self.best_fit_nuisance()
         nuisance_vector_1[index] += 1e-3
-        
-        X2, dX2 = self.pynufit.ModelTester(nuisance_vector_1, self.BestFitPoint)
-        fisher = (dX2[index]) / (nuisance_vector_1[index] - nuisance_vector_0[index])
+
+        X2, dX2 = self.pynufit.ModelTester(
+            nuisance_vector_1, self.BestFitPoint)
+        fisher = (dX2[index]) / (nuisance_vector_1[index] -
+                                 nuisance_vector_0[index])
         # fisher = (5e-1) / (nuisance_vector_1[index] - nuisance_vector_0[index])
 
-        return np.sqrt(2/fisher)
-
+        return np.sqrt(2 / fisher)
 
     def NuisancePlots(self, all_plots=True, interpolate=True):
         if not self.AnalysisInput:
@@ -237,7 +239,7 @@ class Plot:
 
                 post_mu = values[self.BestFitPoint]
                 post_sig = self.posterior_nuisance(i)
-    
+
                 x = np.linspace(
                     prior_mu - 3 * prior_sig,
                     prior_mu + 3 * prior_sig,

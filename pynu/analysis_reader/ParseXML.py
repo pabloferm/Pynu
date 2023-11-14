@@ -17,7 +17,6 @@ class ParseXML:
             xmlfile (str): Name of the xml analysis input file.
             check (bool): Optional. Checks consistency of the analysis.
         """
-        __slots__ = ('xmlfile', 'tree', 'root', 'check')
 
         self.check = check
         self.tree = ET.parse(xmlfile)  # create element tree object
@@ -94,6 +93,8 @@ class ParseXML:
             self.check_physics()
             self.check_fixed()
             self.check_sources()
+
+        del self.root
 
     def with_nuisance(self):
         """Checks if the analysis contains nuisance parameters or it's stats. only.
@@ -342,7 +343,6 @@ class ParseXML:
             None if atrib == 'name' and a list of items in the rest of the cases.
         """
         itemList = []
-        osc = item == 'NeutrinoOscillations'
         for source in self.root.iter(item):
             if atrib == 'name':
                 if int(source.find('status').text):
@@ -350,6 +350,7 @@ class ParseXML:
                     itemList.append(source.attrib[atrib])
                     if item == 'NeutrinoOscillations':
                         self.Flavors = int(source.find('flavors').text)
+                        print(self.Flavors)
                     elif item == 'NeutrinoExperiment':
                         self.Experiments[sname] = {}
                         self.ExpTarget[sname] = source.find(

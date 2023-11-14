@@ -29,7 +29,7 @@ class Oscillator(Tune):
         self.eps = 1e-2
 
         self.ParameterLabels = None
-        self.Parameters = parameters = {
+        self.Parameters = {
             'Sin2Theta12': 0,
             'Sin2Theta13': 0,
             'Sin2Theta23': 0,

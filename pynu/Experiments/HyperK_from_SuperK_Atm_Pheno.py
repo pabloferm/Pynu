@@ -1,8 +1,6 @@
 # Class for the atmospheric neutrinos in Hyper-Kamiokande based on
 # the SuperK_Htag MC simulation developed for phenomenological studies
 
-import numpy as np
-import nuflux
 from .SuperK_Atm_Pheno import SuperK_Htag
 
 

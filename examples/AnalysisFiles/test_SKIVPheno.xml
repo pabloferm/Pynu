@@ -63,7 +63,7 @@
 <!--Anything common to a given neutrino experiment-->
 
 <!-- IceCube Upgrade -->
-	<NeutrinoExperiment name="SuperK_Htag">
+	<NeutrinoExperiment name="SuperK Pheno">
 		<status> 1 </status>
 		<target name="Water"> </target>
 		<source name='Atmospheric'>

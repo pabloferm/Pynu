@@ -1,3 +1,6 @@
+import sys
+from scipy.optimize import minimize
+import numpy as np
 import h5py
 import analysis_reader as ar  # contains parse class to read and setup the analysis
 import Experiments as Exp  # contains rd class to read and setup each experiment
@@ -11,13 +14,6 @@ class PyNuFit:
     ''' Top class containing everything '''
 
     def __init__(self, analysis_file, path=None, verbosity=False):
-
-        __slots__ = (
-            'verbosity',
-            'Analysis',
-            'PhysicsTunes',
-            'Experiments',
-            'Observation')
 
         self.verbosity = verbosity
         self.path = path
@@ -128,7 +124,6 @@ class PyNuFit:
                         weights *
                         self.Experiments[exp].ExpectedWeight)[
                         self.Experiments[exp].FewEntries]}
-
         return dEdx
 
     def ApplyFixedWeights(self):  # Nuisance parameters
@@ -149,7 +144,6 @@ class PyNuFit:
     def ApplyPhysicsWeights(self, point):  # Physics parameters
         if self.verbosity:
             print('Applying Physics Point Weights')
-
         self.ApplyWeights(
             'Physics',
             vector=self.Analysis.FullPhysicsGrid[point])
@@ -194,6 +188,7 @@ class PyNuFit:
 
         for name, exp in self.Experiments.items():
             for source in labels:
+                print(source)
                 if source in exp.Definition.keys():
                     tune_block = exp.Definition[source]
                     for tune in labels[source]:
@@ -202,7 +197,7 @@ class PyNuFit:
                             value = vector[idx]
                         else:
                             value = vec[source][tune]
-
+                        print(tune_block)
                         if tune_block == 'Flux':
                             w = self.PhysicsTunes[name].GetFlux(tune, value)
                         elif tune_block == 'XSection':
@@ -234,6 +229,7 @@ class PyNuFit:
             for name, exp in self.Experiments.items():
                 if source in exp.Definition.keys():
                     tune_block = exp.Definition[source]
+                    print(tune_block)
                     for tune in self.Analysis.Nuisance[source]:
                         dWoverW[tune] = {name: 0}
                         idx = self.Analysis.NuisanceList.index(tune)
@@ -244,6 +240,7 @@ class PyNuFit:
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetXSection(
                                 'diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetXSection(tune, vector[idx])
                         elif tune_block == 'Detector':
+                            print(f"Inside {tune_block} tune block.")
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetDetector(
                                 'diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetDetector(tune, vector[idx])
                         elif tune_block == 'Osc':
@@ -258,18 +255,28 @@ class PyNuFit:
                 self.Analysis.NuisNominalList,
                 self.Analysis.NuisSigmaList,
                 self.Analysis.NuisDistributionList)
+        else:
+            sys.exit('Mode not yet implemented')
 
-    def FitModel(self, point, mode='BinnedLogLikelihoodRatio'):
-        from scipy.optimize import minimize
-
+    # 'SLSQP' 'GD' 'ADAM' 'MINUIT'
+    def FitModel(
+            self,
+            point,
+            mode='BinnedLogLikelihoodRatio',
+            method='L-BFGS-B'):
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
         self.set_likelihood(mode)
+        self.point = point
 
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
         self.ComputeBinnedExpectation(
-            point, physics=True)  # Nominal expectation
+            self.point, physics=True)  # Nominal expectation
         ''' Statistics only computation to start guiding the minimization '''
         X2_stats = self.LLH.stats_only(self.Expectation)
+        if X2_stats > 5e2:
+            eps = 1e-4
+        else:
+            eps = None
 
         '''Get Jacobian of expected events w.r.t. nuisance parameters'''
         self.ComputeBinnedDiffExpectation()
@@ -278,30 +285,66 @@ class PyNuFit:
         AnalyticPrior, AnalyticBounds = self.LLH.analytic_priors_bounds(
             self.Expectation, self.DiffExpectation)
 
+        print(type(AnalyticPrior))
         '''Combined chi^2 minimization'''
-        res = minimize(
-            self.ModelTester,
-            AnalyticPrior,
-            args=(point),
-            # method='L-BFGS-B',
-            jac=True,
-            bounds=AnalyticBounds,
-            options={
-                'disp': False})
+        if method == 'GD':
+            from .gradient_descent_minimizer import gradient_descent_minimizer
+            gradient_descent_minimizer(
+                self.model_tester_and_gradient,
+                AnalyticPrior,
+                # epsilon = eps,
+                bounds=AnalyticBounds)
+        elif method == 'ADAM':
+            from .adam_minimizer import adam_minimizer
+            adam_minimizer(
+                self.model_tester_and_gradient,
+                AnalyticPrior,
+                # precission = eps,
+                bounds=AnalyticBounds)
+        elif method == 'MINUIT':
+            import iminuit
+            res = iminuit.minimize(
+                self.model_tester,
+                AnalyticPrior,
+                method='migrad',
+                jac=self.model_tester_gradient,
+                bounds=AnalyticBounds,
+                tol=eps,
+                options={
+                    'disp': self.verbosity})
+        elif method == 'TEST':
+            for i in range(2 * self.Analysis.NumberOfNuis):
+                x = np.asarray(
+                    AnalyticPrior) - (i - self.Analysis.NumberOfNuis) * np.asarray(self.Analysis.NuisSigmaList)
+                x2, dx2 = self.model_tester_and_gradient(x)
+                print('Point')
+                print(x)
+                print('Chi2')
+                print(x2)
+                print('Chi2 gradient')
+                print(dx2)
+        else:
+            res = minimize(
+                self.model_tester_and_gradient,
+                AnalyticPrior,
+                method=method,
+                jac=True,
+                bounds=AnalyticBounds,
+                tol=eps,
+                options={
+                    'disp': self.verbosity})
 
         self.WriteToOutFile(
-            point,
             'Analysis',
             'Chi2 Stats. Only',
             X2_stats)
 
         self.WriteToOutFile(
-            point,
             'Nuisance Parameters',
             self.Analysis.NuisanceList,
             res.x.tolist())
 
-        self.WriteToOutFile(point, 'Analysis', 'Chi2 Systs.', res.fun)
+        self.WriteToOutFile('Analysis', 'Chi2 Systs.', res.fun)
 
         if self.verbosity:
             print(f'Fitted nuisances: {res.x}')
@@ -309,10 +352,10 @@ class PyNuFit:
 
         return - 0.5 * res.fun
 
-    def ModelTester(self, nuisance_vector, point):
+    def model_tester_and_gradient(self, nuisance_vector):
         ''' Compute expected and its derivatives '''
         self.ComputeBinnedExpectation(
-            point, nuisance_vector=nuisance_vector)  # Nominal expectation
+            self.point, nuisance_vector=nuisance_vector)  # Nominal expectation
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
         ''' Get -2 ln(H/H0) ~ χ2 '''
@@ -325,8 +368,38 @@ class PyNuFit:
             self.Expectation,
             self.DiffExpectation,
             nuisance_vector)
+        print(f'chi-squared = {Chi2}')
+        print(f'gradient of chi-squared = {D_Chi2}')
+        print(f'norm of gradient of chi-squared = {np.linalg.norm(D_Chi2)}')
 
         return (Chi2, D_Chi2)
+
+    def model_tester(self, nuisance_vector):
+        ''' Compute expected and its derivatives '''
+        self.ComputeBinnedExpectation(
+            self.point, nuisance_vector=nuisance_vector)  # Nominal expectation
+        self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
+
+        ''' Get -2 ln(H/H0) ~ χ2 '''
+        Chi2 = self.LLH.stats_and_systematics(
+            self.Expectation,
+            nuisance_vector)
+
+        return Chi2
+
+    def model_tester_gradient(self, nuisance_vector):
+        ''' Compute expected and its derivatives '''
+        self.ComputeBinnedExpectation(
+            self.point, nuisance_vector=nuisance_vector)  # Nominal expectation
+        self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
+
+        ''' The gradient of the above '''
+        D_Chi2 = self.LLH.gradient(
+            self.Expectation,
+            self.DiffExpectation,
+            nuisance_vector)
+
+        return D_Chi2
 
     def SetOutFile(self, fname):
         self.outfile = fname
@@ -374,11 +447,11 @@ class PyNuFit:
                     self.Analysis.NumberOfPhysPoints,
                     compression='gzip')
 
-    def WriteToOutFile(self, point, block, item, value):
+    def WriteToOutFile(self, block, item, value):
         with h5py.File(self.outfile, 'r+') as hf:
             try:
                 for par, val in zip(item, value):
                     source = self.Analysis.get_tune(par)
-                    hf[block + '/' + source + '/' + par][point] = val
+                    hf[block + '/' + source + '/' + par][self.point] = val
             except BaseException:
-                hf[block + '/' + item][point] = value
+                hf[block + '/' + item][self.point] = value

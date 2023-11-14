@@ -1,17 +1,10 @@
 # General experiment class
 
-import pathlib
 from .MCReader import reader
 import numpy as np
 import boost_histogram as bh
-# from numba import jit
-import KDEpy
 from KDEpy import FFTKDE
 
-
-# @jit(nopython=True)
-def fast_multiply(a,b):
-    return a*b
 
 class Experiment:
     def __init__(self, dict_of_details):
@@ -160,7 +153,7 @@ class Experiment:
                 (v, hist.fill(
                     E[self.Sample == i],
                     self.CosThetaReco[self.Sample == i],
-                    weight = array[self.Sample == i] * self.BaseWeight
+                    weight=array[self.Sample == i] * self.BaseWeight
                     [self.Sample == i]).values().reshape(-1)))
         return v
 
@@ -185,20 +178,13 @@ class Experiment:
         '''Start physics weights from scratch, i.e. equal to 1'''
         self.PhysicsWeight = 1
 
-    # @staticmethod
-    # def update_weights(w, w_up):
-    #     return fast_multiply(w, w_up)
-
     def UpdatePhysicsWeights(self, w):
-        '''Update physics weights for the experiment by mutiplying the existing weights 
-        with the input vector `w`'''
-        self.PhysicsWeight = w * self.PhysicsWeight
-        # self.PhysicsWeight = fast_multiply(w, self.PhysicsWeight)
-        # self.PhysicsWeight = self.update_weights(self.PhysicsWeight, w)
+        '''Update physics weights for the experiment by mutiplying the existing weights with the input vector `w`'''
+        self.PhysicsWeight = self.PhysicsWeight * w
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateBaseWeights(self, w):
-        self.BaseWeight = w * self.BaseWeight
+        self.BaseWeight = self.BaseWeight * w
 
     # Contains all weights of the analysis except for those relative to
     # nuisance parameters
@@ -207,13 +193,12 @@ class Experiment:
         self.NuisanceWeight = 1
 
     def UpdateNuisanceWeights(self, w):
-        self.NuisanceWeight = w * self.NuisanceWeight
-        # self.NuisanceWeight = fast_multiply(w, self.NuisanceWeight)
-        # self.NuisanceWeight = self.update_weights(self.NuisanceWeight, w)
+        self.NuisanceWeight = self.NuisanceWeight * w
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateNominalWeights(self, w):
-        self.NominalWeight = w * self.NominalWeight
+        print(w)
+        self.NominalWeight = self.NominalWeight * w
 
     def SetExpectedWeight(self):
         self.ExpectedWeight = self.PhysicsWeight * self.NuisanceWeight

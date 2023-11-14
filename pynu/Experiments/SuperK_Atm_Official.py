@@ -27,7 +27,7 @@ class SuperK_I(Experiment):
 
     def MCVariables(self):
         d_itype = self.MC['itype']
-        d_pnu = self.MC['pnu']
+        self.MC['pnu']
         condition = (d_itype > -1)
         self.EReco = self.MC['amom'][condition].astype(np.float64) * 1e-3
         self.CosZReco = self.MC['dir'][:, 2][condition]
@@ -45,7 +45,7 @@ class SuperK_I(Experiment):
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        self.First_Sample = np.min(self.Samples)
+        self.First_Sample = np.amin(self.Samples)
         self.Samples -= self.First_Sample
         self.Sample -= self.First_Sample
         self.NumberOfSamples = 1 + \
@@ -137,8 +137,10 @@ class SuperK_I(Experiment):
         mre_ebins = np.array([1.3, 2.5, 5.0, 500.])
         mrm_ebins = np.array([0.6, 1.3, 2.5, 5., 500.])
         mro_ebins = np.array([1.3, 2.5, 5.0, 10., 500.])
+        umstop_ebins = np.array([1.0, 8.0, 20., 1.0e5])
         pcs_ebins = np.array([0.1, 10., 1.0e5])
         pct_ebins = np.array([0.1, 10.0, 50., 1.0e5])
+        um_ebins = np.array([1.0, 1.0e5])
         z10bins = np.linspace(-1, 1, 10 + 1)
         z10bins_up = np.linspace(-1, 0, 10 + 1)
         z1bins = np.array([-1, 1.0])

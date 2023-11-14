@@ -103,7 +103,7 @@ class ICUp_Atm(Experiment):
         return noNEUTmode
 
     def DataVariables(self):
-        d_itype = self.Data['pid']
+        self.Data['pid']
         self.dEReco = self.Data['reco_energy']
         self.dCosZReco = np.cos(self.Data['reco_zenith'])
         self.dSample = self.Data['pid']  # Sample of each event

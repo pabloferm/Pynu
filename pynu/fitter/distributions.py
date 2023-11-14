@@ -1,5 +1,5 @@
 # Provides several functions for probability distributions
-from math import gamma, exp, sqrt, pi, log
+from math import gamma, pi
 import numpy as np
 
 
@@ -41,7 +41,7 @@ def log_gaussian_ratio(x, m, s):
 
 def diff_log_gaussian_ratio(x, m, s):  # Actually, -2 ln(L/L0)
     r"""Returns the values of the derivative with respect to 'x´ of -2 times
-    the logarithm of the likelihood ratio assuming `gaussian` probability distribution, 
+    the logarithm of the likelihood ratio assuming `gaussian` probability distribution,
     $ -2 \ln{\Big(\frac{\mathcal{N}(x;\mu,\sigma)}{\mathcal{N}(\mu;\mu,\sigma)}\Big)}$.
 
     Args:
@@ -152,8 +152,7 @@ def log_beta_ratio(x, a, b):
         b (float): $\beta$ parameter of the distribution.
 
     Returns:
-        Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}
-        {B(\mu;\alpha,\beta)}\Big)}$.
+        Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}$.
    """
     m = beta_mode(a, b)
     return 2 * ((a - 1) * np.log(m / x) + (b - 1) * np.log((1 - m) / (1 - x)))
@@ -170,8 +169,7 @@ def diff_log_beta_ratio(x, m, s):
         s (float): Standard deviation of the distribution.
 
     Returns:
-        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}
-        \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$
+        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x} \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$
     """
     a, b = beta_param(m, s)
     return diff_log_beta_ratio_args(x, a, b)
@@ -189,7 +187,6 @@ def diff_log_beta_ratio_args(x, a, b):
         b (float): $\beta$ parameter of the distribution.
 
     Returns:
-        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}
-        \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$
+        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x} \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$
    """
     return 2 * (- (a - 1) / x + (b - 1) / (1 - x))

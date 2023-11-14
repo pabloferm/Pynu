@@ -2,9 +2,7 @@ import numpy as np
 import pandas as pd
 import h5py
 import nuflux
-import math
 import nuSQuIDS as nsq
-import nuSQUIDSTools
 from itertools import repeat
 from math import asin, sqrt
 # from Systematics import LoadSystematics

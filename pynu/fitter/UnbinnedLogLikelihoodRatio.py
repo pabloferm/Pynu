@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-import KDEpy
+# import KDEpy
 from .distributions import *
 
 

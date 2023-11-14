@@ -1,5 +1,4 @@
 import numpy as np
-from math import asin, sqrt, pi
 from itertools import repeat
 from .Oscillations import Oscillator
 import nuSQuIDS as nsq
@@ -44,4 +43,4 @@ class AtmosphericOscillations(Oscillator):
                      self.ETrue * self.units.GeV,
                      self.NSQneutype,
                      repeat(True)))
-        return np.array(w)
+        return np.asarray(w)

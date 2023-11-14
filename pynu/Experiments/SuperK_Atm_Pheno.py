@@ -43,7 +43,8 @@ class SuperK(Experiment):
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        self.NumberOfSamples = 1 + np.amax(self.Samples)
+        # self.NumberOfSamples = 1 + np.amax(self.Samples)
+        self.NumberOfSamples = 16
         self.Erec_max = 4e2
         self.Erec_min = 0.1
         self.Etrue_min = 0.1

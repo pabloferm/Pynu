@@ -1,5 +1,4 @@
 from PhysicsTunes import Tune
-import numpy as np
 
 import sys
 sys.path.append('../')

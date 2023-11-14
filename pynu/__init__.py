@@ -1,3 +1,3 @@
-from pynu.PyNuFit import PyNuFit
-from pynu.Plot import Plot
-from pynu.Report import Report
+from .PyNuFit import PyNuFit
+from .Report import Report
+from .Plot import Plot

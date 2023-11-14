@@ -149,7 +149,7 @@
 </span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>
 </span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="k">def</span> <span class="nf">diff_log_gaussian_ratio</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>  <span class="c1"># Actually, -2 ln(L/L0)</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of the derivative with respect to &#39;x´ of -2 times</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">    the logarithm of the likelihood ratio assuming `gaussian` probability distribution, </span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">    the logarithm of the likelihood ratio assuming `gaussian` probability distribution,</span>
 </span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">    $ -2 \ln{\Big(\frac{\mathcal{N}(x;\mu,\sigma)}{\mathcal{N}(\mu;\mu,\sigma)}\Big)}$.</span>
 </span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>
 </span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="sd">    Args:</span>
@@ -260,47 +260,44 @@
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="sd">        b (float): $\beta$ parameter of the distribution.</span>
 </span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>
 </span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="sd">    Returns:</span>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="sd">        Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}</span>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="sd">        {B(\mu;\alpha,\beta)}\Big)}$.</span>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="sd">   &quot;&quot;&quot;</span>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="n">m</span> <span class="o">=</span> <span class="n">beta_mode</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
-</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">m</span> <span class="o">/</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)))</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="sd">        Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}$.</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="sd">   &quot;&quot;&quot;</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>    <span class="n">m</span> <span class="o">=</span> <span class="n">beta_mode</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">m</span> <span class="o">/</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)))</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>
 </span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>
-</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="k">def</span> <span class="nf">diff_log_beta_ratio</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
-</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of of the derivative with respect to &#39;x´ of -2 times</span>
-</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="sd">    the logarithm of the likelihood ratio assuming `beta` probability distribution.</span>
-</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>
-</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="sd">    Args:</span>
-</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="sd">        x (numpy array): Values for which you want to obtain the derivative of</span>
-</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">        the logLLH ratio.</span>
-</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">        m (float): Mode of the distribution.</span>
-</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="sd">        s (float): Standard deviation of the distribution.</span>
-</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>
-</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="sd">    Returns:</span>
-</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}</span>
-</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="sd">        \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</span>
-</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">beta_param</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>    <span class="k">return</span> <span class="n">diff_log_beta_ratio_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
-</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>
-</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>
-</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="k">def</span> <span class="nf">diff_log_beta_ratio_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of of the derivative with respect to &#39;x´ of -2</span>
-</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="sd">    times the logarithm of the likelihood ratio assuming `beta` probability</span>
-</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a><span class="sd">    distribution.</span>
-</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>
-</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a><span class="sd">    Args:</span>
-</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="sd">        x (numpy array): Values for which you want to obtain the derivative of</span>
-</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a><span class="sd">        the logLLH ratio.</span>
-</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a><span class="sd">        a (float): $\alpha$ parameter of the distribution.</span>
-</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a><span class="sd">        b (float): $\beta$ parameter of the distribution.</span>
-</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>
-</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a><span class="sd">    Returns:</span>
-</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a><span class="sd">        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}</span>
-</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="sd">        \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</span>
-</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="sd">   &quot;&quot;&quot;</span>
-</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="k">def</span> <span class="nf">diff_log_beta_ratio</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of of the derivative with respect to &#39;x´ of -2 times</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a><span class="sd">    the logarithm of the likelihood ratio assuming `beta` probability distribution.</span>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="sd">    Args:</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="sd">        x (numpy array): Values for which you want to obtain the derivative of</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="sd">        the logLLH ratio.</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">        m (float): Mode of the distribution.</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">        s (float): Standard deviation of the distribution.</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">    Returns:</span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="sd">        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x} \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">beta_param</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>    <span class="k">return</span> <span class="n">diff_log_beta_ratio_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="k">def</span> <span class="nf">diff_log_beta_ratio_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of of the derivative with respect to &#39;x´ of -2</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="sd">    times the logarithm of the likelihood ratio assuming `beta` probability</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="sd">    distribution.</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a><span class="sd">    Args:</span>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="sd">        x (numpy array): Values for which you want to obtain the derivative of</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a><span class="sd">        the logLLH ratio.</span>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="sd">        a (float): $\alpha$ parameter of the distribution.</span>
+</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a><span class="sd">        b (float): $\beta$ parameter of the distribution.</span>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a><span class="sd">    Returns:</span>
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a><span class="sd">        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x} \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</span>
+</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a><span class="sd">   &quot;&quot;&quot;</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span>
 </span></pre></div>
 
 
@@ -416,7 +413,7 @@ assuming <code><a href="#gaussian">gaussian</a></code> probability distribution.
     <a class="headerlink" href="#diff_log_gaussian_ratio"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="diff_log_gaussian_ratio-43"><a href="#diff_log_gaussian_ratio-43"><span class="linenos">43</span></a><span class="k">def</span> <span class="nf">diff_log_gaussian_ratio</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>  <span class="c1"># Actually, -2 ln(L/L0)</span>
 </span><span id="diff_log_gaussian_ratio-44"><a href="#diff_log_gaussian_ratio-44"><span class="linenos">44</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of the derivative with respect to &#39;x´ of -2 times</span>
-</span><span id="diff_log_gaussian_ratio-45"><a href="#diff_log_gaussian_ratio-45"><span class="linenos">45</span></a><span class="sd">    the logarithm of the likelihood ratio assuming `gaussian` probability distribution, </span>
+</span><span id="diff_log_gaussian_ratio-45"><a href="#diff_log_gaussian_ratio-45"><span class="linenos">45</span></a><span class="sd">    the logarithm of the likelihood ratio assuming `gaussian` probability distribution,</span>
 </span><span id="diff_log_gaussian_ratio-46"><a href="#diff_log_gaussian_ratio-46"><span class="linenos">46</span></a><span class="sd">    $ -2 \ln{\Big(\frac{\mathcal{N}(x;\mu,\sigma)}{\mathcal{N}(\mu;\mu,\sigma)}\Big)}$.</span>
 </span><span id="diff_log_gaussian_ratio-47"><a href="#diff_log_gaussian_ratio-47"><span class="linenos">47</span></a>
 </span><span id="diff_log_gaussian_ratio-48"><a href="#diff_log_gaussian_ratio-48"><span class="linenos">48</span></a><span class="sd">    Args:</span>
@@ -435,7 +432,7 @@ assuming <code><a href="#gaussian">gaussian</a></code> probability distribution.
 
 
             <div class="docstring"><p>Returns the values of the derivative with respect to 'x´ of -2 times
-the logarithm of the likelihood ratio assuming <code><a href="#gaussian">gaussian</a></code> probability distribution, 
+the logarithm of the likelihood ratio assuming <code><a href="#gaussian">gaussian</a></code> probability distribution,
 $ -2 \ln{\Big(\frac{\mathcal{N}(x;\mu,\sigma)}{\mathcal{N}(\mu;\mu,\sigma)}\Big)}$.</p>
 
 <h6 id="arguments">Arguments:</h6>
@@ -722,11 +719,10 @@ provided the α and β parameters.</p>
 </span><span id="log_beta_ratio-153"><a href="#log_beta_ratio-153"><span class="linenos">153</span></a><span class="sd">        b (float): $\beta$ parameter of the distribution.</span>
 </span><span id="log_beta_ratio-154"><a href="#log_beta_ratio-154"><span class="linenos">154</span></a>
 </span><span id="log_beta_ratio-155"><a href="#log_beta_ratio-155"><span class="linenos">155</span></a><span class="sd">    Returns:</span>
-</span><span id="log_beta_ratio-156"><a href="#log_beta_ratio-156"><span class="linenos">156</span></a><span class="sd">        Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}</span>
-</span><span id="log_beta_ratio-157"><a href="#log_beta_ratio-157"><span class="linenos">157</span></a><span class="sd">        {B(\mu;\alpha,\beta)}\Big)}$.</span>
-</span><span id="log_beta_ratio-158"><a href="#log_beta_ratio-158"><span class="linenos">158</span></a><span class="sd">   &quot;&quot;&quot;</span>
-</span><span id="log_beta_ratio-159"><a href="#log_beta_ratio-159"><span class="linenos">159</span></a>    <span class="n">m</span> <span class="o">=</span> <span class="n">beta_mode</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
-</span><span id="log_beta_ratio-160"><a href="#log_beta_ratio-160"><span class="linenos">160</span></a>    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">m</span> <span class="o">/</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)))</span>
+</span><span id="log_beta_ratio-156"><a href="#log_beta_ratio-156"><span class="linenos">156</span></a><span class="sd">        Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}$.</span>
+</span><span id="log_beta_ratio-157"><a href="#log_beta_ratio-157"><span class="linenos">157</span></a><span class="sd">   &quot;&quot;&quot;</span>
+</span><span id="log_beta_ratio-158"><a href="#log_beta_ratio-158"><span class="linenos">158</span></a>    <span class="n">m</span> <span class="o">=</span> <span class="n">beta_mode</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</span><span id="log_beta_ratio-159"><a href="#log_beta_ratio-159"><span class="linenos">159</span></a>    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">m</span> <span class="o">/</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)))</span>
 </span></pre></div>
 
 
@@ -744,8 +740,7 @@ assuming <code><a href="#beta">beta</a></code> probability distribution.</p>
 <h6 id="returns">Returns:</h6>
 
 <blockquote>
-  <p>Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}
-  {B(\mu;\alpha,\beta)}\Big)}$.</p>
+  <p>Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}$.</p>
 </blockquote>
 </div>
 
@@ -762,22 +757,21 @@ assuming <code><a href="#beta">beta</a></code> probability distribution.</p>
 
     </div>
     <a class="headerlink" href="#diff_log_beta_ratio"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="diff_log_beta_ratio-163"><a href="#diff_log_beta_ratio-163"><span class="linenos">163</span></a><span class="k">def</span> <span class="nf">diff_log_beta_ratio</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
-</span><span id="diff_log_beta_ratio-164"><a href="#diff_log_beta_ratio-164"><span class="linenos">164</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of of the derivative with respect to &#39;x´ of -2 times</span>
-</span><span id="diff_log_beta_ratio-165"><a href="#diff_log_beta_ratio-165"><span class="linenos">165</span></a><span class="sd">    the logarithm of the likelihood ratio assuming `beta` probability distribution.</span>
-</span><span id="diff_log_beta_ratio-166"><a href="#diff_log_beta_ratio-166"><span class="linenos">166</span></a>
-</span><span id="diff_log_beta_ratio-167"><a href="#diff_log_beta_ratio-167"><span class="linenos">167</span></a><span class="sd">    Args:</span>
-</span><span id="diff_log_beta_ratio-168"><a href="#diff_log_beta_ratio-168"><span class="linenos">168</span></a><span class="sd">        x (numpy array): Values for which you want to obtain the derivative of</span>
-</span><span id="diff_log_beta_ratio-169"><a href="#diff_log_beta_ratio-169"><span class="linenos">169</span></a><span class="sd">        the logLLH ratio.</span>
-</span><span id="diff_log_beta_ratio-170"><a href="#diff_log_beta_ratio-170"><span class="linenos">170</span></a><span class="sd">        m (float): Mode of the distribution.</span>
-</span><span id="diff_log_beta_ratio-171"><a href="#diff_log_beta_ratio-171"><span class="linenos">171</span></a><span class="sd">        s (float): Standard deviation of the distribution.</span>
-</span><span id="diff_log_beta_ratio-172"><a href="#diff_log_beta_ratio-172"><span class="linenos">172</span></a>
-</span><span id="diff_log_beta_ratio-173"><a href="#diff_log_beta_ratio-173"><span class="linenos">173</span></a><span class="sd">    Returns:</span>
-</span><span id="diff_log_beta_ratio-174"><a href="#diff_log_beta_ratio-174"><span class="linenos">174</span></a><span class="sd">        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}</span>
-</span><span id="diff_log_beta_ratio-175"><a href="#diff_log_beta_ratio-175"><span class="linenos">175</span></a><span class="sd">        \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</span>
-</span><span id="diff_log_beta_ratio-176"><a href="#diff_log_beta_ratio-176"><span class="linenos">176</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="diff_log_beta_ratio-177"><a href="#diff_log_beta_ratio-177"><span class="linenos">177</span></a>    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">beta_param</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-</span><span id="diff_log_beta_ratio-178"><a href="#diff_log_beta_ratio-178"><span class="linenos">178</span></a>    <span class="k">return</span> <span class="n">diff_log_beta_ratio_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="diff_log_beta_ratio-162"><a href="#diff_log_beta_ratio-162"><span class="linenos">162</span></a><span class="k">def</span> <span class="nf">diff_log_beta_ratio</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+</span><span id="diff_log_beta_ratio-163"><a href="#diff_log_beta_ratio-163"><span class="linenos">163</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of of the derivative with respect to &#39;x´ of -2 times</span>
+</span><span id="diff_log_beta_ratio-164"><a href="#diff_log_beta_ratio-164"><span class="linenos">164</span></a><span class="sd">    the logarithm of the likelihood ratio assuming `beta` probability distribution.</span>
+</span><span id="diff_log_beta_ratio-165"><a href="#diff_log_beta_ratio-165"><span class="linenos">165</span></a>
+</span><span id="diff_log_beta_ratio-166"><a href="#diff_log_beta_ratio-166"><span class="linenos">166</span></a><span class="sd">    Args:</span>
+</span><span id="diff_log_beta_ratio-167"><a href="#diff_log_beta_ratio-167"><span class="linenos">167</span></a><span class="sd">        x (numpy array): Values for which you want to obtain the derivative of</span>
+</span><span id="diff_log_beta_ratio-168"><a href="#diff_log_beta_ratio-168"><span class="linenos">168</span></a><span class="sd">        the logLLH ratio.</span>
+</span><span id="diff_log_beta_ratio-169"><a href="#diff_log_beta_ratio-169"><span class="linenos">169</span></a><span class="sd">        m (float): Mode of the distribution.</span>
+</span><span id="diff_log_beta_ratio-170"><a href="#diff_log_beta_ratio-170"><span class="linenos">170</span></a><span class="sd">        s (float): Standard deviation of the distribution.</span>
+</span><span id="diff_log_beta_ratio-171"><a href="#diff_log_beta_ratio-171"><span class="linenos">171</span></a>
+</span><span id="diff_log_beta_ratio-172"><a href="#diff_log_beta_ratio-172"><span class="linenos">172</span></a><span class="sd">    Returns:</span>
+</span><span id="diff_log_beta_ratio-173"><a href="#diff_log_beta_ratio-173"><span class="linenos">173</span></a><span class="sd">        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x} \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</span>
+</span><span id="diff_log_beta_ratio-174"><a href="#diff_log_beta_ratio-174"><span class="linenos">174</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="diff_log_beta_ratio-175"><a href="#diff_log_beta_ratio-175"><span class="linenos">175</span></a>    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">beta_param</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+</span><span id="diff_log_beta_ratio-176"><a href="#diff_log_beta_ratio-176"><span class="linenos">176</span></a>    <span class="k">return</span> <span class="n">diff_log_beta_ratio_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -796,8 +790,7 @@ the logarithm of the likelihood ratio assuming <code><a href="#beta">beta</a></c
 <h6 id="returns">Returns:</h6>
 
 <blockquote>
-  <p>Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}
-  \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</p>
+  <p>Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x} \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</p>
 </blockquote>
 </div>
 
@@ -814,22 +807,21 @@ the logarithm of the likelihood ratio assuming <code><a href="#beta">beta</a></c
 
     </div>
     <a class="headerlink" href="#diff_log_beta_ratio_args"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="diff_log_beta_ratio_args-181"><a href="#diff_log_beta_ratio_args-181"><span class="linenos">181</span></a><span class="k">def</span> <span class="nf">diff_log_beta_ratio_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-</span><span id="diff_log_beta_ratio_args-182"><a href="#diff_log_beta_ratio_args-182"><span class="linenos">182</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of of the derivative with respect to &#39;x´ of -2</span>
-</span><span id="diff_log_beta_ratio_args-183"><a href="#diff_log_beta_ratio_args-183"><span class="linenos">183</span></a><span class="sd">    times the logarithm of the likelihood ratio assuming `beta` probability</span>
-</span><span id="diff_log_beta_ratio_args-184"><a href="#diff_log_beta_ratio_args-184"><span class="linenos">184</span></a><span class="sd">    distribution.</span>
-</span><span id="diff_log_beta_ratio_args-185"><a href="#diff_log_beta_ratio_args-185"><span class="linenos">185</span></a>
-</span><span id="diff_log_beta_ratio_args-186"><a href="#diff_log_beta_ratio_args-186"><span class="linenos">186</span></a><span class="sd">    Args:</span>
-</span><span id="diff_log_beta_ratio_args-187"><a href="#diff_log_beta_ratio_args-187"><span class="linenos">187</span></a><span class="sd">        x (numpy array): Values for which you want to obtain the derivative of</span>
-</span><span id="diff_log_beta_ratio_args-188"><a href="#diff_log_beta_ratio_args-188"><span class="linenos">188</span></a><span class="sd">        the logLLH ratio.</span>
-</span><span id="diff_log_beta_ratio_args-189"><a href="#diff_log_beta_ratio_args-189"><span class="linenos">189</span></a><span class="sd">        a (float): $\alpha$ parameter of the distribution.</span>
-</span><span id="diff_log_beta_ratio_args-190"><a href="#diff_log_beta_ratio_args-190"><span class="linenos">190</span></a><span class="sd">        b (float): $\beta$ parameter of the distribution.</span>
-</span><span id="diff_log_beta_ratio_args-191"><a href="#diff_log_beta_ratio_args-191"><span class="linenos">191</span></a>
-</span><span id="diff_log_beta_ratio_args-192"><a href="#diff_log_beta_ratio_args-192"><span class="linenos">192</span></a><span class="sd">    Returns:</span>
-</span><span id="diff_log_beta_ratio_args-193"><a href="#diff_log_beta_ratio_args-193"><span class="linenos">193</span></a><span class="sd">        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}</span>
-</span><span id="diff_log_beta_ratio_args-194"><a href="#diff_log_beta_ratio_args-194"><span class="linenos">194</span></a><span class="sd">        \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</span>
-</span><span id="diff_log_beta_ratio_args-195"><a href="#diff_log_beta_ratio_args-195"><span class="linenos">195</span></a><span class="sd">   &quot;&quot;&quot;</span>
-</span><span id="diff_log_beta_ratio_args-196"><a href="#diff_log_beta_ratio_args-196"><span class="linenos">196</span></a>    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="diff_log_beta_ratio_args-179"><a href="#diff_log_beta_ratio_args-179"><span class="linenos">179</span></a><span class="k">def</span> <span class="nf">diff_log_beta_ratio_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+</span><span id="diff_log_beta_ratio_args-180"><a href="#diff_log_beta_ratio_args-180"><span class="linenos">180</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns the values of of the derivative with respect to &#39;x´ of -2</span>
+</span><span id="diff_log_beta_ratio_args-181"><a href="#diff_log_beta_ratio_args-181"><span class="linenos">181</span></a><span class="sd">    times the logarithm of the likelihood ratio assuming `beta` probability</span>
+</span><span id="diff_log_beta_ratio_args-182"><a href="#diff_log_beta_ratio_args-182"><span class="linenos">182</span></a><span class="sd">    distribution.</span>
+</span><span id="diff_log_beta_ratio_args-183"><a href="#diff_log_beta_ratio_args-183"><span class="linenos">183</span></a>
+</span><span id="diff_log_beta_ratio_args-184"><a href="#diff_log_beta_ratio_args-184"><span class="linenos">184</span></a><span class="sd">    Args:</span>
+</span><span id="diff_log_beta_ratio_args-185"><a href="#diff_log_beta_ratio_args-185"><span class="linenos">185</span></a><span class="sd">        x (numpy array): Values for which you want to obtain the derivative of</span>
+</span><span id="diff_log_beta_ratio_args-186"><a href="#diff_log_beta_ratio_args-186"><span class="linenos">186</span></a><span class="sd">        the logLLH ratio.</span>
+</span><span id="diff_log_beta_ratio_args-187"><a href="#diff_log_beta_ratio_args-187"><span class="linenos">187</span></a><span class="sd">        a (float): $\alpha$ parameter of the distribution.</span>
+</span><span id="diff_log_beta_ratio_args-188"><a href="#diff_log_beta_ratio_args-188"><span class="linenos">188</span></a><span class="sd">        b (float): $\beta$ parameter of the distribution.</span>
+</span><span id="diff_log_beta_ratio_args-189"><a href="#diff_log_beta_ratio_args-189"><span class="linenos">189</span></a>
+</span><span id="diff_log_beta_ratio_args-190"><a href="#diff_log_beta_ratio_args-190"><span class="linenos">190</span></a><span class="sd">    Returns:</span>
+</span><span id="diff_log_beta_ratio_args-191"><a href="#diff_log_beta_ratio_args-191"><span class="linenos">191</span></a><span class="sd">        Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x} \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</span>
+</span><span id="diff_log_beta_ratio_args-192"><a href="#diff_log_beta_ratio_args-192"><span class="linenos">192</span></a><span class="sd">   &quot;&quot;&quot;</span>
+</span><span id="diff_log_beta_ratio_args-193"><a href="#diff_log_beta_ratio_args-193"><span class="linenos">193</span></a>    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span>
 </span></pre></div>
 
 
@@ -849,8 +841,7 @@ distribution.</p>
 <h6 id="returns">Returns:</h6>
 
 <blockquote>
-  <p>Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}
-  \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</p>
+  <p>Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x} \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$</p>
 </blockquote>
 </div>
 

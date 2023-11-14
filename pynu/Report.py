@@ -1,8 +1,6 @@
-import numpy as np
 import pylatex
-from pylatex import Command, NoEscape, Section, Figure, Subsection
+from pylatex import Command, NoEscape, Section, Figure
 # from pylatex.utils import italic
-import os
 from pynu import Plot
 
 

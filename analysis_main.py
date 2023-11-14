@@ -147,7 +147,7 @@ def main():
             # nuisance minimisation)
             print(
                 f'Processing point {p} of {pynufit.Analysis.NumberOfPhysPoints} points in the analysis.')
-            pynufit.FitModel(p)
+            pynufit.FitModel(p, method = 'TEST')
             print('=====================================================')
 
 
