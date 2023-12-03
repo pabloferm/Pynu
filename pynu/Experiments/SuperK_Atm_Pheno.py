@@ -14,7 +14,7 @@ class SuperK(Experiment):
         self.Target = 'Water'
         self.SCENARIO = scenario
 
-        self.Definition()
+        self.SetDefinition()
 
         self.MCVariables()
 
