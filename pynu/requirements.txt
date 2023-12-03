@@ -1,0 +1,12 @@
+boost_histogram==1.4.0
+h5py==3.6.0
+h5py._debian_h5py_serial==3.6.0
+iminuit==2.24.0
+KDEpy==1.1.8
+logging_decorator==1.0.2
+matplotlib==3.5.1
+numpy==1.21.5
+pandas==2.0.2
+PyLaTeX==1.4.1
+pynu==0.1.4
+scipy==1.8.0
