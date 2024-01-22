@@ -84,8 +84,8 @@ class PhysicsTunes:
         if self.Detector == 'IceCube-Upgrade':
             from .Detector.ICUpDetector import ICUpgrade
             self.DetectorTunes = ICUpgrade()
-        elif self.Detector == 'SuperK_IV':
-            from .Detector.SKIV_Detector import SuperK_IV
+        elif 'SuperK' in self.Detector: # needs more work
+            from .Detector.SKIVDetector import SuperK_IV
             self.DetectorTunes = SuperK_IV()
         elif 'HyperK' in self.Detector:  # to be changed
             from .Detector.SKDetector import SuperK
