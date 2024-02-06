@@ -2,7 +2,7 @@
 # simulation developed with public information
 
 import numpy as np
-#import nuflux
+import nuflux
 from .Experiment import Experiment
 
 
