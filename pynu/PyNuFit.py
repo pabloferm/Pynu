@@ -210,6 +210,8 @@ class PyNuFit:
                             self.PhysicsTunes[name].OscillationTunes.UpdateParameter(
                                 tune, value)
 
+                        if w is None: w = 1 # Solve and understand why
+
                         if tune_block != 'Osc':
                             if tag == 'Fixed':
                                 exp.UpdateBaseWeights(w)
