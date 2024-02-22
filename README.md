@@ -25,9 +25,7 @@ Some of the requirements can be installed directly with the following command:
 pip install -r requirements.txt
 ```
 
-Others, need to be installed by hand and can be a bit tricky. Please, let me know if you find any issues:
-- nuSQuIDS (https://github.com/arguelles/nuSQuIDS): This package handles neutrino oscillations (https://arxiv.org/abs/2112.13804).
-- nuflux (https://github.com/icecube/nuflux): This package is used for computing atmospheric neutrino fluxes, so may not be necessary.
+The only external dependency that requires more work to be installed is nuSQuIDS, which handles the neutrino oscillations (https://arxiv.org/abs/2112.13804). Please, refer to https://github.com/arguelles/nuSQuIDS and let me know if you find any issues.
 
 
 # Usage
