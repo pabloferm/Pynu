@@ -91,7 +91,9 @@ class SuperK(Experiment):
 
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco
-        return self.BinIt_MC_2D(array, shift_E=1, bias_E=0)
+        self.set_energy_bias(bias_E)
+        self.set_energy_scale(shift_E)
+        return self.BinIt_MC_2D(array)
 
     def BinData(self):
         self.dCosThetaReco = self.dCosZReco
