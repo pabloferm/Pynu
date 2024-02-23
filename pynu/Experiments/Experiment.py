@@ -197,7 +197,6 @@ class Experiment:
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateNominalWeights(self, w):
-        print(w)
         self.NominalWeight = self.NominalWeight * w
 
     def SetExpectedWeight(self):

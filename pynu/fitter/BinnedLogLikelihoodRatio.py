@@ -26,11 +26,7 @@ class BinnedLogLikelihoodRatio:
 
        """
         self.observation = observation
-        print("observation")
-        print(self.observation)
         self.nominal_nuisance = nominal_nuisance
-        print("nominal_nuisance")
-        print(self.nominal_nuisance)
         self.sigma_nuisance = sigma_nuisance
         self.dist_nuisance = dist_nuisance
         self.number_of_nuisance = len(self.nominal_nuisance)
@@ -117,8 +113,6 @@ class BinnedLogLikelihoodRatio:
                                   expectation.values(), dE.values()):
                 nabla_X2[i] += 2 * np.sum((1 - O / E) * dEdx)
 
-        print(nabla_X2)
-
         return nabla_X2
 
     def nuisance_penalty(
@@ -198,8 +192,6 @@ class BinnedLogLikelihoodRatio:
         self.expectation_nominal = expectation
 
         priors = 0.5 * (priors + mu)
-        print(priors)
-        print(bounds)
 
         return priors, bounds
 

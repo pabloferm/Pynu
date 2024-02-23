@@ -112,7 +112,7 @@ def main():
     if args.multiproc:
         import multiprocessing
         if args.ncores:
-            cores = arg.ncores
+            cores = args.ncores
         else:
             cores = multiprocessing.cpu_count()
 

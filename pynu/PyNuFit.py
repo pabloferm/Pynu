@@ -188,7 +188,6 @@ class PyNuFit:
 
         for name, exp in self.Experiments.items():
             for source in labels:
-                print(source)
                 if source in exp.Definition.keys():
                     tune_block = exp.Definition[source]
                     for tune in labels[source]:
@@ -197,7 +196,6 @@ class PyNuFit:
                             value = vector[idx]
                         else:
                             value = vec[source][tune]
-                        print(tune_block)
                         if tune_block == 'Flux':
                             w = self.PhysicsTunes[name].GetFlux(tune, value)
                         elif tune_block == 'XSection':
@@ -231,7 +229,6 @@ class PyNuFit:
             for name, exp in self.Experiments.items():
                 if source in exp.Definition.keys():
                     tune_block = exp.Definition[source]
-                    print(tune_block)
                     for tune in self.Analysis.Nuisance[source]:
                         dWoverW[tune] = {name: 0}
                         idx = self.Analysis.NuisanceList.index(tune)
@@ -242,7 +239,6 @@ class PyNuFit:
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetXSection(
                                 'diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetXSection(tune, vector[idx])
                         elif tune_block == 'Detector':
-                            print(f"Inside {tune_block} tune block.")
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetDetector(
                                 'diff_' + tune, vector[idx]) / self.PhysicsTunes[name].GetDetector(tune, vector[idx])
                         elif tune_block == 'Osc':
@@ -343,11 +339,13 @@ class PyNuFit:
             #             'disp': self.verbosity})
 
             res = minimize(
-                self.model_tester_and_gradient,
+                # self.model_tester_and_gradient,
+                self.model_tester,
                 AnalyticPrior,
                 # method=method,
-                jac=True,
-                # bounds=AnalyticBounds,
+                # jac=True,
+                jac=False,
+                bounds=AnalyticBounds,
                 tol=eps,
                 options={
                     'disp': self.verbosity})
@@ -360,12 +358,8 @@ class PyNuFit:
 
             self.WriteToOutFile('Analysis', 'Chi2 Systs.', res.fun)
 
-            if self.verbosity:
-                print(f'Fitted nuisances: {res.x}')
-                print(f'-2 ln(H/H0) = {res.fun}')
-
-            return - 0.5 * res.fun
-
+            return - 0.5 * res.fun#
+        
         return - X2_stats
 
     def model_tester_and_gradient(self, nuisance_vector):
@@ -373,7 +367,6 @@ class PyNuFit:
         self.ComputeBinnedExpectation(
             self.point, nuisance_vector=nuisance_vector)  # Nominal expectation
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
-        print("HEYYYYYYY")
 
         ''' Get -2 ln(H/H0) ~ χ2 '''
         Chi2 = self.LLH.stats_and_systematics(
@@ -385,9 +378,6 @@ class PyNuFit:
             self.Expectation,
             self.DiffExpectation,
             nuisance_vector)
-        print(f'chi-squared = {Chi2}')
-        print(f'gradient of chi-squared = {D_Chi2}')
-        print(f'norm of gradient of chi-squared = {np.linalg.norm(D_Chi2)}')
 
         return (Chi2, D_Chi2)
 

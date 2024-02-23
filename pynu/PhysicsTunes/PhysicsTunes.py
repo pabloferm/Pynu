@@ -48,7 +48,6 @@ class PhysicsTunes:
 
     # @logd(file=False, logging_level='debug')
     def GetDetector(self, func_name, x):
-        print(dir(self.DetectorTunes))
         return self.DetectorTunes.Get(func_name, self._Experiment, x)
 
     # @logd(file=False, logging_level='debug')
@@ -117,12 +116,13 @@ class Tune:
     def Get(self, tune, exp, x):
         """ Get specific weights for a given `experiment` from tune evaluated 
         at `x`, given the name of the `tune`. """
-        print(f'tune {tune}')
-        print(f'exp {exp}')
-        print(f'x {x}')
+        # print("====================================")
+        # print(f'tune {tune}')
+        # print(f'exp {exp}')
+        # print(f'x {x}')
         try:
-            print(f'result {self.__getattribute__(tune)(exp, x)}')
             return self.__getattribute__(tune)(exp, x)
         except BaseException:
             print(tune + ' not found!!')
             return 1
+        print("====================================")
