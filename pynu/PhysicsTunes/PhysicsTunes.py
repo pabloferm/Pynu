@@ -8,7 +8,7 @@ from LoggingDecorator import logd
 class PhysicsTunes:
     ''' Contains all physics tunes of a given experiment '''
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def __init__(self, experiment, scenario, neutrino_flavors, set_all=False):
 
         self.Detector = experiment.Detector
@@ -38,24 +38,24 @@ class PhysicsTunes:
     def Experiment(self, experiment):
         self._Experiment = experiment
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def GetFlux(self, func_name, x):
         return self.FluxTunes.Get(func_name, self._Experiment, x)
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def GetXSection(self, func_name, x):
         return self.XSectionTunes.Get(func_name, self._Experiment, x)
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def GetDetector(self, func_name, x):
         print(dir(self.DetectorTunes))
         return self.DetectorTunes.Get(func_name, self._Experiment, x)
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def GetOscillation(self, func_name, x):
         return self.OscillationTunes.Get(func_name, self._Experiment, x)
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def SetFlux(self):
         if self.SOURCE == 'Atmospheric':
             from .Flux.AtmoFlux import AtmosphericFlux
@@ -71,7 +71,7 @@ class PhysicsTunes:
         else:
             sys.exit(f'{self._Experiment.SOURCE} source not found.')
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def SetXSection(self):
         if self.Target == 'Water':
             from .CrossSection.WaterXSection import WaterXSection
@@ -79,7 +79,7 @@ class PhysicsTunes:
         else:
             sys.exit(f'{self._Experiment.Target} target not found.')
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def SetDetector(self):
         if self.Detector == 'IceCube-Upgrade':
             from .Detector.ICUpDetector import ICUpgrade
@@ -93,7 +93,7 @@ class PhysicsTunes:
         else:
             sys.exit(f'{self.Detector} detector not found.')
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def SetOscillation(self):
         if self.SOURCE == 'Atmospheric':
             from .Oscillations.AtmOsc import AtmosphericOscillations
@@ -109,11 +109,11 @@ class PhysicsTunes:
 class Tune:
     ''' Base class for physics tunes '''
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def __init__(self):
         pass
 
-    @logd(file=False, logging_level='debug')
+    # @logd(file=False, logging_level='debug')
     def Get(self, tune, exp, x):
         """ Get specific weights for a given `experiment` from tune evaluated 
         at `x`, given the name of the `tune`. """

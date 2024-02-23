@@ -26,7 +26,11 @@ class BinnedLogLikelihoodRatio:
 
        """
         self.observation = observation
+        print("observation")
+        print(self.observation)
         self.nominal_nuisance = nominal_nuisance
+        print("nominal_nuisance")
+        print(self.nominal_nuisance)
         self.sigma_nuisance = sigma_nuisance
         self.dist_nuisance = dist_nuisance
         self.number_of_nuisance = len(self.nominal_nuisance)

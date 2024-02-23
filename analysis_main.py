@@ -108,7 +108,6 @@ def main():
 
     # Set analysis
     ################
-
     ''' Parallelization '''
     if args.multiproc:
         import multiprocessing

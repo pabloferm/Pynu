@@ -275,90 +275,105 @@ class PyNuFit:
             self.point, physics=True)  # Nominal expectation
         ''' Statistics only computation to start guiding the minimization '''
         X2_stats = self.LLH.stats_only(self.Expectation)
-        if X2_stats > 5e2:
-            eps = 1e-4
-        else:
-            eps = None
-
-        '''Get Jacobian of expected events w.r.t. nuisance parameters'''
-        self.ComputeBinnedDiffExpectation()
-
-        '''Analytic estimate for priors and bounds at first order'''
-        AnalyticPrior, AnalyticBounds = self.LLH.analytic_priors_bounds(
-            self.Expectation, self.DiffExpectation)
-
-        print(type(AnalyticPrior))
-        '''Combined chi^2 minimization'''
-        if method == 'GD':
-            from .gradient_descent_minimizer import gradient_descent_minimizer
-            gradient_descent_minimizer(
-                self.model_tester_and_gradient,
-                AnalyticPrior,
-                # epsilon = eps,
-                bounds=AnalyticBounds)
-        elif method == 'ADAM':
-            from .adam_minimizer import adam_minimizer
-            adam_minimizer(
-                self.model_tester_and_gradient,
-                AnalyticPrior,
-                # precission = eps,
-                bounds=AnalyticBounds)
-        elif method == 'MINUIT':
-            import iminuit
-            res = iminuit.minimize(
-                self.model_tester,
-                AnalyticPrior,
-                method='migrad',
-                jac=self.model_tester_gradient,
-                bounds=AnalyticBounds,
-                tol=eps,
-                options={
-                    'disp': self.verbosity})
-        elif method == 'TEST':
-            for i in range(2 * self.Analysis.NumberOfNuis):
-                x = np.asarray(
-                    AnalyticPrior) - (i - self.Analysis.NumberOfNuis) * np.asarray(self.Analysis.NuisSigmaList)
-                x2, dx2 = self.model_tester_and_gradient(x)
-                print('Point')
-                print(x)
-                print('Chi2')
-                print(x2)
-                print('Chi2 gradient')
-                print(dx2)
-        else:
-            res = minimize(
-                self.model_tester_and_gradient,
-                AnalyticPrior,
-                method=method,
-                jac=True,
-                bounds=AnalyticBounds,
-                tol=eps,
-                options={
-                    'disp': self.verbosity})
 
         self.WriteToOutFile(
             'Analysis',
             'Chi2 Stats. Only',
             X2_stats)
 
-        self.WriteToOutFile(
-            'Nuisance Parameters',
-            self.Analysis.NuisanceList,
-            res.x.tolist())
+        if self.Analysis.wSyst:
+            if X2_stats > 5e2:
+                eps = 1e-4
+            else:
+                eps = None
 
-        self.WriteToOutFile('Analysis', 'Chi2 Systs.', res.fun)
+            '''Get Jacobian of expected events w.r.t. nuisance parameters'''
+            self.ComputeBinnedDiffExpectation()
 
-        if self.verbosity:
-            print(f'Fitted nuisances: {res.x}')
-            print(f'-2 ln(H/H0) = {res.fun}')
+            '''Analytic estimate for priors and bounds at first order'''
+            AnalyticPrior, AnalyticBounds = self.LLH.analytic_priors_bounds(
+                self.Expectation, self.DiffExpectation)
 
-        return - 0.5 * res.fun
+            '''Combined chi^2 minimization'''
+            # if method == 'GD':
+            #     from .gradient_descent_minimizer import gradient_descent_minimizer
+            #     gradient_descent_minimizer(
+            #         self.model_tester_and_gradient,
+            #         AnalyticPrior,
+            #         # epsilon = eps,
+            #         bounds=AnalyticBounds)
+            # elif method == 'ADAM':
+            #     from .adam_minimizer import adam_minimizer
+            #     adam_minimizer(
+            #         self.model_tester_and_gradient,
+            #         AnalyticPrior,
+            #         # precission = eps,
+            #         bounds=AnalyticBounds)
+            # elif method == 'MINUIT':
+            #     import iminuit
+            #     res = iminuit.minimize(
+            #         self.model_tester,
+            #         AnalyticPrior,
+            #         method='migrad',
+            #         jac=self.model_tester_gradient,
+            #         bounds=AnalyticBounds,
+            #         tol=eps,
+            #         options={
+            #             'disp': self.verbosity})
+            # elif method == 'TEST':
+            #     for i in range(2 * self.Analysis.NumberOfNuis):
+            #         x = np.asarray(
+            #             AnalyticPrior) - (i - self.Analysis.NumberOfNuis) * np.asarray(self.Analysis.NuisSigmaList)
+            #         x2, dx2 = self.model_tester_and_gradient(x)
+            #         print('Point')
+            #         print(x)
+            #         print('Chi2')
+            #         print(x2)
+            #         print('Chi2 gradient')
+            #         print(dx2)
+            # else:
+            #     res = minimize(
+            #         self.model_tester_and_gradient,
+            #         AnalyticPrior,
+            #         method=method,
+            #         jac=True,
+            #         bounds=AnalyticBounds,
+            #         tol=eps,
+            #         options={
+            #             'disp': self.verbosity})
+
+            res = minimize(
+                self.model_tester_and_gradient,
+                AnalyticPrior,
+                # method=method,
+                jac=True,
+                # bounds=AnalyticBounds,
+                tol=eps,
+                options={
+                    'disp': self.verbosity})
+
+
+            self.WriteToOutFile(
+                'Nuisance Parameters',
+                self.Analysis.NuisanceList,
+                res.x.tolist())
+
+            self.WriteToOutFile('Analysis', 'Chi2 Systs.', res.fun)
+
+            if self.verbosity:
+                print(f'Fitted nuisances: {res.x}')
+                print(f'-2 ln(H/H0) = {res.fun}')
+
+            return - 0.5 * res.fun
+
+        return - X2_stats
 
     def model_tester_and_gradient(self, nuisance_vector):
         ''' Compute expected and its derivatives '''
         self.ComputeBinnedExpectation(
             self.point, nuisance_vector=nuisance_vector)  # Nominal expectation
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
+        print("HEYYYYYYY")
 
         ''' Get -2 ln(H/H0) ~ χ2 '''
         Chi2 = self.LLH.stats_and_systematics(
