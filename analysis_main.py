@@ -66,6 +66,12 @@ def main():
         default=False,
         action='store_true',
         help='Option for sampling parameter space using Markov Chain Monte Carlo.')
+    parse.add_argument(
+        "--hmc",
+        dest='hmc',
+        default=False,
+        action='store_true',
+        help='Option for sampling parameter space using Hamiltonian Monte Carlo.')
     args = parse.parse_args()
 
     # Setup analysis from xml file
