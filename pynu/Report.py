@@ -36,7 +36,8 @@ class Report:
         self.doc.generate_tex()
 
     def make_title(self):
-        self.title = self.source + self.scenario + self.analysis_type + 'with the ' + self.det + self.detector_type
+        self.title = self.source + self.scenario + self.analysis_type + \
+            'with the ' + self.det + self.detector_type
         self.doc.preamble.append(Command('title', self.title))
         self.doc.preamble.append(Command('author', self.author))
         self.doc.preamble.append(Command('date', NoEscape(r'\today')))

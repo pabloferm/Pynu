@@ -83,7 +83,7 @@ class PhysicsTunes:
         if self.Detector == 'IceCube-Upgrade':
             from .Detector.ICUpDetector import ICUpgrade
             self.DetectorTunes = ICUpgrade()
-        elif 'SuperK' in self.Detector: # needs more work
+        elif 'SuperK' in self.Detector:  # needs more work
             from .Detector.SKIVDetector import SuperK_IV
             self.DetectorTunes = SuperK_IV()
         elif 'HyperK' in self.Detector:  # to be changed
@@ -114,7 +114,7 @@ class Tune:
 
     # @logd(file=False, logging_level='debug')
     def Get(self, tune, exp, x):
-        """ Get specific weights for a given `experiment` from tune evaluated 
+        """ Get specific weights for a given `experiment` from tune evaluated
         at `x`, given the name of the `tune`. """
         # print("====================================")
         # print(f'tune {tune}')

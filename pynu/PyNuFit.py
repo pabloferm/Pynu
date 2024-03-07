@@ -208,7 +208,8 @@ class PyNuFit:
                             self.PhysicsTunes[name].OscillationTunes.UpdateParameter(
                                 tune, value)
 
-                        if w is None: w = 1 # Solve and understand why
+                        if w is None:
+                            w = 1  # Solve and understand why
 
                         if tune_block != 'Osc':
                             if tag == 'Fixed':
@@ -350,6 +351,7 @@ class PyNuFit:
                 options={
                     'disp': self.verbosity})
 
+            # ft.inference.mcmc.MCMC()
 
             self.WriteToOutFile(
                 'Nuisance Parameters',
@@ -358,8 +360,8 @@ class PyNuFit:
 
             self.WriteToOutFile('Analysis', 'Chi2 Systs.', res.fun)
 
-            return - 0.5 * res.fun#
-        
+            return - 0.5 * res.fun
+
         return - X2_stats
 
     def model_tester_and_gradient(self, nuisance_vector):
