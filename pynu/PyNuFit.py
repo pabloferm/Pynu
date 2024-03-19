@@ -348,7 +348,6 @@ class PyNuFit:
                     self.model_tester_and_gradient,
                     AnalyticPrior,
                     method="L-BFGS-B",
-                    method=method,
                     jac=True,
                     bounds=AnalyticBounds,
                     tol=eps,
