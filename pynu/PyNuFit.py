@@ -9,6 +9,10 @@ import Experiments as Exp  # contains rd class to read and setup each experiment
 from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
 import fitter as ft  # does all the fitting calculations
 
+from fitter.inference import mcmc
+from fitter.inference import variational
+from fitter.inference.mcmc_cython import run_metropolis_hastings
+
 
 class PyNuFit:
     ''' Top class containing everything '''
@@ -186,6 +190,8 @@ class PyNuFit:
         else:
             sys.exit('Not a valid tag for applying weights.')
 
+        w = 1  # Solve and understand why
+
         for name, exp in self.Experiments.items():
             for source in labels:
                 if source in exp.Definition.keys():
@@ -207,9 +213,7 @@ class PyNuFit:
                         elif tune_block == 'Osc':
                             self.PhysicsTunes[name].OscillationTunes.UpdateParameter(
                                 tune, value)
-
-                        if w is None:
-                            w = 1  # Solve and understand why
+                        # print(f"{tune} -- {w}")
 
                         if tune_block != 'Osc':
                             if tag == 'Fixed':
@@ -263,6 +267,11 @@ class PyNuFit:
             point,
             mode='BinnedLogLikelihoodRatio',
             method='L-BFGS-B'):
+
+        if not self.Analysis.do_point(point):
+            print(f"Skipping point {point}.")
+            return False
+
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
         self.set_likelihood(mode)
         self.point = point
@@ -272,6 +281,8 @@ class PyNuFit:
             self.point, physics=True)  # Nominal expectation
         ''' Statistics only computation to start guiding the minimization '''
         X2_stats = self.LLH.stats_only(self.Expectation)
+        print(f"Stats only, chi2 = {X2_stats}")
+        print(self.Analysis.FullPhysicsGrid[point])
 
         self.WriteToOutFile(
             'Analysis',
@@ -279,6 +290,7 @@ class PyNuFit:
             X2_stats)
 
         if self.Analysis.wSyst:
+
             if X2_stats > 5e2:
                 eps = 1e-4
             else:
@@ -292,66 +304,90 @@ class PyNuFit:
                 self.Expectation, self.DiffExpectation)
 
             '''Combined chi^2 minimization'''
-            # if method == 'GD':
-            #     from .gradient_descent_minimizer import gradient_descent_minimizer
-            #     gradient_descent_minimizer(
-            #         self.model_tester_and_gradient,
-            #         AnalyticPrior,
-            #         # epsilon = eps,
-            #         bounds=AnalyticBounds)
-            # elif method == 'ADAM':
-            #     from .adam_minimizer import adam_minimizer
-            #     adam_minimizer(
-            #         self.model_tester_and_gradient,
-            #         AnalyticPrior,
-            #         # precission = eps,
-            #         bounds=AnalyticBounds)
-            # elif method == 'MINUIT':
-            #     import iminuit
-            #     res = iminuit.minimize(
-            #         self.model_tester,
-            #         AnalyticPrior,
-            #         method='migrad',
-            #         jac=self.model_tester_gradient,
-            #         bounds=AnalyticBounds,
-            #         tol=eps,
-            #         options={
-            #             'disp': self.verbosity})
-            # elif method == 'TEST':
-            #     for i in range(2 * self.Analysis.NumberOfNuis):
-            #         x = np.asarray(
-            #             AnalyticPrior) - (i - self.Analysis.NumberOfNuis) * np.asarray(self.Analysis.NuisSigmaList)
-            #         x2, dx2 = self.model_tester_and_gradient(x)
-            #         print('Point')
-            #         print(x)
-            #         print('Chi2')
-            #         print(x2)
-            #         print('Chi2 gradient')
-            #         print(dx2)
-            # else:
-            #     res = minimize(
-            #         self.model_tester_and_gradient,
-            #         AnalyticPrior,
-            #         method=method,
-            #         jac=True,
-            #         bounds=AnalyticBounds,
-            #         tol=eps,
-            #         options={
-            #             'disp': self.verbosity})
+            if method == 'GD':
+                from .gradient_descent_minimizer import gradient_descent_minimizer
+                gradient_descent_minimizer(
+                    self.model_tester_and_gradient,
+                    AnalyticPrior,
+                    # epsilon = eps,
+                    bounds=AnalyticBounds)
 
-            res = minimize(
-                # self.model_tester_and_gradient,
-                self.model_tester,
-                AnalyticPrior,
-                # method=method,
-                # jac=True,
-                jac=False,
-                bounds=AnalyticBounds,
-                tol=eps,
-                options={
-                    'disp': self.verbosity})
+            elif method == 'ADAM':
+                from .adam_minimizer import adam_minimizer
+                adam_minimizer(
+                    self.model_tester_and_gradient,
+                    AnalyticPrior,
+                    # precission = eps,
+                    bounds=AnalyticBounds)
 
-            # ft.inference.mcmc.MCMC()
+            elif method == 'MINUIT':
+                import iminuit
+                res = iminuit.minimize(
+                    self.model_tester,
+                    AnalyticPrior,
+                    method='migrad',
+                    jac=self.model_tester_gradient,
+                    bounds=AnalyticBounds,
+                    tol=eps,
+                    options={
+                        'disp': self.verbosity})
+
+            elif method == 'TEST':
+                for i in range(2 * self.Analysis.NumberOfNuis):
+                    x = np.asarray(AnalyticPrior) - (i - self.Analysis.NumberOfNuis) * \
+                        np.asarray(self.Analysis.NuisSigmaList)
+                    x2, dx2 = self.model_tester_and_gradient(x)
+                    # print('Point')
+                    # print(x)
+                    # print('Chi2')
+                    # print(x2)
+                    # print('Chi2 gradient')
+                    # print(dx2)
+            else:
+                res = minimize(
+                    self.model_tester_and_gradient,
+                    AnalyticPrior,
+                    method="L-BFGS-B",
+                    method=method,
+                    jac=True,
+                    bounds=AnalyticBounds,
+                    tol=eps,
+                    options={
+                        'disp': self.verbosity})
+
+            """Hamiltonian MCMC"""
+            # sampler = mcmc.HMC(
+            #     self.model_tester,
+            #     self.model_tester_gradient,
+            #     AnalyticPrior,
+            #     num_samples=20, num_steps=10, lf_epsilon=1e-2)
+            # all_samples = sampler.hamiltonian_monte_carlo()
+            # print(all_samples)
+
+            # sampler = mcmc.MCMC(
+            #     self.model_tester, AnalyticPrior)
+            # all_samples = sampler.metropolis_hastings()
+
+            """ Cython version of MCMC Metropolis-Hastings"""
+            # initial_values = np.abs(np.random.randn(len(AnalyticPrior)) + 1, dtype=np.float64)
+            # sigma = np.zeros(len(AnalyticPrior), dtype=np.float64) + 0.5
+            # num_samples = 500
+            # all_samples = np.asarray(run_metropolis_hastings(num_samples, self.model_tester, initial_values, sigma))
+
+            """SVGD"""
+            # x0 = np.random.uniform(0.5, 1.5, (50, len(AnalyticPrior)))
+            # all_samples = variational.SVGD().update(
+            #     x0, self.model_tester_gradient, n_iter=50)
+
+            # import pandas as pd
+            # df = pd.DataFrame(all_samples, columns=self.Analysis.NuisanceList)
+            # import seaborn as sns
+            # import matplotlib.pyplot as plt
+            # g = sns.PairGrid(df, corner=True, aspect=1.5)
+            # g.map_diag(sns.histplot, bins=20)
+            # g.map_offdiag(sns.kdeplot, levels=[0.68, 0.95, 0.997])
+            # # g.map_offdiag(sns.scatterplot)
+            # plt.show()
 
             self.WriteToOutFile(
                 'Nuisance Parameters',

@@ -61,17 +61,35 @@ def main():
         action='store_true',
         help='Option for submitting jobs to a cluster.')
     parse.add_argument(
+        "--spherical_grid",
+        dest='spherical_grid',
+        default=False,
+        action='store_true',
+        help='Option for running the analysis only over the grid points inside a n-dimensional elipse.')
+    parse.add_argument(
+        '--radius',
+        nargs='?',
+        type=float,
+        default=1.0,
+        help='Relative radius for the n-dimensional elipse if the spherical_grid option is true.')
+    parse.add_argument(
         "--mcmc",
         dest='mcmc',
         default=False,
         action='store_true',
-        help='Option for sampling parameter space using Markov Chain Monte Carlo.')
+        help='Option for sampling parameter space using Metropolis-Hastings Markov Chain Monte Carlo.')
     parse.add_argument(
         "--hmc",
         dest='hmc',
         default=False,
         action='store_true',
-        help='Option for sampling parameter space using Hamiltonian Monte Carlo.')
+        help='Option for sampling parameter space using Hamiltonian Markov Chain Monte Carlo.')
+    parse.add_argument(
+        "--svgd",
+        dest='svgd',
+        default=False,
+        action='store_true',
+        help='Option for sampling parameter space using Stein Variation Gradient Descent (SVGD).')
     args = parse.parse_args()
 
     # Setup analysis from xml file
@@ -101,15 +119,20 @@ def main():
     if args.mcmc:
         import emcee
 
+    if args.spherical_grid:
+        pynufit.Analysis.set_spherical_grid(radius=args.radius)
+
+
     # Setup output file
     ############################
     # if (args.cluster and (points[0] == 0 or not os.path.isfile(
         # args.outfile))) or (not args.cluster) or
         # (os.path.isfile(args.outfile)):
     if not os.path.isfile(args.outfile):
-        print(not os.path.isfile(args.outfile))
+        print("Creating new analysis file.")
         pynufit.CreateOutFile(args.outfile)
     else:
+        print("Analysis file already exists.")
         pynufit.SetOutFile(args.outfile)
 
     # Set analysis
@@ -152,7 +175,7 @@ def main():
             # nuisance minimisation)
             print(
                 f'Processing point {p} of {pynufit.Analysis.NumberOfPhysPoints} points in the analysis.')
-            pynufit.FitModel(p, method = 'TEST')
+            pynufit.FitModel(p)
             print('=====================================================')
 
 

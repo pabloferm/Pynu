@@ -57,6 +57,38 @@ class ParseXML:
         self.Experiments = {}
         self.ExpTarget = {}
 
+        self.n_sphere = False
+        self.n_sphere_cut = None
+
+    def set_spherical_grid(self, radius=1):
+        """Calls the n-dimensional sphere cut over the analysis grid of points.
+
+        Args:
+            float (optional): relative radius of the elipse in each dimension
+
+        Returns:
+            None
+        """
+        self.n_sphere = True
+        self.n_sphere_cut = self.apply_n_sphere(radius=radius)
+        print(f"****************************************************************")
+        print(
+            f"**** Your analysis grid has gone from {self.NumberOfPhysPoints} to {np.sum(self.n_sphere_cut)} points. ****")
+        print(f"****************************************************************")
+
+    def do_point(self, point):
+        """Checks whether a point has to be analized or not.
+
+        Args:
+            int: index of point in the analysis
+
+        Returns:
+            bool
+        """
+        if self.n_sphere and self.n_sphere_cut is not None:
+            return self.n_sphere_cut[point]
+        return True
+
     def get_analysis(self):
         """Sets all analysis variables, that is all the sources, targets, detectors and oscillation
         parameters of the given analysis. It also computes the number of nuisance and physics parameters,
@@ -73,10 +105,12 @@ class ParseXML:
         self.read_detectors()
         self.read_experiments()
         self.read_oscillations()
+        # self.read_method_parameters()
         # dict of arrays with all physics points for each parameter
         self.PhysGrid = self.physics_grid()
         # cartesian product of the previous arrays
         self.FullPhysicsGrid = self.cartesian_physics_grid()
+        self.n_sphere = True
 
         self.wSyst = self.with_nuisance()  # True if analysis with nuisance
 
@@ -95,6 +129,39 @@ class ParseXML:
             self.check_sources()
 
         del self.root
+
+    def apply_n_sphere(self, radius=1):
+        """Removes the corners of the n-dimensional grid of physics point to be probed,
+        accepting only those points inside a n-dimensional elipse.
+        This is useful to reduce the number of points to be evaluated during grid search
+        as the expected best fit values are suposed to be towards the center of the grid.
+        NOTICE: Please use it wisely.
+
+        Args:
+            float (optional): relative radius of the elipse in each dimension
+
+        Returns:
+            Numpy array of bools
+        """
+        if "Ordering" in self.PhysicsList:
+            _means = np.zeros(self.NumberOfPhys - 1)
+            _radii = np.zeros(self.NumberOfPhys - 1)
+        else:
+            _means = np.zeros(self.NumberOfPhys)
+            _radii = np.zeros(self.NumberOfPhys)
+        kk = 0
+        for par in self.Physics:
+            for j, item in enumerate(self.Physics[par]):
+                print(par, item)
+                if item == 'Ordering':
+                    pass
+                else:
+                    _means[kk] = 0.5 * (self.PhysEdges[par]
+                                        [j][0] + self.PhysEdges[par][j][-1])
+                    _radii[kk] = - _means[kk] + self.PhysEdges[par][j][-1]
+                    kk += 1
+        norm_grid = (self.FullPhysicsGrid - _means) / _radii
+        return np.sum(norm_grid**2, axis=1) <= radius
 
     def with_nuisance(self):
         """Checks if the analysis contains nuisance parameters or it's stats. only.
@@ -256,6 +323,9 @@ class ParseXML:
             for item, values in self.PhysGrid[par].items():
                 v.append(values)
         return [*itertools.product(*v)]
+
+    def spherical_physics_grid(self):
+        pass
 
     def check_nuisance(self):
         """Prints each nuisance parameter to be checked by user.

@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Analysis>
 
-	<Method name="Binned profiling">
+	<Method name="Binned grid-search and profiling">
 		<minimizer name="L-BFGS-B"> </minimizer>
 		<verbosity> 1 </verbosity>
 		<gradient> 1 </gradient>
-		<max_tolerance> 1e-6 </max_tolerance>
+		<max_tolerance> 1e-4 </max_tolerance>
 		<min_tolerance> 1e-6 </min_tolerance>
 		<tolerance_threshold> 5e2 </tolerance_threshold>
+
+	</Method>
+
+	<Method name="Binned inference">
+		<sampler name="HMC"> </sampler>
+		<verbosity> 1 </verbosity>
+		<num_samples> 1e-4 </num_samples>
+		<burn_in> 1e-6 </burn_in>
+		<leapfrog_epsilon> 1e-6 </leapfrog_epsilon>
+		<leapfrog_steps> 1e-6 </leapfrog_steps>
 
 	</Method>
 

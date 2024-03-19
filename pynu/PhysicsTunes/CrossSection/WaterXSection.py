@@ -10,13 +10,34 @@ sys.path.append('../')
 
 
 class WaterXSection(Tune):
+    r"""Class containing the tunes for the neutrino-water cross section. Note that there are some dependencies on the NEUT interaction mode definition."""
 
     def XSecNuTau(self, experiment, x):
+        r"""Method for modifying the $\nu_\tau$ cross-section normalization.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
+            of special interest are the Monte Carlos simulations.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
         tau = np.ones(experiment.NumberOfEvents)
         tau[np.abs(experiment.nuPDG) == 16] = x
         return tau
 
     def diff_XSecNuTau(self, experiment, x):
+        r"""Method for computing the derivative of the weights of the $\nu_\tau$ cross-section normalization w.r.t. the tuning parameter.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
+            of special interest are the Monte Carlos simulations.
+
+        Returns:
+            Numpy.array or float with the derivative of the `XSecNuTau` weights.
+        """
         tau = np.zeros(experiment.NumberOfEvents)
         tau[np.abs(experiment.nuPDG) == 16] = 1
         return tau

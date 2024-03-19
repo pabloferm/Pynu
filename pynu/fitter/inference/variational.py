@@ -35,7 +35,7 @@ class SVGD():
             stepsize=1e-3,
             bandwidth=-1,
             alpha=0.9,
-            debug=False):
+            debug=True):
         # Check input
         if x0 is None or lnprob is None:
             raise ValueError('x0 or lnprob cannot be None!')
@@ -47,16 +47,19 @@ class SVGD():
         # adagrad with momentum
         fudge_factor = 1e-6
         historical_grad = 0
-        for iter in range(n_iter):
-            if debug and (iter + 1) % 1000 == 0:
-                print('iter ' + str(iter + 1))
+        for kk in range(n_iter):
+            if debug and (kk + 1) % 1 == 0:
+                print('iteration ' + str(kk + 1))
 
-            lnpgrad = lnprob(theta)
+            # lnpgrad = lnprob(theta)
+            lnpgrad = np.array(list(map(lnprob, theta)))
+            print(lnpgrad)
+
             # calculating the kernel matrix
             kxy, dxkxy = self.svgd_kernel(theta, h=-1)
             grad_theta = (np.matmul(kxy, lnpgrad) + dxkxy) / dim
             # adagrad
-            if iter == 0:
+            if kk == 0:
                 historical_grad = historical_grad + grad_theta ** 2
             else:
                 historical_grad = alpha * historical_grad + \
