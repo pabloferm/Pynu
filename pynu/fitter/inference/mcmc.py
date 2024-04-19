@@ -61,10 +61,11 @@ class HMC(MCMC):
         grad_neg_log_likelihood,
         initial_values,
         sigma=0.1,
-        num_steps=10,
+        num_steps=1000,
         num_samples=1,
         lf_epsilon=5e-3,
-        riemann_mass=None
+        riemann_mass=None,
+        random_steps=False
     ):
         super(
             HMC,
@@ -76,7 +77,10 @@ class HMC(MCMC):
 
         self.epsilon = epsilon
 
-        self.num_steps = num_steps
+        if random_steps:
+        	self.num_steps = np.random.randint(0, num_steps)
+        else:
+        	self.num_steps = num_steps
 
         self.grad_neg_log_likelihood = grad_neg_log_likelihood
 
