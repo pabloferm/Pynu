@@ -31,7 +31,7 @@ class SVGD():
             self,
             x0,
             lnprob,
-            n_iter=1000,
+            n_iter=100,
             stepsize=1e-3,
             bandwidth=-1,
             alpha=0.9,

@@ -8,7 +8,7 @@ sys.path.append('../')
 ####################
 
 
-class ICUpgrade(Tune):
+class IceCube(Tune):
 
     def IceAbsorption(self, experiment, x):
         xx = x - 1

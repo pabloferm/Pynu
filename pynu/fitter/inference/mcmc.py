@@ -1,4 +1,5 @@
 import numpy as np
+from symplectic_integrators import *
 import sys
 
 
@@ -61,8 +62,9 @@ class HMC(MCMC):
         initial_values,
         sigma=0.1,
         num_steps=10,
-        num_samples=100,
+        num_samples=1,
         lf_epsilon=5e-3,
+        riemann_mass=None
     ):
         super(
             HMC,
@@ -72,25 +74,39 @@ class HMC(MCMC):
             sigma=sigma,
             num_samples=num_samples)
 
-        self.lf_epsilon = lf_epsilon
+        self.epsilon = epsilon
 
         self.num_steps = num_steps
 
         self.grad_neg_log_likelihood = grad_neg_log_likelihood
 
-    def leapfrog_integration(self, current_q, current_p):
-        # Perform one leapfrog integration step
-        p_half = current_p - self.lf_epsilon * \
-            self.grad_neg_log_likelihood(current_q) / 2.0
-        q_new = current_q + self.lf_epsilon * p_half
-        p_new = p_half - self.lf_epsilon * \
-            self.grad_neg_log_likelihood(q_new) / 2.0
-        return q_new, p_new
+        self.dimension = len(initial_values)
+
+        if riemann_mass:
+        	if len(riemann_mass) < self.dimension:
+	        	self.riemann_mass = np.append(riemann_mass, np.ones(self.dimension - len(riemann_mass)))
+        	elif len(riemann_mass) == self.dimension:
+        		self.riemann_mass = riemann_mass
+        	else:
+        		sys.exit("Inconsistent dimensions at HMC inputs.")
+        else:
+        	self.riemann_mass = np.ones(self.dimension)
+
+    def integration(self, current_q, current_p, method="leapfrog"):
+    	if method == "leapfrog":
+    		return leapfrog(current_q, current_q, grad_kinetic_energy, grad_neg_log_likelihood, self.epsilon)
+    	else:
+    		sys.exit(f"{method} integration is not implemented yet, please do!")
 
     def kinetic_energy(self, p):
         # Kinetic energy: 0.5 * p^T * p
         # Include mass term
-        return 0.5 * np.dot(p, p)
+        return 0.5 * np.dot(p, p/self.riemann_mass)
+
+    def grad_kinetic_energy(self, p):
+        # Kinetic energy: 0.5 * p^T * p
+        # Include mass term
+        return p / self.riemann_mass
 
     def hamiltonian(self, q, p):
         # Hamiltonian: potential energy + kinetic energy
@@ -120,7 +136,7 @@ class HMC(MCMC):
             for k in range(self.num_steps):  # leapfrog integrator
                 # if k % 10 == 0:
                 #     print(f"Step {k} of {self.num_steps} at the leapfrog integrator")
-                current_q, current_p = self.leapfrog_integration(
+                current_q, current_p = self.integration(
                     current_q, current_p)
                 # print(f"current state is {current_q}")
 
@@ -141,7 +157,7 @@ class HMC(MCMC):
 
 
 class tHMC(HMC):
-    """Implementation of tempered HMC"""
+    """Implementation of tempered HMC, still pending on finishing HMC super class"""
 
     def __init__(
             self,
@@ -162,25 +178,17 @@ class tHMC(HMC):
             grad_neg_log_likelihood)
 
         if method_parameters["t_alpha"] > 1:
-            self.t_alpha = method_parameters["t_alpha"]
-        elif method_parameters["t_alpha"] < 1:
             self.t_alpha = 1 / method_parameters["t_alpha"]
+        elif method_parameters["t_alpha"] < 1:
+            self.t_alpha = method_parameters["t_alpha"]
         elif method_parameters["t_alpha"] == 1:
             print("You are using to default Hamiltonian MC.")
         else:
             sys.exit("Not a valid temperature value.")
 
-    def leapfrog_integration(self, current_q, current_p):
-        # Perform one leapfrog integration step
-        p_half = current_p - \
-            (self.lf_epsilon * self.grad_neg_log_likelihood(current_q) / 2.0) * self.t_alpha
-        q_new = current_q + self.lf_epsilon * p_half
-        p_new = p_half - \
-            (self.lf_epsilon * self.grad_neg_log_likelihood(q_new) / 2.0) / self.t_alpha
-        self.t_alpha = 1 / self.t_alpha
-        return q_new, p_new
-
-    def kinetic_energy(self, p):
-        # Kinetic energy: 0.5 * p^T * p
-        # Include mass term
-        return 0.5 * np.dot(p, p)
+    def integration(self, current_q, current_p, method):
+    	if method == "leapfrog":
+    		self.t_alpha = 1 / self.t_alpha
+    		return tempered_leapfrog(current_q, current_q, grad_kinetic_energy, grad_neg_log_likelihood, self.epsilon, self.t_alpha)
+    	else:
+    		sys.exit(f"{method} integration is not implemented yet, please do!")
