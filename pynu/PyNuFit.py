@@ -196,6 +196,7 @@ class PyNuFit:
                             value = vector[idx]
                         else:
                             value = vec[source][tune]
+                        w = 1 # Needed: Solve and understand why
                         if tune_block == 'Flux':
                             w = self.PhysicsTunes[name].GetFlux(tune, value)
                         elif tune_block == 'XSection':
@@ -207,8 +208,6 @@ class PyNuFit:
                         elif tune_block == 'Osc':
                             self.PhysicsTunes[name].OscillationTunes.UpdateParameter(
                                 tune, value)
-
-                        if w is None: w = 1 # Solve and understand why
 
                         if tune_block != 'Osc':
                             if tag == 'Fixed':
@@ -261,7 +260,8 @@ class PyNuFit:
             self,
             point,
             mode='BinnedLogLikelihoodRatio',
-            method='L-BFGS-B'):
+            method='L-BFGS-B',
+            jacobian=True):
         ''' Binned log-Likelihood fit assuming data is Poisson-distributed '''
         self.set_likelihood(mode)
         self.point = point
@@ -338,17 +338,27 @@ class PyNuFit:
             #         options={
             #             'disp': self.verbosity})
 
-            res = minimize(
-                # self.model_tester_and_gradient,
-                self.model_tester,
-                AnalyticPrior,
-                # method=method,
-                # jac=True,
-                jac=False,
-                bounds=AnalyticBounds,
-                tol=eps,
-                options={
-                    'disp': self.verbosity})
+            
+            if jacobian:
+                res = minimize(
+                    self.model_tester_and_gradient,
+                    AnalyticPrior,
+                    method=method,
+                    jac=True,
+                    bounds=AnalyticBounds,
+                    tol=eps,
+                    options={
+                        'disp': self.verbosity})
+            else:
+                res = minimize(
+                    self.model_tester,
+                    AnalyticPrior,
+                    method=method,
+                    jac=False,
+                    bounds=AnalyticBounds,
+                    tol=eps,
+                    options={
+                        'disp': self.verbosity})
 
 
             self.WriteToOutFile(
@@ -361,6 +371,7 @@ class PyNuFit:
             return - 0.5 * res.fun#
         
         return - X2_stats
+
 
     def model_tester_and_gradient(self, nuisance_vector):
         ''' Compute expected and its derivatives '''

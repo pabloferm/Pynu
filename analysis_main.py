@@ -66,6 +66,12 @@ def main():
         default=False,
         action='store_true',
         help='Option for sampling parameter space using Markov Chain Monte Carlo.')
+    parse.add_argument(
+        "--no_jac",
+        dest='no_jac',
+        default=True,
+        action='store_false',
+        help='Option not to compute the jacobian of the negative log likelihood.')
     args = parse.parse_args()
 
     # Setup analysis from xml file
@@ -146,7 +152,7 @@ def main():
             # nuisance minimisation)
             print(
                 f'Processing point {p} of {pynufit.Analysis.NumberOfPhysPoints} points in the analysis.')
-            pynufit.FitModel(p, method = 'TEST')
+            pynufit.FitModel(p, jacobian=args.no_jac)
             print('=====================================================')
 
 
