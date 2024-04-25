@@ -1,4 +1,4 @@
-from numba import jit, njit
+from numba import njit
 import numpy as np
 import time
 

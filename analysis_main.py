@@ -117,7 +117,7 @@ def main():
         import multiprocessing
 
     if args.mcmc:
-        import emcee
+        pass
 
     if args.spherical_grid:
         pynufit.Analysis.set_spherical_grid(radius=args.radius)
@@ -147,12 +147,15 @@ def main():
 
         ''' Markov chain wandering '''
         if args.mcmc:
-            import emcee
             import numpy as np
             nwalkers = 2**4
             ndim = pynufit.Analysis.NumberOfPhys
             nsteps = 200
             initial = np.zeros((nwalkers, ndim))
+
+        # elif args.hmc:
+        #     samples = 100
+        #     for s in range(points):
 
         else:
             processes = []
@@ -180,17 +183,16 @@ def main():
 
 
 if __name__ == '__main__':
-     # import cProfile
-     # from pstats import SortKey
-     # import pstats
-     # cProfile.run('main()', 'output.dat')
+    import cProfile
+    import pstats
+    cProfile.run('main()', 'hmc.dat')
 
-     # with open('output_time.txt', 'w') as f:
-     #     p = pstats.Stats('output.dat', stream=f)
-     #     p.sort_stats('time').print_stats()
+    with open('hmc_time.txt', 'w') as f:
+        p = pstats.Stats('hmc.dat', stream=f)
+        p.sort_stats('time').print_stats()
 
-     # with open('output_calls.txt', 'w') as f:
-     #     p = pstats.Stats('output.dat', stream=f)
-     #     p.sort_stats('calls').print_stats()
+    with open('hmc_calls.txt', 'w') as f:
+        p = pstats.Stats('hmc.dat', stream=f)
+        p.sort_stats('calls').print_stats()
 
-    main()
+    # main()

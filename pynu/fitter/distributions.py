@@ -7,6 +7,7 @@ import numpy as np
 ############ Gaussian distribution ###########
 ##############################################
 
+
 def gaussian(x, m, s):
     r"""Returns the values of Gaussian or Normal probability distribution,
     $\mathcal{N}(x;\mu,\sigma) = \frac{1}{\sigma\sqrt{2\pi}}
@@ -19,8 +20,8 @@ def gaussian(x, m, s):
 
     Returns:
         Numpy array with values of $\mathcal{N}(x;\mu,\sigma)$.
-   """
-    return np.exp(-0.5 * (x - m)**2 / s**2) / (s * np.sqrt(2 * pi))
+    """
+    return np.exp(-0.5 * (x - m) ** 2 / s**2) / (s * np.sqrt(2 * pi))
 
 
 def log_gaussian_ratio(x, m, s):
@@ -35,8 +36,8 @@ def log_gaussian_ratio(x, m, s):
     Returns:
         Numpy array with the values for $-2\cdot\ln{\Big(\frac{\mathcal{N}(x;\mu,\sigma)}
         {\mathcal{N}(\mu;\mu,\sigma)}\Big)}$.
-   """
-    return (x - m)**2 / s**2
+    """
+    return (x - m) ** 2 / s**2
 
 
 def diff_log_gaussian_ratio(x, m, s):  # Actually, -2 ln(L/L0)
@@ -54,13 +55,14 @@ def diff_log_gaussian_ratio(x, m, s):  # Actually, -2 ln(L/L0)
         Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x}
         \Big(\ln{\Big(\frac{\mathcal{N}(x;\mu,\sigma)}{\mathcal{N}
         (\mu;\mu,\sigma)}\Big)}\Big)$
-   """
+    """
     return 2 * (x - m) / s**2
 
 
 ##############################################
 ############## Beta distribution #############
 ##############################################
+
 
 def beta(x, a, b):
     r"""Returns the values of Beta probability distribution,
@@ -75,7 +77,7 @@ def beta(x, a, b):
     Returns:
         Numpy array with values of $B(x;\alpha,\beta)$.
     """
-    return x**(a - 1) * (1 - x)**(b - 1) * gamma(a + b) / gamma(a) / gamma(b)
+    return x ** (a - 1) * (1 - x) ** (b - 1) * gamma(a + b) / gamma(a) / gamma(b)
 
 
 def beta_param(m, s):  # Mode and std
@@ -139,7 +141,7 @@ def beta_std(a, b):
     Returns:
         Float, the Standard deviation of the distribution.
     """
-    return np.sqrt((a * b) / ((a + b)**2 * (a + b + 1)))
+    return np.sqrt((a * b) / ((a + b) ** 2 * (a + b + 1)))
 
 
 def log_beta_ratio(x, a, b):
@@ -153,7 +155,7 @@ def log_beta_ratio(x, a, b):
 
     Returns:
         Numpy array with the values for $-2\cdot\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}$.
-   """
+    """
     m = beta_mode(a, b)
     return 2 * ((a - 1) * np.log(m / x) + (b - 1) * np.log((1 - m) / (1 - x)))
 
@@ -188,5 +190,5 @@ def diff_log_beta_ratio_args(x, a, b):
 
     Returns:
         Numpy array with the values for $-2\frac{\mathrm{d}}{\mathrm{d}x} \Big(\ln{\Big(\frac{B(x;\alpha,\beta)}{B(\mu;\alpha,\beta)}\Big)}\Big)$
-   """
-    return 2 * (- (a - 1) / x + (b - 1) / (1 - x))
+    """
+    return 2 * (-(a - 1) / x + (b - 1) / (1 - x))

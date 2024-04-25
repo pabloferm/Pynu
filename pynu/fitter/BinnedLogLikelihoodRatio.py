@@ -1,6 +1,11 @@
 import sys
 import numpy as np
-from .distributions import diff_log_gaussian_ratio, diff_log_beta_ratio, log_gaussian_ratio, log_beta_ratio
+from .distributions import (
+    diff_log_gaussian_ratio,
+    diff_log_beta_ratio,
+    log_gaussian_ratio,
+    log_beta_ratio,
+)
 
 
 class BinnedLogLikelihoodRatio:
@@ -8,11 +13,9 @@ class BinnedLogLikelihoodRatio:
     the log likelihood ratio ($-2\ln\big(\frac{L(Exp.)}{L(Obs.)}\big)\sim\chi^2$) given a set of binned
     observed data, binned expected events at a given physics point and nuisance parameters, and assuming
     Poisson statistics.
-   """
+    """
 
-    def __init__(self, observation, nominal_nuisance,
-                 sigma_nuisance,
-                 dist_nuisance):
+    def __init__(self, observation, nominal_nuisance, sigma_nuisance, dist_nuisance):
         r"""Initiates the class by storing the non-changing items of the $\chi^2$ calculation.
 
         Args:
@@ -24,7 +27,7 @@ class BinnedLogLikelihoodRatio:
             dist_nuisance (list of str): Produced from the xml analysis file, it contains the type of distribution which is
             assumed for each nuisance.
 
-       """
+        """
         self.observation = observation
         self.nominal_nuisance = nominal_nuisance
         self.sigma_nuisance = sigma_nuisance
@@ -42,17 +45,13 @@ class BinnedLogLikelihoodRatio:
 
         Returns:
             Float with the value of $\chi^2$.
-       """
+        """
         X2: float = 0
-        for O, E in zip(self.observation.values(),
-                        expectation.values()):
+        for O, E in zip(self.observation.values(), expectation.values()):
             X2 += 2 * np.sum(E - O + O * np.log(O / E))
         return X2
 
-    def stats_and_systematics(
-            self,
-            expectation,
-            nuisance):
+    def stats_and_systematics(self, expectation, nuisance):
         r"""Returns the value of binned $\chi^2 = 2\sum_i \Big(
         E_i-O_i+O_i\ln\big(\frac{O_i}{E_i}\big)\Big) + 2\sum_j \ln\Big(\frac{P^{nuis}_j(x)}{P^{nuis}_j(x=\mu)}\Big)$,
         given the dictionary of binned expected number of events for each experiment of the analysis and taking
@@ -65,20 +64,15 @@ class BinnedLogLikelihoodRatio:
 
         Returns:
             Float with the value of $\chi^2$ with nuisance.
-       """
+        """
         X2: float
         if set(nuisance) == set(self.nominal_nuisance):
             X2 = self.stats_only(expectation)
         else:
-            X2 = self.stats_only(expectation) + \
-                self.nuisance_penalty(nuisance)
+            X2 = self.stats_only(expectation) + self.nuisance_penalty(nuisance)
         return X2
 
-    def gradient(
-            self,
-            expectation,
-            diff_expectation,
-            nuisance):
+    def gradient(self, expectation, diff_expectation, nuisance):
         r"""Returns the gradient of binned $\chi^2$ computed analytically, given the dictionary of binned
         expected number of events for each experiment of the analysis and its derivative with respect to every
         nuisance parameter.
@@ -97,27 +91,34 @@ class BinnedLogLikelihoodRatio:
 
         Returns:
             Numpy array with each component of $\nabla \chi^2$.
-       """
+        """
         nabla_X2 = np.zeros(len(self.nominal_nuisance))
-        for i, (dE, mu, sig, dist, nuis) in enumerate(zip(diff_expectation.values(
-        ), self.nominal_nuisance, self.sigma_nuisance, self.dist_nuisance, nuisance)):
-            if dist == 'normal':
+        for i, (dE, mu, sig, dist, nuis) in enumerate(
+            zip(
+                diff_expectation.values(),
+                self.nominal_nuisance,
+                self.sigma_nuisance,
+                self.dist_nuisance,
+                nuisance,
+            )
+        ):
+            if dist == "normal":
                 nabla_X2[i] += diff_log_gaussian_ratio(nuis, mu, sig)
-            elif dist == 'beta':
+            elif dist == "beta":
                 nabla_X2[i] += diff_log_beta_ratio(nuis, mu, sig)
             else:
                 sys.exit(
-                    f'Not an implemented distribution for nuisance {list(diff_expectation.keys())[i]}.')
+                    f"Not an implemented distribution for nuisance {list(diff_expectation.keys())[i]}."
+                )
 
-            for O, E, dEdx in zip(self.observation.values(),
-                                  expectation.values(), dE.values()):
+            for O, E, dEdx in zip(
+                self.observation.values(), expectation.values(), dE.values()
+            ):
                 nabla_X2[i] += 2 * np.sum((1 - O / E) * dEdx)
 
         return nabla_X2
 
-    def nuisance_penalty(
-            self,
-            nuisance):
+    def nuisance_penalty(self, nuisance):
         r"""Returns the penalty term associated to nuisance parameters for the $\chi^2$ computation.
 
         Args:
@@ -126,20 +127,18 @@ class BinnedLogLikelihoodRatio:
 
         Returns:
             Float with $\sum_j \ln\big(\frac{P^{nuis}_j(x)}{P^{nuis}_j(x=\mu)}\big)$.
-       """
+        """
         X2: float = 0
         for mu, sig, dist, nuis in zip(
-                self.nominal_nuisance, self.sigma_nuisance, self.dist_nuisance,
-                nuisance):
-            if 'normal' in dist:
+            self.nominal_nuisance, self.sigma_nuisance, self.dist_nuisance, nuisance
+        ):
+            if "normal" in dist:
                 X2 += log_gaussian_ratio(nuis, mu, sig)
-            elif dist == 'beta':
+            elif dist == "beta":
                 X2 += log_beta_ratio(nuis, mu, sig)
         return X2
 
-    def analytic_priors_bounds(self,
-                               expectation,
-                               diff_expectation):
+    def analytic_priors_bounds(self, expectation, diff_expectation):
         r"""Returns the first-order values of the nuisance parameters which minimize the $\chi^2$ at a given
         physics points. Here, first-order means we assume that the binned expected number of events is not
         modified by nuisance parameters, i.e. nuisance parameters are assumed to take the default value in this
@@ -166,7 +165,7 @@ class BinnedLogLikelihoodRatio:
         Returns:
             Numpy array with the estimate for the nuisance parameters.
             Tuple with the lower and upper bounds for the nuisance parameters. Tuple(Tuple(lower,upper)).
-       """
+        """
         A = np.zeros(self.number_of_nuisance)
         B = np.zeros(self.number_of_nuisance)
         mu = np.array(self.nominal_nuisance)
@@ -174,8 +173,9 @@ class BinnedLogLikelihoodRatio:
 
         # Experiments
         for i, dE in enumerate(diff_expectation.values()):
-            for O, E, dEdx in zip(self.observation.values(),
-                                  expectation.values(), dE.values()):
+            for O, E, dEdx in zip(
+                self.observation.values(), expectation.values(), dE.values()
+            ):
                 A[i] += np.sum((O / E - 1) * dEdx)
                 B[i] += np.sum(O / E**2 * dEdx**2)
 
@@ -195,10 +195,7 @@ class BinnedLogLikelihoodRatio:
 
         return priors, bounds
 
-    def parabolic_priors(self,
-                         expectation_prior,
-                         diff_expectation_prior,
-                         prior):
+    def parabolic_priors(self, expectation_prior, diff_expectation_prior, prior):
         r"""Second order analytic computation of values for parameters to be mariginalized
         assuming we are close enough to the minimum , i.e. a parabola, i.e. linear derivative.
 
@@ -219,24 +216,44 @@ class BinnedLogLikelihoodRatio:
         """
 
         if not self.expectation_nominal:
-            sys.exit('Expectation for nominal values of nuisance not defined.')
+            sys.exit("Expectation for nominal values of nuisance not defined.")
 
         if not self.diff_expectation_nominal:
             sys.exit(
-                'Derivative of the expectation for nominal values of nuisance not defined.')
+                "Derivative of the expectation for nominal values of nuisance not defined."
+            )
 
-        D_Chi2_1 = self.gradient(
-            expectation_prior,
-            diff_expectation_prior,
-            prior)
+        D_Chi2_1 = self.gradient(expectation_prior, diff_expectation_prior, prior)
         X_1 = prior
 
         D_Chi2_0 = self.gradient(
             self.expectation_nominal,
             self.diff_expectation_nominal,
-            self.nominal_nuisance)
+            self.nominal_nuisance,
+        )
         X_0 = np.array(self.nominal_nuisance)
 
         priors_2nd = (D_Chi2_1 * X_0 - D_Chi2_0 * X_1) / (D_Chi2_1 - D_Chi2_0)
 
         return priors_2nd
+
+    def hessian_approximation(self, expectation_prior, diff_expectation_prior, prior):
+        r"""Assumes second derivative terms of weights w.r.t. parameters are negligible and Gaussian priors.
+
+        $\nabla^2 \chi^2 \approx \sum \frac{O}{E'^2}\bigg(\partial_j E'\bigg)^2$
+
+        NOTE: To be done.
+
+        Args:
+            expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events
+            (numpy.array) similarly to observation, but for a given physics and nuisance values.
+            diff_expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (nuisance parameter (str):
+            (Experiment(str): binned events (numpy.array)).
+            priors (list of float): Values of nuisance parameter estimates other than the nominal values.
+
+        Returns:
+            Numpy array with the estimate for the nuisance parameters.
+
+        """
+
+        pass

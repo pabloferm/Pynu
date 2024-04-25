@@ -9,9 +9,9 @@ from .Experiment import Experiment
 class SuperK(Experiment):
     def __init__(self, dict_of_details, scenario):
         super(SuperK, self).__init__(dict_of_details)
-        self.Detector = 'SuperK_Pheno'
-        self.SOURCE = 'Atmospheric'
-        self.Target = 'Water'
+        self.Detector = "SuperK_Pheno"
+        self.SOURCE = "Atmospheric"
+        self.Target = "Water"
         self.SCENARIO = scenario
 
         self.SetDefinition()
@@ -26,20 +26,19 @@ class SuperK(Experiment):
             self.BinData()
 
     def MCVariables(self):
-        d_itype = self.MC['itype']
-        condition = (d_itype > -1)
-        self.EReco = self.MC['evis'][condition]
-        self.CosZReco = self.MC['recodirZ'][condition]
-        self.CosZTrue = self.MC['dirnuZ'][condition]
-        self.AziTrue = self.MC['azi'][condition]
-        self.Mode = self.MC['mode'][condition]
+        d_itype = self.MC["itype"]
+        condition = d_itype > -1
+        self.EReco = self.MC["evis"][condition]
+        self.CosZReco = self.MC["recodirZ"][condition]
+        self.CosZTrue = self.MC["dirnuZ"][condition]
+        self.AziTrue = self.MC["azi"][condition]
+        self.Mode = self.MC["mode"][condition]
         self.CC = np.abs(self.Mode) < 30
-        self.nuPDG = self.MC['ipnu'][condition]
-        self.ETrue = self.MC['pnu'][condition]
-        self.Weight = self.MC['weightReco'][condition] * \
-            self.MC['weightSim'][condition]
-        self.Sample = self.MC['itype'][condition]  # Sample of each event
-        self.DecayE = self.MC['muedk'][condition]
+        self.nuPDG = self.MC["ipnu"][condition]
+        self.ETrue = self.MC["pnu"][condition]
+        self.Weight = self.MC["weightReco"][condition] * self.MC["weightSim"][condition]
+        self.Sample = self.MC["itype"][condition]  # Sample of each event
+        self.DecayE = self.MC["muedk"][condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
@@ -59,32 +58,37 @@ class SuperK(Experiment):
         del self.MC
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
-        flux = nuflux.makeFlux('IPhonda2014_sk_solmin')
+        flux = nuflux.makeFlux("IPhonda2014_sk_solmin")
 
         AtmInitialFlux = np.zeros(
-            (len(cth_nodes), len(energy_nodes), 2, neutrino_flavors))
+            (len(cth_nodes), len(energy_nodes), 2, neutrino_flavors)
+        )
 
         for ic, nu_cos_zenith in enumerate(cth_nodes):
             for ie, nu_energy in enumerate(energy_nodes):
                 AtmInitialFlux[ic][ie][0][0] = flux.getFlux(
-                    nuflux.NuE, nu_energy, nu_cos_zenith)  # nue
+                    nuflux.NuE, nu_energy, nu_cos_zenith
+                )  # nue
                 AtmInitialFlux[ic][ie][1][0] = flux.getFlux(
-                    nuflux.NuEBar, nu_energy, nu_cos_zenith)  # nue bar
+                    nuflux.NuEBar, nu_energy, nu_cos_zenith
+                )  # nue bar
                 AtmInitialFlux[ic][ie][0][1] = flux.getFlux(
-                    nuflux.NuMu, nu_energy, nu_cos_zenith)  # numu
+                    nuflux.NuMu, nu_energy, nu_cos_zenith
+                )  # numu
                 AtmInitialFlux[ic][ie][1][1] = flux.getFlux(
-                    nuflux.NuMuBar, nu_energy, nu_cos_zenith)  # numu bar
-                AtmInitialFlux[ic][ie][0][2] = 0.  # nutau
-                AtmInitialFlux[ic][ie][1][2] = 0.  # nutau bar
+                    nuflux.NuMuBar, nu_energy, nu_cos_zenith
+                )  # numu bar
+                AtmInitialFlux[ic][ie][0][2] = 0.0  # nutau
+                AtmInitialFlux[ic][ie][1][2] = 0.0  # nutau bar
         return AtmInitialFlux
 
     def DataVariables(self):
-        d_itype = self.Data['itype']
+        d_itype = self.Data["itype"]
         condition = (d_itype < 16) * (d_itype > -1)
-        self.dEReco = self.Data['evis'][condition]
-        self.dCosZReco = self.Data['recodirZ'][condition]
-        self.dSample = self.Data['itype'][condition]  # Sample of each event
-        self.dDecayE = self.Data['muedk'][condition]
+        self.dEReco = self.Data["evis"][condition]
+        self.dCosZReco = self.Data["recodirZ"][condition]
+        self.dSample = self.Data["itype"][condition]  # Sample of each event
+        self.dDecayE = self.Data["muedk"][condition]
         self.dNumberOfEvents = self.Sample.size
 
         del self.Data
@@ -104,15 +108,14 @@ class SuperK(Experiment):
         sgm_ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.0, 1.33])
         sgsrpi0ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.33])
         sgmrpi0ebins = np.array([0.1, 0.15, 0.25, 0.4, 0.63, 1.33])
-        mge_ebins = np.array([1.3, 2.5, 5., 10., 500.])
-        mgm_ebins = np.array([1.3, 3.0, 500.])
-        mre_ebins = np.array([1.3, 2.5, 5.0, 500.])
-        mrm_ebins = np.array([0.6, 1.3, 2.5, 5., 500.])
-        mro_ebins = np.array([1.3, 2.5, 5.0, 10., 500.])
-        pcs_ebins = np.array([0.1, 10., 1.0e5])
-        pct_ebins = np.array([0.1, 10.0, 50., 1.0e5])
-        z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2,
-                           0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        mge_ebins = np.array([1.3, 2.5, 5.0, 10.0, 500.0])
+        mgm_ebins = np.array([1.3, 3.0, 500.0])
+        mre_ebins = np.array([1.3, 2.5, 5.0, 500.0])
+        mrm_ebins = np.array([0.6, 1.3, 2.5, 5.0, 500.0])
+        mro_ebins = np.array([1.3, 2.5, 5.0, 10.0, 500.0])
+        pcs_ebins = np.array([0.1, 10.0, 1.0e5])
+        pct_ebins = np.array([0.1, 10.0, 50.0, 1.0e5])
+        z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
         z1bins = np.array([-1, 1.0])
         self.EnergyBins = {
             0: sge_ebins,
@@ -130,7 +133,8 @@ class SuperK(Experiment):
             12: mrm_ebins,
             13: mro_ebins,
             14: pcs_ebins,
-            15: pct_ebins}
+            15: pct_ebins,
+        }
         self.CTBins = {
             0: z10bins,
             1: z1bins,
@@ -147,14 +151,15 @@ class SuperK(Experiment):
             12: z10bins,
             13: z10bins,
             14: z10bins,
-            15: z10bins}
+            15: z10bins,
+        }
 
 
 class SuperK_Htag(SuperK):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_Htag, self).__init__(dict_of_details)
 
-        self.Detector = 'SuperK_Htag_Pheno'
+        self.Detector = "SuperK_Htag_Pheno"
 
         self.Definition()
 
@@ -171,15 +176,14 @@ class SuperK_Htag(SuperK):
         sgm_ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.0, 1.33])
         sgsrpi0ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.33])
         sgmrpi0ebins = np.array([0.1, 0.15, 0.25, 0.4, 0.63, 1.33])
-        mge_ebins = np.array([1.3, 2.5, 5., 10., 500.])
-        mgm_ebins = np.array([1.3, 3.0, 500.])
-        mre_ebins = np.array([1.3, 2.5, 5.0, 500.])
-        mrm_ebins = np.array([0.6, 1.3, 2.5, 5., 500.])
-        mro_ebins = np.array([1.3, 2.5, 5.0, 10., 500.])
-        pcs_ebins = np.array([0.1, 10., 1.0e5])
-        pct_ebins = np.array([0.1, 10.0, 50., 1.0e5])
-        z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2,
-                           0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        mge_ebins = np.array([1.3, 2.5, 5.0, 10.0, 500.0])
+        mgm_ebins = np.array([1.3, 3.0, 500.0])
+        mre_ebins = np.array([1.3, 2.5, 5.0, 500.0])
+        mrm_ebins = np.array([0.6, 1.3, 2.5, 5.0, 500.0])
+        mro_ebins = np.array([1.3, 2.5, 5.0, 10.0, 500.0])
+        pcs_ebins = np.array([0.1, 10.0, 1.0e5])
+        pct_ebins = np.array([0.1, 10.0, 50.0, 1.0e5])
+        z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
         z1bins = np.array([-1, 1.0])
         self.EnergyBins = {
             0: sge_ebins,
@@ -199,7 +203,8 @@ class SuperK_Htag(SuperK):
             14: mrm_ebins,
             15: mro_ebins,
             16: pcs_ebins,
-            17: pct_ebins}
+            17: pct_ebins,
+        }
         self.CzBins = {
             0: z1bins,
             1: z10bins,
@@ -218,13 +223,14 @@ class SuperK_Htag(SuperK):
             14: z10bins,
             15: z10bins,
             16: z10bins,
-            17: z10bins}
+            17: z10bins,
+        }
 
 
 class SuperK_Gdtag(SuperK_Htag):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_Gdtag, self).__init__(dict_of_details)
 
-        self.Detector = 'SuperK_Gdtag_Pheno'
+        self.Detector = "SuperK_Gdtag_Pheno"
 
         self.Definition()

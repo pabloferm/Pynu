@@ -1,4 +1,4 @@
-from numba import vectorize, float64, guvectorize
+from numba import float64, guvectorize
 import numpy as np
 import time
 

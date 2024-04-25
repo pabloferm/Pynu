@@ -2,7 +2,8 @@ from PhysicsTunes import Tune
 import numpy as np
 
 import sys
-sys.path.append('../')
+
+sys.path.append("../")
 
 ####################
 # Atmospheric flux #
@@ -115,7 +116,7 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the weights from this tune.
         """
         E0Gam = 10  # GeV
-        nev = (experiment.ETrue / E0Gam)**x
+        nev = (experiment.ETrue / E0Gam) ** x
         return nev
 
     def diff_tilt(self, experiment, x):
@@ -131,7 +132,7 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the derivative of the `tilt` weights.
         """
         E0Gam = 10  # GeV
-        nev = (experiment.ETrue / E0Gam)**x * np.log(experiment.ETrue / E0Gam)
+        nev = (experiment.ETrue / E0Gam) ** x * np.log(experiment.ETrue / E0Gam)
         return nev
 
     def nunubar_ratio(self, experiment, x):
@@ -211,8 +212,10 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the weights from this tune.
         """
         zenith = np.ones(experiment.NumberOfEvents)
-        zenith[experiment.CosZTrue < 0] = zenith[experiment.CosZTrue < 0] - \
-            x * np.tanh(experiment.CosZTrue[experiment.CosZTrue < 0])**2
+        zenith[experiment.CosZTrue < 0] = (
+            zenith[experiment.CosZTrue < 0]
+            - x * np.tanh(experiment.CosZTrue[experiment.CosZTrue < 0]) ** 2
+        )
         return zenith
 
     def diff_zenith_up(self, experiment, x):
@@ -229,8 +232,9 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the derivative of the `zenith_up` weights.
         """
         zenith = np.zeros(experiment.NumberOfEvents)
-        zenith[experiment.CosZTrue < 0] = - \
-            np.tanh(experiment.CosZTrue[experiment.CosZTrue < 0])**2
+        zenith[experiment.CosZTrue < 0] = -(
+            np.tanh(experiment.CosZTrue[experiment.CosZTrue < 0]) ** 2
+        )
         return zenith
 
     def zenith_down(self, experiment, x):
@@ -248,8 +252,10 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the weights from this tune.
         """
         zenith = np.ones(experiment.NumberOfEvents)
-        zenith[experiment.CosZTrue >= 0] = zenith[experiment.CosZTrue >= 0] - \
-            x * np.tanh(experiment.CosZTrue[experiment.CosZTrue >= 0])**2
+        zenith[experiment.CosZTrue >= 0] = (
+            zenith[experiment.CosZTrue >= 0]
+            - x * np.tanh(experiment.CosZTrue[experiment.CosZTrue >= 0]) ** 2
+        )
         return zenith
 
     def diff_zenith_down(self, experiment, x):
@@ -266,6 +272,7 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the derivative of the `zenith_up` weights.
         """
         zenith = np.zeros(experiment.NumberOfEvents)
-        zenith[experiment.CosZTrue >= 0] = - \
-            np.tanh(experiment.CosZTrue[experiment.CosZTrue >= 0])**2
+        zenith[experiment.CosZTrue >= 0] = -(
+            np.tanh(experiment.CosZTrue[experiment.CosZTrue >= 0]) ** 2
+        )
         return zenith

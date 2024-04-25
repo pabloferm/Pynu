@@ -1,18 +1,16 @@
 import numpy as np
-import numpy.matlib as nm
 from scipy.spatial.distance import pdist, squareform
-import sys
 
 
-class SVGD():
-    """ Implementation of Stein variational gradient descent """
+class SVGD:
+    """Implementation of Stein variational gradient descent"""
 
     def __init__(self):
         pass
 
     def svgd_kernel(self, theta, h=-1):
         sq_dist = pdist(theta)
-        pairwise_dists = squareform(sq_dist)**2
+        pairwise_dists = squareform(sq_dist) ** 2
         if h < 0:  # if h < 0, using median trick
             h = np.median(pairwise_dists)
             h = np.sqrt(0.5 * h / np.log(theta.shape[0] + 1))
@@ -28,17 +26,11 @@ class SVGD():
         return (Kxy, dxkxy)
 
     def update(
-            self,
-            x0,
-            lnprob,
-            n_iter=100,
-            stepsize=1e-3,
-            bandwidth=-1,
-            alpha=0.9,
-            debug=True):
+        self, x0, lnprob, n_iter=100, stepsize=1e-3, bandwidth=-1, alpha=0.9, debug=True
+    ):
         # Check input
         if x0 is None or lnprob is None:
-            raise ValueError('x0 or lnprob cannot be None!')
+            raise ValueError("x0 or lnprob cannot be None!")
 
         theta = np.copy(x0)
 
@@ -49,7 +41,7 @@ class SVGD():
         historical_grad = 0
         for kk in range(n_iter):
             if debug and (kk + 1) % 1 == 0:
-                print('iteration ' + str(kk + 1))
+                print("iteration " + str(kk + 1))
 
             # lnpgrad = lnprob(theta)
             lnpgrad = np.array(list(map(lnprob, theta)))
@@ -60,14 +52,12 @@ class SVGD():
             grad_theta = (np.matmul(kxy, lnpgrad) + dxkxy) / dim
             # adagrad
             if kk == 0:
-                historical_grad = historical_grad + grad_theta ** 2
+                historical_grad = historical_grad + grad_theta**2
             else:
-                historical_grad = alpha * historical_grad + \
-                    (1 - alpha) * (grad_theta ** 2)
-            adj_grad = np.divide(
-                grad_theta,
-                fudge_factor +
-                np.sqrt(historical_grad))
+                historical_grad = alpha * historical_grad + (1 - alpha) * (
+                    grad_theta**2
+                )
+            adj_grad = np.divide(grad_theta, fudge_factor + np.sqrt(historical_grad))
             theta = theta + stepsize * adj_grad
 
         return theta

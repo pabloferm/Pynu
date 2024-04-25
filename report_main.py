@@ -1,5 +1,3 @@
-import sys
-import os
 import argparse
 
 from pynu import Report
