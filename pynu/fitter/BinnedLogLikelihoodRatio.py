@@ -182,10 +182,11 @@ class BinnedLogLikelihoodRatio:
         # Missing non-normal distribution cases
         priors = mu + A / (B + 1 / sig**2)
 
-        delta = np.minimum(2 * np.abs(priors - mu), sig)
+        # delta = np.minimum(2 * np.abs(priors - mu), sig) # previous estimate
+        delta = 2 * np.abs(priors - mu)
         delta[delta == 0] = sig[delta == 0]
 
-        bounds = np.c_[priors - delta, priors + delta]
+        bounds = np.c_[priors, priors + delta]
         bounds = tuple(map(tuple, bounds))
 
         self.diff_expectation_nominal = diff_expectation
