@@ -362,6 +362,20 @@ class PyNuFit:
         
         return - X2_stats
 
+
+    def fisher_information(self, nuisance_vector):
+        ''' Compute expected and its derivatives '''
+        self.ComputeBinnedExpectation(
+            self.point, nuisance_vector=nuisance_vector)  # Nominal expectation
+        self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
+
+        ''' The gradient of the above '''
+        I = self.LLH.approximate_fisher(
+            self.Expectation,
+            self.DiffExpectation)
+
+        return I
+
     def model_tester_and_gradient(self, nuisance_vector):
         ''' Compute expected and its derivatives '''
         self.ComputeBinnedExpectation(
