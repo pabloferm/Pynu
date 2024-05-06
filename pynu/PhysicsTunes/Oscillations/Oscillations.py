@@ -1,4 +1,4 @@
-from math import asin, sqrt
+from math import asin, sqrt, pi
 import numpy as np
 import nuSQuIDS as nsq
 from PhysicsTunes import Tune
@@ -93,11 +93,15 @@ class Oscillator(Tune):
         sys.exit("Oscillator not defined.")
 
     def Sin2Theta13(self, experiment, x):
+        if x>1: x = 1
+        elif x<0: x = 0
         self.Osc.Set_MixingAngle(0, 2, asin(sqrt(x)))
         self.Parameters["Sin2Theta13"] = x
         return self.GetOscillations()
 
     def diff_Sin2Theta13(self, experiment, x):  # Numerical derivation
+        if x>1: x = 1
+        elif x<0: x = 0
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.Sin2Theta13(experiment, h0)
@@ -108,11 +112,15 @@ class Oscillator(Tune):
         return dw
 
     def Sin2Theta12(self, experiment, x):
+        if x>1: x = 1
+        elif x<0: x = 0
         self.Osc.Set_MixingAngle(0, 1, asin(sqrt(x)))
         self.Parameters["Sin2Theta12"] = x
         return self.GetOscillations()
 
     def diff_Sin2Theta12(self, experiment, x):  # Numerical derivation
+        if x>1: x = 1
+        elif x<0: x = 0
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.Sin2Theta12(experiment, h0)
@@ -122,11 +130,15 @@ class Oscillator(Tune):
         return dw
 
     def Sin2Theta23(self, experiment, x):
+        if x>1: x = 1
+        elif x<0: x = 0
         self.Osc.Set_MixingAngle(1, 2, asin(sqrt(x)))
         self.Parameters["Sin2Theta23"] = x
         return self.GetOscillations()
 
     def diff_Sin2Theta23(self, experiment, x):  # Numerical derivation
+        if x>1: x = 1
+        elif x<0: x = 0
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.Sin2Theta23(experiment, h0)
@@ -136,11 +148,15 @@ class Oscillator(Tune):
         return dw
 
     def dCP(self, experiment, x):
+        if x>2*pi: x = 2*pi
+        elif x<0: x = 0
         self.Osc.Set_CPPhase(0, 2, x)
         self.Parameters["dCP"] = x
         return self.GetOscillations()
 
     def diff_dCP(self, experiment, x):  # Numerical derivation
+        if x>2*pi: x = 2*pi
+        elif x<0: x = 0
         h0 = x * (1 + self.eps)
         h1 = x * (1 - self.eps)
         w0 = self.dCP(experiment, h0)

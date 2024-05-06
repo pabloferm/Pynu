@@ -6,7 +6,7 @@ print(test.OscParameters)
 print(test.Flavors)
 for s in test.sources:
     print(test.FixedValue[s])
-'''
+"""
 test.readSources()
 test.readDetectors()
 test.readExperiments()
@@ -26,4 +26,4 @@ print(test.PhysEdges)
 
 for i in test.Experiments.keys():
     print(test.Experiments[i].keys())
-'''
+"""

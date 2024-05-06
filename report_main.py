@@ -9,33 +9,37 @@ def main():
     parse.add_argument(
         "hdf5_file",
         type=str,
-        nargs='?',
+        nargs="?",
         default=None,
-        help='Output analysis file in hdf5 format.')
+        help="Output analysis file in hdf5 format.",
+    )
     parse.add_argument(
         "-xml",
-        '--xml_file',
+        "--xml_file",
         type=str,
-        nargs='?',
+        nargs="?",
         default=None,
-        help='Input analysis file in xml format.')
+        help="Input analysis file in xml format.",
+    )
     parse.add_argument(
         "-dir",
-        '--directory',
+        "--directory",
         type=str,
-        nargs='?',
-        default='',
-        help='Path to folder to store the analysis.')
+        nargs="?",
+        default="",
+        help="Path to folder to store the analysis.",
+    )
 
     args = parse.parse_args()
 
     pynureport = Report(
         args.hdf5_file,
         args.xml_file,
-        directory = args.directory,
-        doctype = 'article',
+        directory=args.directory,
+        doctype="article",
         # doctype = 'beamer',
-        author = 'Pablo')
+        author="Pablo",
+    )
 
     pynureport.make_title()
     pynureport.make_introduction()
@@ -45,5 +49,5 @@ def main():
     pynureport.write_report()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

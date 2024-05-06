@@ -343,23 +343,22 @@ class PyNuFit:
 
             """Hamiltonian MCMC"""
             import numpy as np
-
+            riemann_mass = 1 / np.array(self.Analysis.NuisSigmaList) ** 2
+            print(riemann_mass)
+            riemann_mass = self.fisher_information(AnalyticPrior)
+            print(riemann_mass)
+            ranges = (np.array(list(zip(*AnalyticBounds)))[1] - np.array(list(zip(*AnalyticBounds)))[0])/2
             sampler = mcmc.HMC(
                 self.model_tester,
                 self.model_tester_gradient,
                 AnalyticPrior,
-                range_of_initial_values=0.5
-                * (
-                    np.array(list(zip(*AnalyticBounds)))[1]
-                    - np.array(list(zip(*AnalyticBounds)))[0]
-                ),
-                num_steps=100,
-                random_steps=True,
-                # riemann_mass=1,
-                riemann_mass=1 / np.array(self.Analysis.NuisSigmaList) ** 2,
-                epsilon=5e-3,
+                range_of_initial_values=ranges,
+                num_steps=20,
+                #random_steps="linear",
+                riemann_mass=riemann_mass,
+                epsilon=5e-2,
             )
-            sampler.compute_trajectory(samples=20)
+            sampler.compute_trajectory(samples=2)
 
             # sampler = mcmc.MCMC(
             #     self.model_tester, AnalyticPrior)
@@ -396,6 +395,18 @@ class PyNuFit:
             # return - 0.5 * res.fun
 
         return -X2_stats
+
+    def fisher_information(self, nuisance_vector):
+        """Compute expected and its derivatives"""
+        self.ComputeBinnedExpectation(
+            self.point, nuisance_vector=nuisance_vector
+        )  # Nominal expectation
+        self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
+
+        """ The gradient of the above """
+        I = self.LLH.approximate_fisher(self.Expectation, self.DiffExpectation)
+
+        return I
 
     def model_tester_and_gradient(self, nuisance_vector):
         """Compute expected and its derivatives"""

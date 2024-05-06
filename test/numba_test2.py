@@ -2,13 +2,16 @@ from numba import float64, guvectorize
 import numpy as np
 import time
 
-@guvectorize([(float64[:], float64[:], float64[:])], '(n),(n)->(n)')
+
+@guvectorize([(float64[:], float64[:], float64[:])], "(n),(n)->(n)")
 def nb_f(x, y, res):
-    for l, (i, j) in enumerate(zip(x,y)):
+    for l, (i, j) in enumerate(zip(x, y)):
         res[l] = i + j
+
 
 def np_f(x, y):
     return x + y
+
 
 nen = 1000000
 x = np.random.random(nen)

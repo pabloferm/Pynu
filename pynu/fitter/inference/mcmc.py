@@ -2,7 +2,7 @@ import numpy as np
 from numpy.random import Generator, PCG64
 from .symplectic_integrators import *
 import sys
-import pandas as pd
+import multiprocessing
 
 
 class MCMC:
@@ -66,12 +66,13 @@ class HMC(MCMC):
         grad_neg_log_likelihood,
         initial_values,
         range_of_initial_values=False,
-        num_steps=100,
-        samples=1,  # does nothing yet
-        epsilon=5e-2,
+        num_steps=20,
+        samples=1,
+        epsilon=1e-1,
         riemann_mass=1,
-        random_steps=True,
+        random_steps=False,
         trajectory=True,  # returns the trajectory, tbd
+        multiprocessing=True
     ):
         super(HMC, self).__init__(neg_log_likelihood, initial_values, samples=samples)
 
@@ -84,7 +85,11 @@ class HMC(MCMC):
 
         self.riemann_mass = riemann_mass
 
+        self.multiprocessing = multiprocessing
+
         self.range_of_initial_values = range_of_initial_values
+
+        self.initial_position = self.initial_q
 
         self.save_trajectory = trajectory
         # if self.save_trajectory:
@@ -116,6 +121,7 @@ class HMC(MCMC):
         p = self.riemann_mass * self.rng.normal(size=self.dim)
         dK = max(np.abs(self.grad_kinetic_energy(p)))
         dU = max(np.abs(self.grad_neg_log_likelihood(q)))
+
         if self.epsilon < min(dK, dU) / 10:
             print("Seems like a good value for the step size of the integrator.")
         elif self.epsilon < min(dK, dU):
@@ -157,30 +163,49 @@ class HMC(MCMC):
     def compute_trajectory(self, samples=None):
         if samples is None:
             samples = self.samples
-        momenta = self.riemann_mass * self.rng.normal(size=(samples, self.dim))
+        momenta = np.sqrt(self.riemann_mass) * self.rng.normal(size=(samples, self.dim))
 
-        if self.random_steps:
-            steps = self.rng.integers(1, high=self.MAX_STEPS, size=samples)
+        if self.random_steps=="linear" or self.random_steps is True:
+            steps = self.rng.integers(int(self.MAX_STEPS/3), high=self.MAX_STEPS, size=samples)
+        elif self.random_steps=="exponential":
+            values = np.linspace(1, self.MAX_STEPS, dtype=int)
+            p = 1 - np.exp(values/self.MAX_STEPS)
+            steps = self.rng.choice(values, size=samples, p=p/np.sum(p))
         else:
             steps = [self.MAX_STEPS] * samples
 
-        if self.range_of_initial_values:
-            positions = (
-                self.range_of_initial_values * self.rng.normal(size=(samples, self.dim))
-                + self.initial_q
-            )
-            for i, (p, q) in enumerate(momenta, positions):
+        if np.any(self.range_of_initial_values):
+            d_positions = self.range_of_initial_values * self.rng.normal(size=(samples, self.dim))
+        else:
+            d_positions = self.zeros((samples, self.dim))
+
+        if self.multiprocessing:
+            cores = multiprocessing.cpu_count()
+            processes = []
+            for i, (p, dq) in enumerate(zip(momenta, d_positions)):
                 self.initial_p = p
-                self.initial_q = q
+                self.initial_q = self.initial_position + dq
                 self.num_steps = steps[i]
                 print(f"inital mometa, {self.initial_p}")
                 print(f"inital positions, {self.initial_q}")
-                self.compute_single_trajectory()
+                print(
+                    f"Processing chain {i} of {samples} HMC trajectories."
+                )
+                if (i + 1) % cores == 0:
+                    for proc in processes:
+                        proc.join()
+                    processes = []
+                proc = multiprocessing.Process(target=self.compute_single_trajectory,)
+                proc.start()
+                processes.append(proc)
+            
         else:
-            for i, p in enumerate(momenta):
+            for i, (p, dq) in enumerate(zip(momenta, d_positions)):
                 self.initial_p = p
+                self.initial_q = self.initial_position + dq
                 self.num_steps = steps[i]
                 print(f"inital mometa, {self.initial_p}")
+                print(f"inital positions, {self.initial_q}")
                 self.compute_single_trajectory()
 
     def compute_single_trajectory(self):
@@ -196,10 +221,10 @@ class HMC(MCMC):
                 current_q, current_p, method="leapfrog"
             )
             with open("positions_tottraj.txt", "a") as f:
-                np.savetxt(f, current_q, fmt="%1.3f", newline=" ", delimiter=",")
+                np.savetxt(f, current_q, fmt="%1.6f", newline=" ", delimiter=",")
                 f.write("\n")
             with open("momenta_tottraj.txt", "a") as f:
-                np.savetxt(f, current_p, fmt="%1.3f", newline=" ", delimiter=",")
+                np.savetxt(f, current_p, fmt="%1.6f", newline=" ", delimiter=",")
                 f.write("\n")
             print(f"positions: {current_q}")
             print(f"momenta: {current_p}")
@@ -221,10 +246,10 @@ class HMC(MCMC):
             print(f"Proposal rejected, saving original: {self.initial_q}")
 
         with open("positions_endtraj.txt", "a") as f:
-            np.savetxt(f, current_q, fmt="%1.3f", newline=" ", delimiter=",")
+            np.savetxt(f, current_q, fmt="%1.6f", newline=" ", delimiter=",")
             f.write("\n")
         with open("momenta_endtraj.txt", "a") as f:
-            np.savetxt(f, current_p, fmt="%1.3f", newline=" ", delimiter=",")
+            np.savetxt(f, current_p, fmt="%1.6f", newline=" ", delimiter=",")
             f.write("\n")
         with open("accept.txt", "a") as f:
             f.write(str(save_ini))

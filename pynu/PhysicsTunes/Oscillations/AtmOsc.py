@@ -3,7 +3,6 @@ from itertools import repeat
 from .Oscillations import Oscillator
 import nuSQuIDS as nsq
 
-
 ####################
 # Atmospheric flux #
 ####################

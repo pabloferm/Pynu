@@ -182,10 +182,10 @@ class BinnedLogLikelihoodRatio:
         # Missing non-normal distribution cases
         priors = mu + A / (B + 1 / sig**2)
 
-        delta = np.minimum(2 * np.abs(priors - mu), sig)
+        delta = 2 * np.abs(priors - mu)
         delta[delta == 0] = sig[delta == 0]
 
-        bounds = np.c_[priors - delta, priors + delta]
+        bounds = np.c_[priors, priors + delta]
         bounds = tuple(map(tuple, bounds))
 
         self.diff_expectation_nominal = diff_expectation
@@ -257,3 +257,34 @@ class BinnedLogLikelihoodRatio:
         """
 
         pass
+
+    def approximate_fisher(self, expectation, diff_expectation):
+        r"""Assumes second derivative terms of weights w.r.t. parameters are negligible and Gaussian priors.
+
+        $\nabla^2_k \pi(\theta) \approx \nsum \frac{O_i}{E_i^2} \left.\Bigg(\frac{\partial E_i}{\partial \theta_k}\Bigg)^2\right\vert_{\theta_k=\hat{\theta}_k} + \mathcal{I}_j(\theta_k)$
+
+        NOTE: To be done.
+
+        Args:
+            expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events
+            (numpy.array) similarly to observation, but for a given physics and nuisance values.
+            diff_expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (nuisance parameter (str):
+            (Experiment(str): binned events (numpy.array)).
+            priors (list of float): Values of nuisance parameter estimates other than the nominal values.
+
+        Returns:
+            Numpy array with the estimate for the nuisance parameters.
+
+        """
+        I_stats = np.zeros(self.number_of_nuisance)
+        for i, dE in enumerate(diff_expectation.values()):
+            for O, E, dEdx in zip(
+                self.observation.values(), expectation.values(), dE.values()
+            ):
+                I_stats[i] += np.sum(O / E**2 * dEdx**2)
+
+        I_prior = np.zeros(self.number_of_nuisance)
+        for i, sig in enumerate(self.sigma_nuisance):
+            I_prior[i] += 1 / sig**2
+
+        return I_stats + I_prior
