@@ -7,9 +7,9 @@ from .SuperK_Atm_Pheno import SuperK_Htag
 class HyperK(SuperK_Htag):
     def __init__(self, dict_of_details, scenario):
         super(HyperK, self).__init__(dict_of_details)
-        self.Detector = 'HyperK_Pheno'
-        self.SOURCE = 'Atmospheric'
-        self.Target = 'Water'
+        self.Detector = "HyperK_Pheno"
+        self.SOURCE = "Atmospheric"
+        self.Target = "Water"
         self.SCENARIO = scenario
 
         self.SetDefinition()

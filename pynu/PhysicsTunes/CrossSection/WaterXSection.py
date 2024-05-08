@@ -2,7 +2,8 @@ from PhysicsTunes import Tune
 import numpy as np
 
 import sys
-sys.path.append('../')
+
+sys.path.append("../")
 
 ##########################
 #  Water Cross-section   #
@@ -54,14 +55,16 @@ class WaterXSection(Tune):
 
     def AxialMass(self, experiment, x):
         cc = np.ones(experiment.NumberOfEvents)
-        cc[experiment.CC == 1] = 1 + 0.042 * \
-            (x - 1) * 1.05 * np.log10(experiment.ETrue[experiment.CC == 1])
+        cc[experiment.CC == 1] = 1 + 0.042 * (x - 1) * 1.05 * np.log10(
+            experiment.ETrue[experiment.CC == 1]
+        )
         return cc
 
     def diff_AxialMass(self, experiment, x):
         cc = np.zeros(experiment.NumberOfEvents)
-        cc[experiment.CC == 1] = 0.042 * 1.05 * \
-            np.log10(experiment.ETrue[experiment.CC == 1])
+        cc[experiment.CC == 1] = (
+            0.042 * 1.05 * np.log10(experiment.ETrue[experiment.CC == 1])
+        )
         return cc
 
     def NCHad(self, experiment, x):
@@ -108,15 +111,13 @@ class WaterXSection(Tune):
 
     def CCQEMuE(self, experiment, x):
         ccqe = np.ones(experiment.NumberOfEvents)
-        cond = (np.abs(experiment.Mode) == 1) * \
-            (np.abs(experiment.nuPDG) == 14)
+        cond = (np.abs(experiment.Mode) == 1) * (np.abs(experiment.nuPDG) == 14)
         ccqe[cond] = x
         return ccqe
 
     def diff_CCQEMuE(self, experiment, x):
         ccqe = np.zeros(experiment.NumberOfEvents)
-        cond = (np.abs(experiment.Mode) == 1) * \
-            (np.abs(experiment.nuPDG) == 14)
+        cond = (np.abs(experiment.Mode) == 1) * (np.abs(experiment.nuPDG) == 14)
         ccqe[cond] = 1
         return ccqe
 
@@ -132,29 +133,41 @@ class WaterXSection(Tune):
 
     def CC1Pi_NuBarNuE(self, experiment, x):
         ccpi = np.ones(experiment.NumberOfEvents)
-        cond = (np.abs(experiment.Mode) > 10) * \
-            (np.abs(experiment.Mode) < 17) * (experiment.nuPDG == -12)
+        cond = (
+            (np.abs(experiment.Mode) > 10)
+            * (np.abs(experiment.Mode) < 17)
+            * (experiment.nuPDG == -12)
+        )
         ccpi[cond] = x
         return ccpi
 
     def diff_CC1Pi_NuBarNuE(self, experiment, x):
         ccpi = np.zeros(experiment.NumberOfEvents)
-        cond = (np.abs(experiment.Mode) > 10) * \
-            (np.abs(experiment.Mode) < 17) * (experiment.nuPDG == -12)
+        cond = (
+            (np.abs(experiment.Mode) > 10)
+            * (np.abs(experiment.Mode) < 17)
+            * (experiment.nuPDG == -12)
+        )
         ccpi[cond] = 1
         return ccpi
 
     def CC1Pi_NuBarNuMu(self, experiment, x):
         ccpi = np.ones(experiment.NumberOfEvents)
-        cond = (np.abs(experiment.Mode) > 10) * \
-            (np.abs(experiment.Mode) < 17) * (experiment.nuPDG == -14)
+        cond = (
+            (np.abs(experiment.Mode) > 10)
+            * (np.abs(experiment.Mode) < 17)
+            * (experiment.nuPDG == -14)
+        )
         ccpi[cond] = x
         return ccpi
 
     def diff_CC1Pi_NuBarNuMu(self, experiment, x):
         ccpi = np.zeros(experiment.NumberOfEvents)
-        cond = (np.abs(experiment.Mode) > 10) * \
-            (np.abs(experiment.Mode) < 17) * (experiment.nuPDG == -14)
+        cond = (
+            (np.abs(experiment.Mode) > 10)
+            * (np.abs(experiment.Mode) < 17)
+            * (experiment.nuPDG == -14)
+        )
         ccpi[cond] = 1
         return ccpi
 
