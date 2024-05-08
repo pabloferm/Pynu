@@ -66,7 +66,6 @@ class Experiment:
                     else:
                         print(
                             'Warning: MC files have not the same variables, it may produce errors.')
-
         if self.DataFit:
             self.Data = {}
             for i, f in enumerate(self.DataFiles):
@@ -164,12 +163,19 @@ class Experiment:
                 (v, hist.fill(self.dEReco[self.dSample == i]).values().reshape(-1)))
         return v
 
-    def BinIt_Data_2D(self):  # 2D energy and cos(angle) binning
+    def BinIt_Data_2D(self, counts=None):  # 2D energy and cos(angle) binning
         v = np.array([])
-        for i, hist in enumerate(self.Binner):
-            v = np.hstack((v, hist.fill(
-                self.dEReco[self.dSample == i],
-                self.dCosThetaReco[self.dSample == i]).values().reshape(-1)))
+        if np.any(counts):
+            for i, hist in enumerate(self.Binner):
+                v = np.hstack((v, hist.fill(
+                    self.dEReco[self.dSample == i],
+                    self.dCosThetaReco[self.dSample == i],
+                    weight=counts[self.dSample == i]).values().reshape(-1)))
+        else:
+            for i, hist in enumerate(self.Binner):
+                v = np.hstack((v, hist.fill(
+                    self.dEReco[self.dSample == i],
+                    self.dCosThetaReco[self.dSample == i]).values().reshape(-1)))
         return v
 
     # Contains all default weights of the analysis

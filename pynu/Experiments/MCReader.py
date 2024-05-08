@@ -72,10 +72,18 @@ def Manager(detector, source, dict_of_details, scenario):
 
     elif detector in ['ICUp', 'IceCube-Upgrade']:
         if source == 'Atmospheric':
-            from .ICUp_Atm import ICUp_Atm
+            from .IceCube import ICUp_Atm
             return ICUp_Atm(dict_of_details, scenario)
         else:
             sys.exit('No valid source for ' + detector)
+    
+    elif detector == 'DeepCore':
+        if source == 'Atmospheric':
+            from .IceCube import DeepCore
+            return DeepCore(dict_of_details, scenario)
+        else:
+            sys.exit('No valid source for ' + detector)
+
     else:
         sys.exit(
             f'Experiment not found!! \nPlease, include it at {os.path.dirname(os.path.abspath(__file__))}/MCReader.py .')
@@ -86,7 +94,7 @@ def reader(filename):
     if extension == '.root':
         sys.exit(
             'Not there yet. Please go to utils/ and convert it to HD5F.\nSupported file types are HDF5 and csv')
-    elif extension == '.HDF5' or extension == '.HDF' or extension == '.hdf' or extension == '.hdf5':
+    elif extension == '.HDF5' or extension == '.HDF' or extension == '.hdf' or extension == '.hdf5' or extension == 'h5':
         fdata = {}
         with h5py.File(filename, 'r') as hf:
             for var in hf.keys():
