@@ -232,8 +232,8 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the derivative of the `zenith_up` weights.
         """
         zenith = np.zeros(experiment.NumberOfEvents)
-        zenith[experiment.CosZTrue < 0] = (
-            -(np.tanh(experiment.CosZTrue[experiment.CosZTrue < 0]) ** 2)
+        zenith[experiment.CosZTrue < 0] = -(
+            np.tanh(experiment.CosZTrue[experiment.CosZTrue < 0]) ** 2
         )
         return zenith
 
@@ -272,7 +272,7 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the derivative of the `zenith_up` weights.
         """
         zenith = np.zeros(experiment.NumberOfEvents)
-        zenith[experiment.CosZTrue >= 0] = (
-            -(np.tanh(experiment.CosZTrue[experiment.CosZTrue >= 0]) ** 2)
+        zenith[experiment.CosZTrue >= 0] = -(
+            np.tanh(experiment.CosZTrue[experiment.CosZTrue >= 0]) ** 2
         )
         return zenith

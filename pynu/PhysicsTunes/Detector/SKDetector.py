@@ -15,6 +15,35 @@ sys.path.append("../")
 class SuperK(Tune):
     r"""Class containing general implementation of a Super-Kamiokande like detectors."""
 
+    def attenuation_length(self, experiment, x):
+        r"""Method for modifying the energy scale of the simulation by multiplying by x the
+        reconstructed energy.
+
+        Args:
+            x (float): Variation of absorption lenght w.r.t. nominal.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information
+            of the experiment.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
+        # energy bias
+        nueCC = np.abs(experiment.nuPDG == 12) & experiment.CC
+        bias = 0.1 * x
+        experiment.set_energy_bias(bias, nueCC)
+
+        numuCC = np.abs(experiment.nuPDG == 14) & experiment.CC
+        bias = 0.02 * (experiment.ETrue_lepton - 1.0) / (0.2 - 1.0) - 0.1 * (
+            experiment.ETrue_lepton - 1.0
+        ) / (0.2 - 1.0)
+        experiment.set_energy_bias(bias, numuCC)
+
+        # energy scale
+        pass
+
+        # PID
+        pass
+
     @logd(file=False, logging_level="debug")
     def energy_scale(self, experiment, x):
         r"""Method for modifying the energy scale of the simulation by multiplying by x the
@@ -22,8 +51,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -39,8 +67,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `energy_scale` weights.
@@ -53,8 +80,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -96,8 +122,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `FCPC_separation` weights.
@@ -137,8 +162,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -162,8 +186,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `FC_reduction` weights.
@@ -187,8 +210,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -203,8 +225,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `fiducial_volume` weights.
@@ -217,8 +238,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -242,8 +262,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `PC_reduction` weights.
@@ -266,8 +285,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -283,8 +301,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `subgev_2ring_pi0` weights.
@@ -299,8 +316,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -324,8 +340,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `subgev_1ring_pi0` weights.
@@ -348,8 +363,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -380,8 +394,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `multiring_nunubar_separation` weights.
@@ -411,8 +424,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -453,8 +465,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `multiring_emu_separation` weights.
@@ -495,8 +506,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -532,8 +542,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `multiring_eother_separation` weights.
@@ -568,8 +577,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -600,8 +608,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `pc_stopthru_separation` weights.
@@ -631,8 +638,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -663,8 +669,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `pi0_ring_separation` weights.
@@ -694,8 +699,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -732,8 +736,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `e_ring_separation` weights.
@@ -769,8 +772,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -807,8 +809,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `mu_ring_separation` weights.
@@ -844,8 +845,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -882,8 +882,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `singlering_pid` weights.
@@ -919,8 +918,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -957,8 +955,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `multiring_pid` weights.
@@ -994,8 +991,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -1023,8 +1019,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `neutron_tagging` weights.
@@ -1051,8 +1046,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the weights from this tune.
@@ -1080,8 +1074,7 @@ class SuperK(Tune):
 
         Args:
             x (float): Value of the tuning parameter.
-            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
-            of special interest are the Monte Carlos simulations.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
             Numpy.array or float with the derivative of the `decay_e_tagging` weights.
