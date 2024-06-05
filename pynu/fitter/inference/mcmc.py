@@ -186,11 +186,11 @@ class HMC(MCMC):
                 self.initial_p = p
                 self.initial_q = self.initial_position + dq
                 self.num_steps = steps[i]
-                print(f"inital mometa, {self.initial_p}")
-                print(f"inital positions, {self.initial_q}")
-                print(
-                    f"Processing chain {i} of {samples} HMC trajectories."
-                )
+                # print(f"inital mometa, {self.initial_p}")
+                # print(f"inital positions, {self.initial_q}")
+                # print(
+                #     f"Processing chain {i} of {samples} HMC trajectories."
+                # )
                 if (i + 1) % cores == 0:
                     for proc in processes:
                         proc.join()
@@ -204,15 +204,15 @@ class HMC(MCMC):
                 self.initial_p = p
                 self.initial_q = self.initial_position + dq
                 self.num_steps = steps[i]
-                print(f"inital mometa, {self.initial_p}")
-                print(f"inital positions, {self.initial_q}")
+                # print(f"inital mometa, {self.initial_p}")
+                # print(f"inital positions, {self.initial_q}")
                 self.compute_single_trajectory()
 
     def compute_single_trajectory(self):
         current_q = self.initial_q
         current_p = self.initial_p
         initial_energy = self.hamiltonian(current_q, current_p)
-        print(f"initial energy: {initial_energy}")
+        # print(f"initial energy: {initial_energy}")
 
         for k in range(self.num_steps):  # integrator
             if k % 10 == 0:
@@ -226,13 +226,13 @@ class HMC(MCMC):
             with open("momenta_tottraj.txt", "a") as f:
                 np.savetxt(f, current_p, fmt="%1.6f", newline=" ", delimiter=",")
                 f.write("\n")
-            print(f"positions: {current_q}")
-            print(f"momenta: {current_p}")
+            # print(f"positions: {current_q}")
+            # print(f"momenta: {current_p}")
         current_p = -current_p
         proposed_energy = self.hamiltonian(current_q, current_p)
-        print(f"proposed energy: {proposed_energy}")
+        # print(f"proposed energy: {proposed_energy}")
         mh = min(1, np.exp((initial_energy - proposed_energy)))
-        print(f"Metropolis-Hastings correction: {mh}")
+        # print(f"Metropolis-Hastings correction: {mh}")
 
         if np.random.uniform() < mh:
             final_q = current_q

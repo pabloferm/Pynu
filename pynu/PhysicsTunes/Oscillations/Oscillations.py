@@ -59,6 +59,8 @@ class Oscillator(Tune):
                 s_theta = "Sin2Theta" + str(j + 1) + str(i + 1)
                 if s_theta in self.Parameters:
                     theta = self.Parameters[s_theta]
+                    if theta < 0: theta = 0
+                    if theta > 1: theta = 1
                     self.Osc.Set_MixingAngle(j, i, asin(sqrt(theta)))
             s_dm = "Dm2" + str(i + 1) + "1"
         if s_dm in self.Parameters:

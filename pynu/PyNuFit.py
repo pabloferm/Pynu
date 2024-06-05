@@ -354,11 +354,11 @@ class PyNuFit:
                 AnalyticPrior,
                 range_of_initial_values=ranges,
                 num_steps=20,
-                #random_steps="linear",
+                random_steps="linear",
                 riemann_mass=riemann_mass,
                 epsilon=5e-2,
             )
-            sampler.compute_trajectory(samples=2)
+            sampler.compute_trajectory(samples=200)
 
             # sampler = mcmc.MCMC(
             #     self.model_tester, AnalyticPrior)
