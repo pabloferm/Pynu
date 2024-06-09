@@ -1,13 +1,15 @@
 import sys
-from scipy.optimize import minimize
+import time
+import fcntl
+
 import numpy as np
+from scipy.optimize import minimize
+
 import h5py
+
 import analysis_reader as ar  # contains parse class to read and setup the analysis
 import Experiments as Exp  # contains rd class to read and setup each experiment
-
-# contains everything to modify your simulations to help figuring out what
-# you have measured
-from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
+from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT # contains everything to modify your simulations
 import fitter as ft  # does all the fitting calculations
 
 
@@ -205,7 +207,9 @@ class PyNuFit:
                             self.PhysicsTunes[name].OscillationTunes.UpdateParameter(
                                 tune, value
                             )
-                        # print(f"{tune} -- {w}")
+
+                        # if self.verbosity:
+                        #     print(f"{tune} -- {w}")
 
                         if tune_block != "Osc":
                             if tag == "Fixed":
@@ -336,12 +340,7 @@ class PyNuFit:
                         i - self.Analysis.NumberOfNuis
                     ) * np.asarray(self.Analysis.NuisSigmaList)
                     x2, dx2 = self.model_tester_and_gradient(x)
-                    # print('Point')
-                    # print(x)
-                    # print('Chi2')
-                    # print(x2)
-                    # print('Chi2 gradient')
-                    # print(dx2)
+
             else:
                 res = minimize(
                     self.model_tester_and_gradient,
@@ -352,40 +351,6 @@ class PyNuFit:
                     tol=eps,
                     options={"disp": self.verbosity},
                 )
-
-            """Hamiltonian MCMC"""
-            # sampler = mcmc.HMC(
-            #     self.model_tester,
-            #     self.model_tester_gradient,
-            #     AnalyticPrior,
-            #     num_samples=20, num_steps=10, lf_epsilon=1e-2)
-            # all_samples = sampler.hamiltonian_monte_carlo()
-            # print(all_samples)
-
-            # sampler = mcmc.MCMC(
-            #     self.model_tester, AnalyticPrior)
-            # all_samples = sampler.metropolis_hastings()
-
-            """ Cython version of MCMC Metropolis-Hastings"""
-            # initial_values = np.abs(np.random.randn(len(AnalyticPrior)) + 1, dtype=np.float64)
-            # sigma = np.zeros(len(AnalyticPrior), dtype=np.float64) + 0.5
-            # num_samples = 500
-            # all_samples = np.asarray(run_metropolis_hastings(num_samples, self.model_tester, initial_values, sigma))
-
-            """SVGD"""
-            # x0 = np.random.uniform(0.5, 1.5, (50, len(AnalyticPrior)))
-            # all_samples = variational.SVGD().update(
-            #     x0, self.model_tester_gradient, n_iter=50)
-
-            # import pandas as pd
-            # df = pd.DataFrame(all_samples, columns=self.Analysis.NuisanceList)
-            # import seaborn as sns
-            # import matplotlib.pyplot as plt
-            # g = sns.PairGrid(df, corner=True, aspect=1.5)
-            # g.map_diag(sns.histplot, bins=20)
-            # g.map_offdiag(sns.kdeplot, levels=[0.68, 0.95, 0.997])
-            # # g.map_offdiag(sns.scatterplot)
-            # plt.show()
 
             self.WriteToOutFile(
                 "Nuisance Parameters", self.Analysis.NuisanceList, res.x.tolist()
@@ -487,10 +452,21 @@ class PyNuFit:
                 )
 
     def WriteToOutFile(self, block, item, value):
+        while True:
+            try:
+                with open(self.outfile, 'a') as f:
+                    fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    fcntl.flock(f, fcntl.LOCK_UN)
+                    break
+            except IOError:
+                time.sleep(1)
+
         with h5py.File(self.outfile, "r+") as hf:
+            print("Writing to output file.")
             try:
                 for par, val in zip(item, value):
                     source = self.Analysis.get_tune(par)
                     hf[block + "/" + source + "/" + par][self.point] = val
             except BaseException:
                 hf[block + "/" + item][self.point] = value
+

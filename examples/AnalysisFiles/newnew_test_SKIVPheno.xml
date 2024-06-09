@@ -2,23 +2,25 @@
 <Analysis>
 
 	<Method name="Binned grid-search and profiling">
-		<minimizer name="L-BFGS-B"> </minimizer>
 		<verbosity> 1 </verbosity>
-		<gradient> 1 </gradient>
-		<max_tolerance> 1e-4 </max_tolerance>
-		<min_tolerance> 1e-6 </min_tolerance>
-		<tolerance_threshold> 5e2 </tolerance_threshold>
-
+		<minimizer name="L-BFGS-B"> 
+			<gradient> 1 </gradient>
+			<max_tolerance> 1e-4 </max_tolerance>
+			<min_tolerance> 1e-6 </min_tolerance>
+			<tolerance_threshold> 5e2 </tolerance_threshold>
+		</minimizer>
 	</Method>
 
 	<Method name="Binned inference">
-		<sampler name="HMC"> </sampler>
 		<verbosity> 1 </verbosity>
-		<num_samples> 1e-4 </num_samples>
-		<burn_in> 1e-6 </burn_in>
-		<leapfrog_epsilon> 1e-6 </leapfrog_epsilon>
-		<leapfrog_steps> 1e-6 </leapfrog_steps>
-
+		<sampler name="HMC"> 
+			<num_samples> 1e-4 </num_samples>
+			<burn_in> 1e-6 </burn_in>
+			<integrator> "leapfrog" </integrator>
+			<!-- <integrator> "tempered leapfrog" </integrator> -->
+			<integrator_epsilon> 1e-6 </integrator_epsilon>
+			<integrator_steps> 1e-6 </integrator_steps>
+		</sampler>
 	</Method>
 
 
@@ -27,9 +29,33 @@
 <!-- Atmospheric neutrinos -->
 	<NeutrinoSource name="Atmospheric">
 		<status> 1 </status>
-        <nuisance name='normalization'>
+		<nuisance name='normalization'>
 			<status> 1 </status>
-			<sigma> 0.1 </sigma>
+			<sigma> 0.05 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='normalization_below1GeV'>
+			<status> 1 </status>
+			<sigma> 0.25 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='normalization_above1GeV'>
+			<status> 1 </status>
+			<sigma> 0.15 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='zenith_up'>
+			<status> 1 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='zenith_down'>
+			<status> 1 </status>
+			<sigma> 0.2 </sigma>
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
@@ -45,12 +71,12 @@
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
-		<physics name='tilt'>
-			<points> 9 </points>
-			<min> 0.9 </min>
-			<max> 1.1 </max>
-			<true> 1.0 </true>
-		</physics>
+		<nuisance name='tilt'>
+			<status> 1 </status>
+			<sigma> 0.10 </sigma>
+			<nominal> 0.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
 	</NeutrinoSource>
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
@@ -84,16 +110,16 @@
 <!--Anything common to a given neutrino experiment-->
 
 <!-- IceCube Upgrade -->
-	<NeutrinoExperiment name="SuperK Pheno">
+	<NeutrinoExperiment name="SuperK Pheno 2023">
 		<status> 1 </status>
 		<target name="Water"> </target>
 		<source name='Atmospheric'>
 			<status> 1 </status>
-			<MCFiles name='/home/SuperK.hdf5'>
+			<MCFiles name='/home/investigator/Pheno/SK-DC/tune_mc/final_SuperK_fullMC_3_2.h5'>
 				<status> 1 </status>
 			</MCFiles>
-			<exposure> 12 </exposure> <!-- years-->
-			<MCexposure> 279 </MCexposure> <!-- This is total exposure of all the specified MC files-->
+			<exposure> 1 </exposure> <!-- years-->
+			<MCexposure> 50 </MCexposure> <!-- This is total exposure of all the specified MC files-->
 <!-- 	    <MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
 				<status> 1 </status>
 			</MCFiles> -->

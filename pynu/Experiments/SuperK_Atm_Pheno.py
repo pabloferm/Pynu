@@ -94,7 +94,7 @@ class SuperK(Experiment):
         del self.Data
 
     def BinMC(self, array, shift_E=1, bias_E=0):
-        self.CosThetaReco = self.CosZReco
+        self.CosThetaReco = self.CosZReco  # redundant
         self.set_energy_bias(bias_E)
         self.set_energy_scale(shift_E)
         return self.BinIt_MC_2D(array)
@@ -157,7 +157,7 @@ class SuperK(Experiment):
 
 class SuperK_Htag(SuperK):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK_Htag, self).__init__(dict_of_details)
+        super(SuperK_Htag, self).__init__(dict_of_details, scenario)
 
         self.Detector = "SuperK_Htag_Pheno"
 
@@ -229,7 +229,7 @@ class SuperK_Htag(SuperK):
 
 class SuperK_Gdtag(SuperK_Htag):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK_Gdtag, self).__init__(dict_of_details)
+        super(SuperK_Gdtag, self).__init__(dict_of_details, scenario)
 
         self.Detector = "SuperK_Gdtag_Pheno"
 
@@ -238,14 +238,12 @@ class SuperK_Gdtag(SuperK_Htag):
 
 class SuperK_2023(SuperK):
     def __init__(self, dict_of_details, scenario):
-        super(SuperK_Htag, self).__init__(dict_of_details)
+        super(SuperK_2023, self).__init__(dict_of_details, scenario)
 
         self.Detector = "SuperK_2023"
 
-        self.Definition()
-
+        self.SetDefinition()
         self.Binning()
-
         self.SetBinner_2D()
 
         if self.DataFit:
@@ -263,8 +261,7 @@ class SuperK_2023(SuperK):
         self.CC = np.abs(self.Mode) < 30
         self.nuPDG = self.MC["ipnu"]
         self.ETrue = self.MC["pnu"]
-        # self.Weight = self.MC["weightReco"] * self.MC["weightSim"]
-        self.Weight = 1 / 50.
+        self.Weight = self.MC["tune_weights"]
         self.Sample = self.MC["itype"]  # Sample of each event
         self.DecayE = self.MC["muedk"]
 
@@ -278,8 +275,6 @@ class SuperK_2023(SuperK):
         self.Etrue_max = max(self.ETrue)
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
-
-        self.NORM *= 1
 
         self.BaseWeight = self.Weight * self.NORM
 
@@ -297,48 +292,68 @@ class SuperK_2023(SuperK):
         del self.Data
 
     def Binning(self):
-        sg_ebins = np.array([0.1, 0.25118864315095796, 0.3981071705534973, 0.630957344480193, 1.0, 1.584893192461114])
+        sg_ebins = np.array(
+            [
+                0.1,
+                0.25118864315095796,
+                0.3981071705534973,
+                0.630957344480193,
+                1.0,
+                1.584893192461114,
+            ]
+        )
         mg_4_ebins = np.array([1.0, 2.5118864315095797, 5.011872336272725, 10.0, 100.0])
         mg_2_ebins = np.array([1.3, 2.5118864315095797, 100.0])
         mr_3_ebins = np.array([1.0, 2.5118864315095797, 5.011872336272725, 100.0])
-        mr_4_ebins = np.array([0.1, 1.3299998745408388, 2.5118864315095797, 5.011872336272725, 100.0])
+        mr_4_ebins = np.array(
+            [0.1, 1.3299998745408388, 2.5118864315095797, 5.011872336272725, 100.0]
+        )
         pcs_ebins = np.array([0.1, 2.5118864315095797, 100.0])
-        pct_ebins = np.array([0.1, 1.32739445772974, 2.5118864315095797, 5.011872336272725, 100.0])
-        upmus_ebins = np.array([1.584893192461114, 2.4945947269429536, 4.9888448746001215, 100000.0])
+        pct_ebins = np.array(
+            [0.1, 1.32739445772974, 2.5118864315095797, 5.011872336272725, 100.0]
+        )
+        upmus_ebins = np.array(
+            [1.584893192461114, 2.4945947269429536, 4.9888448746001215, 100000.0]
+        )
         upmut_ebins = np.array([0.1, 100000.0])
-        z10bins = np.array([-1, -0.839, -0.644, -0.448, -0.224, 0.0, 0.224, 0.448, 0.644, 0.839, 1.0])
-        z10bins_up = np.array([-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0.0])
+        z10bins = np.array(
+            [-1, -0.839, -0.644, -0.448, -0.224, 0.0, 0.224, 0.448, 0.644, 0.839, 1.0]
+        )
+        z10bins_up = np.array(
+            [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0.0]
+        )
         z1bins = np.array([-1, 1.0])
         self.sample_names = {
-            0: 'sk1-3_fc_subgev_1ring_elike_0decaye',
-            1: 'sk1-3_fc_subgev_1ring_elike_1decaye',
-            2: 'sk1-5_fc_1ring_ncpi0',
-            3: 'sk1-3_fc_subgev_1ring_mulike_0decaye',
-            4: 'sk1-3_fc_subgev_1ring_mulike_1decaye',
-            5: 'sk1-3_fc_subgev_1ring_mulike_2decaye',
-            6: 'sk1-5_fc_2ring_ncpi0',
-            7: 'sk1-3_fc_multigev_1ring_nuelike',
-            8: 'sk1-3_fc_multigev_1ring_nuebarlike',
-            9: 'sk1-3_fc_multigev_1ring_mulike',
-            10: 'sk1-5_fc_multigev_multiring_nuelike',
-            11: 'sk1-5_fc_multigev_multiring_nuebarlike',
-            12: 'sk1-5_fc_multigev_multiring_mulike',
-            13: 'sk1-5_fc_multigev_multiring_other',
-            14: 'sk1-5_pc_stop',
-            15: 'sk1-5_pc_thru',
-            16: 'sk1-5_upmu_stop',
-            17: 'sk1-5_upmu_thru_nonshowering',
-            18: 'sk1-5_upmu_thru_showering',
-            19: 'sk4-5_fc_subgev_1ring_nuelike',
-            20: 'sk4-5_fc_subgev_1ring_nuebarlike_0neutron',
-            21: 'sk4-5_fc_subgev_1ring_nuebarlike_1neutron',
-            22: 'sk4-5_fc_subgev_1ring_numulike',
-            23: 'sk4-5_fc_subgev_1ring_numubarlike',
-            24: 'sk4-5_fc_multigev_1ring_nuelike',
-            25: 'sk4-5_fc_multigev_1ring_nuebarlike_0neutron',
-            26: 'sk4-5_fc_multigev_1ring_nuebarlike_1neutron',
-            27: 'sk4-5_fc_multigev_1ring_numulike',
-            28: 'sk4-5_fc_multigev_1ring_numubarlike'}
+            0: "sk1-3_fc_subgev_1ring_elike_0decaye",
+            1: "sk1-3_fc_subgev_1ring_elike_1decaye",
+            2: "sk1-5_fc_1ring_ncpi0",
+            3: "sk1-3_fc_subgev_1ring_mulike_0decaye",
+            4: "sk1-3_fc_subgev_1ring_mulike_1decaye",
+            5: "sk1-3_fc_subgev_1ring_mulike_2decaye",
+            6: "sk1-5_fc_2ring_ncpi0",
+            7: "sk1-3_fc_multigev_1ring_nuelike",
+            8: "sk1-3_fc_multigev_1ring_nuebarlike",
+            9: "sk1-3_fc_multigev_1ring_mulike",
+            10: "sk1-5_fc_multigev_multiring_nuelike",
+            11: "sk1-5_fc_multigev_multiring_nuebarlike",
+            12: "sk1-5_fc_multigev_multiring_mulike",
+            13: "sk1-5_fc_multigev_multiring_other",
+            14: "sk1-5_pc_stop",
+            15: "sk1-5_pc_thru",
+            16: "sk1-5_upmu_stop",
+            17: "sk1-5_upmu_thru_nonshowering",
+            18: "sk1-5_upmu_thru_showering",
+            19: "sk4-5_fc_subgev_1ring_nuelike",
+            20: "sk4-5_fc_subgev_1ring_nuebarlike_0neutron",
+            21: "sk4-5_fc_subgev_1ring_nuebarlike_1neutron",
+            22: "sk4-5_fc_subgev_1ring_numulike",
+            23: "sk4-5_fc_subgev_1ring_numubarlike",
+            24: "sk4-5_fc_multigev_1ring_nuelike",
+            25: "sk4-5_fc_multigev_1ring_nuebarlike_0neutron",
+            26: "sk4-5_fc_multigev_1ring_nuebarlike_1neutron",
+            27: "sk4-5_fc_multigev_1ring_numulike",
+            28: "sk4-5_fc_multigev_1ring_numubarlike",
+        }
         self.EnergyBins = {
             0: sg_ebins,
             1: sg_ebins,
@@ -368,9 +383,9 @@ class SuperK_2023(SuperK):
             25: mg_4_ebins,
             26: mg_4_ebins,
             27: mg_2_ebins,
-            28: mg_2_ebins
+            28: mg_2_ebins,
         }
-        self.CzBins = {
+        self.CTBins = {
             0: z10bins,
             1: z1bins,
             2: z1bins,
@@ -399,5 +414,5 @@ class SuperK_2023(SuperK):
             25: z10bins,
             26: z10bins,
             27: z10bins,
-            28: z10bins
+            28: z10bins,
         }

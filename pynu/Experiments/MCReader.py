@@ -21,6 +21,10 @@ def Manager(detector, source, dict_of_details, scenario):
                     from .SuperK_Atm_Pheno import SuperK_Gdtag
 
                     return SuperK_Gdtag(dict_of_details, scenario)
+                elif "2023" in detector:
+                    from .SuperK_Atm_Pheno import SuperK_2023
+
+                    return SuperK_2023(dict_of_details, scenario)
                 else:
                     from .SuperK_Atm_Pheno import SuperK
 
@@ -110,7 +114,7 @@ def reader(filename):
         or extension == ".HDF"
         or extension == ".hdf"
         or extension == ".hdf5"
-        or extension == "h5"
+        or extension == ".h5"
     ):
         fdata = {}
         with h5py.File(filename, "r") as hf:
