@@ -345,9 +345,11 @@ class PyNuFit:
                 res = minimize(
                     self.model_tester_and_gradient,
                     AnalyticPrior,
-                    method="L-BFGS-B",
+                    # method="Newton-CG", # 5min 45s
+                    method="BFGS", # 2min 38s
+                    # method="L-BFGS-B", # 3min 11s
                     jac=True,
-                    bounds=AnalyticBounds,
+                    # bounds=AnalyticBounds,
                     tol=eps,
                     options={"disp": self.verbosity},
                 )

@@ -104,12 +104,15 @@ def main():
             if points[-1] >= pynufit.Analysis.NumberOfPhysPoints:
                 sys.exit('Point out of range for this analysis.')
         elif args.range_of_points is not None and args.point is None:
-            points = list(
-                range(
-                    int(args.range_of_points[0]),
-                    1 + int(args.range_of_points[-1])))
-            if points[-1] >= pynufit.Analysis.NumberOfPhysPoints:
-                sys.exit('Point out of range for this analysis.')
+            if args.range_of_points[1] == -1:
+                points = range(args.range_of_points[0], pynufit.Analysis.NumberOfPhysPoints)
+            else:
+                points = list(
+                    range(
+                        int(args.range_of_points[0]),
+                        1 + int(args.range_of_points[-1])))
+                if points[-1] >= pynufit.Analysis.NumberOfPhysPoints:
+                    sys.exit('Point out of range for this analysis.')
         else:  # run over all analysis points
             points = range(0, pynufit.Analysis.NumberOfPhysPoints)
 
