@@ -1,4 +1,5 @@
 import sys
+from functools import wraps
 from scipy.optimize import minimize
 import numpy as np
 import h5py
@@ -31,6 +32,18 @@ class PyNuFit:
 
         ''' Compute Observation '''
         self.ComputeBinnedObservation()
+
+        self.cache = {}
+
+    def cache_method(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            if args in self.cache:
+                return self.cache[args]
+            result = func(self, *args, **kwargs)
+            self.cache[args] = result
+            return result
+        return wrapper
 
     def ComputeBinnedObservation(self):
         self.ApplyFixedWeights()
@@ -340,12 +353,12 @@ class PyNuFit:
 
             res = minimize(
                 # self.model_tester_and_gradient,
-                self.model_tester,
+                self.model_tester_and_gradient,
                 AnalyticPrior,
-                # method=method,
-                # jac=True,
-                jac=False,
-                bounds=AnalyticBounds,
+                method="BFGS",
+                jac=True,
+                # jac=False,
+                # bounds=AnalyticBounds,
                 tol=eps,
                 options={
                     'disp': self.verbosity})
@@ -376,6 +389,7 @@ class PyNuFit:
 
         return I
 
+    # @cache_method
     def model_tester_and_gradient(self, nuisance_vector):
         ''' Compute expected and its derivatives '''
         self.ComputeBinnedExpectation(
