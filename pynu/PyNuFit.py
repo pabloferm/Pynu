@@ -52,6 +52,7 @@ class PyNuFit:
         self.ApplyOscillations('Nominal')
         self.SetBinnedObservedEvents()
 
+    @cache_method
     def ComputeBinnedExpectation(
             self,
             point,
@@ -74,6 +75,7 @@ class PyNuFit:
         self.SetExpectedWeights()
         self.SetBinnedExpectedEvents()
 
+    @cache_method
     def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
         if nuisance_vector is None:
             nuisance_vector = self.Analysis.NuisNominalList
