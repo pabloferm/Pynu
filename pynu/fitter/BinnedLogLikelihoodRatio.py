@@ -85,8 +85,8 @@ class BinnedLogLikelihoodRatio:
 
         $\nabla_j \chi^2 = 2~\sum_{i} \Big( 1 - \frac{O_i}{E_i}\Big)\frac{\partial E_i}{\partial x_j} + \frac{2}{P^{nuis}_j(x)} \frac{d~P^{nuis}_j(x)}{dx_j}$
 
-        LIMITATION: Currently, this is only done for nuisance following normal distributions. Other distributions
-        like Beta will come soon.
+        LIMITATION: Currently, this is only done for nuisance following normal and beta distributions. Other distributions
+        will come soon.
 
         Args:
             expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events
