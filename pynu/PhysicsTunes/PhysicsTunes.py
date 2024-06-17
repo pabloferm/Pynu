@@ -2,7 +2,10 @@
 # from .Detector import *
 # from .Oscillations.Oscillations import Oscillations
 import sys
+import time
 from LoggingDecorator import logd
+from functools import wraps
+from inspect import signature
 
 
 class PhysicsTunes:
@@ -110,16 +113,73 @@ class Tune:
 
     # @logd(file=False, logging_level='debug')
     def __init__(self):
-        pass
+        self.cache = {}
+        self.cache_size = 0
+        max_cache_size_mb = 100
+        self.max_cache_size = max_cache_size_mb * 1024 * 1024
+
+    def cache_method(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            # Normalize function arguments using the signature
+            sig = signature(func)
+            bound_args = sig.bind(self, *args, **kwargs)
+            bound_args.apply_defaults()
+
+            # Convert any numpy arrays in args or kwargs to tuples
+            def make_hashable(o):
+                if isinstance(o, (list, tuple)):
+                    return tuple(make_hashable(i) for i in o)
+                elif isinstance(o, dict):
+                    return tuple((k, make_hashable(v)) for k, v in o.items())
+                else:
+                    return o
+
+            def get_size(obj):
+                if isinstance(obj, (list, tuple, set, frozenset)):
+                    return sum(get_size(i) for i in obj) + sys.getsizeof(obj)
+                if isinstance(obj, dict):
+                    return sum(get_size(k) + get_size(v) for k, v in obj.items()) + sys.getsizeof(obj)
+                return sys.getsizeof(obj)
+
+            # Create a cache key from normalized arguments
+            cache_key = tuple((k, make_hashable(v)) for k, v in bound_args.arguments.items())
+
+            if cache_key in self.cache:
+                print("Using cached result.")
+                return self.cache[cache_key]['result']
+
+            start_time = time.time()
+            result = func(*bound_args.args, **bound_args.kwargs)
+            end_time = time.time()
+
+            result_size = get_size(result)
+            computation_time = end_time - start_time
+
+            # Add the new result to the cache
+            self.cache[cache_key] = {
+                'result': result, 
+                'size': result_size, 
+                'computation_time': computation_time
+            }
+
+            self.cache_size += result_size
+
+            # Enforce cache size limit
+            while self.cache_size > self.max_cache_size:
+                # Find the entry with the highest computation time
+                least_time_key = min(self.cache, key=lambda k: self.cache[k]['computation_time'])
+                self.cache_size -= self.cache[least_time_key]['size']
+                del self.cache[least_time_key]
+
+            return result
+        return wrapper
 
     # @logd(file=False, logging_level='debug')
+    @cache_method
     def Get(self, tune, exp, x):
         """ Get specific weights for a given `experiment` from tune evaluated 
         at `x`, given the name of the `tune`. """
-        # print("====================================")
-        # print(f'tune {tune}')
-        # print(f'exp {exp}')
-        # print(f'x {x}')
         try:
             return self.__getattribute__(tune)(exp, x)
         except BaseException:

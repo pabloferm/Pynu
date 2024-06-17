@@ -1,5 +1,4 @@
 import sys
-from functools import wraps
 from scipy.optimize import minimize
 import numpy as np
 import h5py
@@ -9,7 +8,6 @@ import Experiments as Exp  # contains rd class to read and setup each experiment
 # you have measured
 from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
 import fitter as ft  # does all the fitting calculations
-
 
 class PyNuFit:
     ''' Top class containing everything '''
@@ -33,17 +31,6 @@ class PyNuFit:
         ''' Compute Observation '''
         self.ComputeBinnedObservation()
 
-        self.cache = {}
-
-    def cache_method(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            if args in self.cache:
-                return self.cache[args]
-            result = func(self, *args, **kwargs)
-            self.cache[args] = result
-            return result
-        return wrapper
 
     def ComputeBinnedObservation(self):
         self.ApplyFixedWeights()
@@ -52,7 +39,7 @@ class PyNuFit:
         self.ApplyOscillations('Nominal')
         self.SetBinnedObservedEvents()
 
-    @cache_method
+
     def ComputeBinnedExpectation(
             self,
             point,
@@ -75,7 +62,7 @@ class PyNuFit:
         self.SetExpectedWeights()
         self.SetBinnedExpectedEvents()
 
-    @cache_method
+
     def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
         if nuisance_vector is None:
             nuisance_vector = self.Analysis.NuisNominalList
@@ -223,7 +210,7 @@ class PyNuFit:
                             self.PhysicsTunes[name].OscillationTunes.UpdateParameter(
                                 tune, value)
 
-                        if w is None: w = 1 # Solve and understand why
+                        # if w is None: w = 1 # Solve and understand why
 
                         if tune_block != 'Osc':
                             if tag == 'Fixed':
@@ -357,10 +344,11 @@ class PyNuFit:
                 # self.model_tester_and_gradient,
                 self.model_tester_and_gradient,
                 AnalyticPrior,
-                method="BFGS",
+                # method="BFGS",
+                method='L-BFGS-B',
                 jac=True,
                 # jac=False,
-                # bounds=AnalyticBounds,
+                bounds=AnalyticBounds,
                 tol=eps,
                 options={
                     'disp': self.verbosity})
