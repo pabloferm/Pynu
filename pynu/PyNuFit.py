@@ -279,6 +279,7 @@ class PyNuFit:
 
         """ Binned log-Likelihood fit assuming data is Poisson-distributed """
         self.ComputeBinnedExpectation(self.point, physics=True)  # Nominal expectation
+
         """ Statistics only computation to start guiding the minimization """
         X2_stats = self.LLH.stats_only(self.Expectation)
         print(f"Stats only, chi2 = {X2_stats}")
