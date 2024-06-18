@@ -346,10 +346,10 @@ class PyNuFit:
                     self.model_tester_and_gradient,
                     AnalyticPrior,
                     # method="Newton-CG", # 5min 45s
-                    method="BFGS", # 2min 38s
-                    # method="L-BFGS-B", # 3min 11s
+                    # method="BFGS", # 2min 38s
+                    method="L-BFGS-B", # 3min 11s
                     jac=True,
-                    # bounds=AnalyticBounds,
+                    bounds=AnalyticBounds,
                     tol=eps,
                     options={"disp": self.verbosity},
                 )

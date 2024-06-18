@@ -104,7 +104,6 @@ class Oscillator(Tune):
         w1 = self.Sin2Theta13(experiment, h1)
         dw = (w0 - w1) / (h0 - h1)
         self.Parameters["Sin2Theta13"] = x
-        # print(dw)
         return dw
 
     def Sin2Theta12(self, experiment, x):
