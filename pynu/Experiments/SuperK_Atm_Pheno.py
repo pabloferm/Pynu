@@ -261,14 +261,13 @@ class SuperK_2023(SuperK):
         self.CC = np.abs(self.Mode) < 30
         self.nuPDG = self.MC["ipnu"]
         self.ETrue = self.MC["pnu"]
-        self.Weight = self.MC["tune_weights"]
+        self.Weight = self.MC["tune_weights"] * self.MC["inv_flux"]
         self.Sample = self.MC["itype"]  # Sample of each event
         self.DecayE = self.MC["muedk"]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
         self.NumberOfSamples = 1 + np.amax(self.Samples)
-        # self.NumberOfSamples = 16
         self.Erec_max = max(self.EReco)
         self.Erec_min = min(self.EReco)
         self.Etrue_min = min(self.ETrue)
