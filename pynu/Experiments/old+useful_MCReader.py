@@ -10,30 +10,30 @@ from math import asin, sqrt
 
 class Reader:
     def __init__(self, source, experiment, exposure, filename):
-
         self.Experiment = experiment
         self.SOURCE = source
         self.Exposure = exposure
         self.FewEntries = None
         self.Physics = 0  # list of physics parameters
 
-        if self.Experiment == 'Super-Kamiokande' or self.Experiment == 'SK':
-            self.Detector = 'Water'
+        if self.Experiment == "Super-Kamiokande" or self.Experiment == "SK":
+            self.Detector = "Water"
             print(
-                f'Processing simulation of {self.Experiment} experiment with a exposure of {self.Exposure} years.')
-            with h5py.File(filename, 'r') as hf:
-                d_evis = np.array(hf['evis'][()])
-                d_recocz = np.array(hf['recodirZ'][()])
-                d_truecz = np.array(hf['dirnuZ'][()])
-                d_azi = np.array(hf['azi'][()])
-                d_mode = np.array(hf['mode'][()], dtype=int)
-                d_ipnu = np.array(hf['ipnu'][()], dtype=int)
-                d_pnu = np.array(hf['pnu'][()])
-                d_weightReco = np.array(hf['weightReco'][()])
-                d_weightSKTable = np.array(hf['weightOsc_SKpaper'][()])
-                d_weightSim = np.array(hf['weightSim'][()])
-                d_itype = np.array(hf['itype'][()], dtype=int)
-                d_dcye = np.array(hf['muedk'][()], dtype=int)
+                f"Processing simulation of {self.Experiment} experiment with a exposure of {self.Exposure} years."
+            )
+            with h5py.File(filename, "r") as hf:
+                d_evis = np.array(hf["evis"][()])
+                d_recocz = np.array(hf["recodirZ"][()])
+                d_truecz = np.array(hf["dirnuZ"][()])
+                d_azi = np.array(hf["azi"][()])
+                d_mode = np.array(hf["mode"][()], dtype=int)
+                d_ipnu = np.array(hf["ipnu"][()], dtype=int)
+                d_pnu = np.array(hf["pnu"][()])
+                d_weightReco = np.array(hf["weightReco"][()])
+                d_weightSKTable = np.array(hf["weightOsc_SKpaper"][()])
+                d_weightSim = np.array(hf["weightSim"][()])
+                d_itype = np.array(hf["itype"][()], dtype=int)
+                d_dcye = np.array(hf["muedk"][()], dtype=int)
             condition = (d_itype < 16) * (d_itype > -1)
             self.EReco = d_evis[condition]
             self.CosZReco = d_recocz[condition]
@@ -52,31 +52,35 @@ class Reader:
             # SK: 39891.6 events in 5326 days
             SKrate = 36437.9607 / 5326  # SK events per day from 2017 atm. paper
             SKrateyr = SKrate * 365.25  # SK events per year from 2017 atm. paper
-            norma = np.sum(
-                d_weightReco[condition] *
-                d_weightSKTable[condition])
+            norma = np.sum(d_weightReco[condition] * d_weightSKTable[condition])
             MCyears = norma / SKrateyr
-            print(f'Your simulation file has {MCyears} years')
+            print(f"Your simulation file has {MCyears} years")
             self.NORM = self.Exposure / MCyears
 
-        elif self.Experiment == 'SuperK-Gd' or self.Experiment == 'SKIV' or self.Experiment == 'SuperK_Htag' or self.Experiment == 'SuperK_Gdtag':
-            self.Detector = 'Water'
+        elif (
+            self.Experiment == "SuperK-Gd"
+            or self.Experiment == "SKIV"
+            or self.Experiment == "SuperK_Htag"
+            or self.Experiment == "SuperK_Gdtag"
+        ):
+            self.Detector = "Water"
             print(
-                f'Processing simulation of {self.Experiment} experiment with a exposure of {self.Exposure} years.')
-            with h5py.File(filename, 'r') as hf:
-                d_evis = np.array(hf['evis'][()])
-                d_recocz = np.array(hf['recodirZ'][()])
-                d_truecz = np.array(hf['dirnuZ'][()])
-                d_azi = np.array(hf['azi'][()])
-                d_mode = np.array(hf['mode'][()], dtype=int)
-                d_ipnu = np.array(hf['ipnu'][()], dtype=int)
-                d_pnu = np.array(hf['pnu'][()])
-                d_weightReco = np.array(hf['weightReco'][()])
-                d_weightSKTable = np.array(hf['weightOsc_SKpaper'][()])
-                d_weightSim = np.array(hf['weightSim'][()])
-                d_itype = np.array(hf['itype'][()], dtype=int)
-                d_dcye = np.array(hf['muedk'][()], dtype=int)
-                d_nn = np.array(hf['neutron'][()], dtype=int)
+                f"Processing simulation of {self.Experiment} experiment with a exposure of {self.Exposure} years."
+            )
+            with h5py.File(filename, "r") as hf:
+                d_evis = np.array(hf["evis"][()])
+                d_recocz = np.array(hf["recodirZ"][()])
+                d_truecz = np.array(hf["dirnuZ"][()])
+                d_azi = np.array(hf["azi"][()])
+                d_mode = np.array(hf["mode"][()], dtype=int)
+                d_ipnu = np.array(hf["ipnu"][()], dtype=int)
+                d_pnu = np.array(hf["pnu"][()])
+                d_weightReco = np.array(hf["weightReco"][()])
+                d_weightSKTable = np.array(hf["weightOsc_SKpaper"][()])
+                d_weightSim = np.array(hf["weightSim"][()])
+                d_itype = np.array(hf["itype"][()], dtype=int)
+                d_dcye = np.array(hf["muedk"][()], dtype=int)
+                d_nn = np.array(hf["neutron"][()], dtype=int)
             # To be removed at some point
             condition = (d_itype < 18) * (d_itype > -1)
             self.EReco = d_evis[condition]
@@ -97,41 +101,44 @@ class Reader:
             # SK: 36437.9607 events in 5326 days
             SKrate = 36437.9607 / 5326  # SK events per day from 2017 atm. paper
             SKrateyr = SKrate * 365.25  # SK events per year from 2017 atm. paper
-            norma = np.sum(
-                d_weightReco[condition] *
-                d_weightSKTable[condition])
+            norma = np.sum(d_weightReco[condition] * d_weightSKTable[condition])
             MCyears = norma / SKrateyr
-            print(f'Your simulation file has {MCyears} years')
+            print(f"Your simulation file has {MCyears} years")
             self.NORM = self.Exposure / MCyears
 
-        elif self.Experiment == 'IceCube-Upgrade' or self.Experiment == 'IC' or self.Experiment == 'DeepCore':
-            self.Detector = 'Water'
+        elif (
+            self.Experiment == "IceCube-Upgrade"
+            or self.Experiment == "IC"
+            or self.Experiment == "DeepCore"
+        ):
+            self.Detector = "Water"
             print(
-                f'Processing simulation of {self.Experiment} experiment with a exposure of {self.Exposure} years.')
+                f"Processing simulation of {self.Experiment} experiment with a exposure of {self.Exposure} years."
+            )
             input_data = pd.read_csv(filename)
             Time = self.Exposure * 365 * 24 * 60 * 60
             meter_to_cm_sq = 1e4
             self.Erec_min = 1
             if int(pd.__version__[0]) == 1:
-                d_EReco = input_data['reco_energy'].to_numpy()
-                d_CosZReco = np.cos(input_data['reco_zenith'].to_numpy())
-                d_CosZTrue = np.cos(input_data['true_zenith'].to_numpy())
-                d_AziTrue = input_data['true_azimuth'].to_numpy()
-                d_CC = input_data['current_type'].to_numpy()
-                d_nuPDG = np.int_(input_data['pdg'].to_numpy())
-                d_ETrue = input_data['true_energy'].to_numpy()
-                d_Weight = input_data['weight'].to_numpy()
-                d_Sample = np.int_(input_data['pid'].to_numpy())
+                d_EReco = input_data["reco_energy"].to_numpy()
+                d_CosZReco = np.cos(input_data["reco_zenith"].to_numpy())
+                d_CosZTrue = np.cos(input_data["true_zenith"].to_numpy())
+                d_AziTrue = input_data["true_azimuth"].to_numpy()
+                d_CC = input_data["current_type"].to_numpy()
+                d_nuPDG = np.int_(input_data["pdg"].to_numpy())
+                d_ETrue = input_data["true_energy"].to_numpy()
+                d_Weight = input_data["weight"].to_numpy()
+                d_Sample = np.int_(input_data["pid"].to_numpy())
             elif int(pd.__version__[0]) == 0:
                 d_nuPDG = np.int_(input_data["pdg"])
-                d_EReco = np.array(input_data['reco_energy'])
-                d_CosZReco = np.cos(input_data['reco_zenith'])
-                d_CosZTrue = np.cos(input_data['true_zenith'])
-                d_AziTrue = np.array(input_data['true_azimuth'])
-                d_CC = np.array(input_data['current_type'])
-                d_ETrue = np.array(input_data['true_energy'])
-                d_Weight = np.array(input_data['weight'])
-                d_Sample = np.int_(input_data['pid'])
+                d_EReco = np.array(input_data["reco_energy"])
+                d_CosZReco = np.cos(input_data["reco_zenith"])
+                d_CosZTrue = np.cos(input_data["true_zenith"])
+                d_AziTrue = np.array(input_data["true_azimuth"])
+                d_CC = np.array(input_data["current_type"])
+                d_ETrue = np.array(input_data["true_energy"])
+                d_Weight = np.array(input_data["weight"])
+                d_Sample = np.int_(input_data["pid"])
             condition = (d_ETrue > 1) * (d_ETrue < 1e3) * (d_EReco > 1)
             self.EReco = d_EReco[condition]
             self.CosZReco = d_CosZReco[condition]
@@ -146,34 +153,35 @@ class Reader:
             self.NumberOfSamples = 2
             self.NumberOfEvents = self.nuPDG.size
 
-        elif self.Experiment == 'ORCA':
-            self.Detector = 'Water'
+        elif self.Experiment == "ORCA":
+            self.Detector = "Water"
             print(
-                f'Processing simulation of {self.Experiment} experiment with a exposure of {self.Exposure} years.')
+                f"Processing simulation of {self.Experiment} experiment with a exposure of {self.Exposure} years."
+            )
             input_data = pd.read_csv(filename)
             Time = self.Exposure * 365 * 24 * 60 * 60
             meter_to_cm_sq = 1e4
             self.Erec_min = 1
             if int(pd.__version__[0]) == 1:
-                d_EReco = input_data['reco_energy'].to_numpy()
-                d_CosZReco = np.cos(input_data['reco_zenith'].to_numpy())
-                d_CosZTrue = np.cos(input_data['true_zenith'].to_numpy())
+                d_EReco = input_data["reco_energy"].to_numpy()
+                d_CosZReco = np.cos(input_data["reco_zenith"].to_numpy())
+                d_CosZTrue = np.cos(input_data["true_zenith"].to_numpy())
                 # d_AziTrue = input_data['true_azimuth'].to_numpy()
                 # d_CC = input_data['current_type'].to_numpy()
-                d_nuPDG = np.int_(input_data['pdg'].to_numpy())
-                d_ETrue = input_data['true_energy'].to_numpy()
-                d_Weight = input_data['weight'].to_numpy()
-                d_Sample = np.int_(input_data['pid'].to_numpy())
+                d_nuPDG = np.int_(input_data["pdg"].to_numpy())
+                d_ETrue = input_data["true_energy"].to_numpy()
+                d_Weight = input_data["weight"].to_numpy()
+                d_Sample = np.int_(input_data["pid"].to_numpy())
             elif int(pd.__version__[0]) == 0:
                 d_nuPDG = np.int_(input_data["pdg"])
-                d_EReco = np.array(input_data['reco_energy'])
-                d_CosZReco = np.cos(input_data['reco_zenith'])
-                d_CosZTrue = np.cos(input_data['true_zenith'])
+                d_EReco = np.array(input_data["reco_energy"])
+                d_CosZReco = np.cos(input_data["reco_zenith"])
+                d_CosZTrue = np.cos(input_data["true_zenith"])
                 # d_AziTrue = np.array(input_data['true_azimuth'])
                 # d_CC = np.array(input_data['current_type'])
-                d_ETrue = np.array(input_data['true_energy'])
-                d_Weight = np.array(input_data['weight'])
-                d_Sample = np.int_(input_data['pid'])
+                d_ETrue = np.array(input_data["true_energy"])
+                d_Weight = np.array(input_data["weight"])
+                d_Sample = np.int_(input_data["pid"])
             condition = (d_ETrue > 1) * (d_ETrue < 1e3) * (d_EReco > 1)
             self.EReco = d_EReco[condition]
             self.CosZReco = d_CosZReco[condition]
@@ -191,20 +199,21 @@ class Reader:
         self.FewEntries = []
 
     def Binning(self):
-        if self.Experiment == 'Super-Kamiokande' or self.Experiment == 'SK':
+        if self.Experiment == "Super-Kamiokande" or self.Experiment == "SK":
             sge_ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.0, 1.33])
             sgm_ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.0, 1.33])
             sgsrpi0ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.33])
             sgmrpi0ebins = np.array([0.1, 0.15, 0.25, 0.4, 0.63, 1.33])
-            mge_ebins = np.array([1.3, 2.5, 5., 10., 500.])
-            mgm_ebins = np.array([1.3, 3.0, 500.])
-            mre_ebins = np.array([1.3, 2.5, 5.0, 500.])
-            mrm_ebins = np.array([0.6, 1.3, 2.5, 5., 500.])
-            mro_ebins = np.array([1.3, 2.5, 5.0, 10., 500.])
-            pcs_ebins = np.array([0.1, 10., 1.0e5])
-            pct_ebins = np.array([0.1, 10.0, 50., 1.0e5])
-            z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2,
-                               0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            mge_ebins = np.array([1.3, 2.5, 5.0, 10.0, 500.0])
+            mgm_ebins = np.array([1.3, 3.0, 500.0])
+            mre_ebins = np.array([1.3, 2.5, 5.0, 500.0])
+            mrm_ebins = np.array([0.6, 1.3, 2.5, 5.0, 500.0])
+            mro_ebins = np.array([1.3, 2.5, 5.0, 10.0, 500.0])
+            pcs_ebins = np.array([0.1, 10.0, 1.0e5])
+            pct_ebins = np.array([0.1, 10.0, 50.0, 1.0e5])
+            z10bins = np.array(
+                [-1, -0.8, -0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+            )
             z1bins = np.array([-1, 1.0])
             self.EnergyBins = {
                 0: sge_ebins,
@@ -222,7 +231,8 @@ class Reader:
                 12: mrm_ebins,
                 13: mro_ebins,
                 14: pcs_ebins,
-                15: pct_ebins}
+                15: pct_ebins,
+            }
             self.CzBins = {
                 0: z10bins,
                 1: z1bins,
@@ -239,23 +249,30 @@ class Reader:
                 12: z10bins,
                 13: z10bins,
                 14: z10bins,
-                15: z10bins}
+                15: z10bins,
+            }
             self.MaxNumberOfEnergyBins = 5
             self.MaxNumberOfCzBins = 10
-        elif self.Experiment == 'SuperK-Gd' or self.Experiment == 'SKIV' or self.Experiment == 'SuperK_Htag' or self.Experiment == 'SuperK_Gdtag':
+        elif (
+            self.Experiment == "SuperK-Gd"
+            or self.Experiment == "SKIV"
+            or self.Experiment == "SuperK_Htag"
+            or self.Experiment == "SuperK_Gdtag"
+        ):
             sge_ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.0, 1.33])
             sgm_ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.0, 1.33])
             sgsrpi0ebins = np.array([0.1, 0.25, 0.4, 0.63, 1.33])
             sgmrpi0ebins = np.array([0.1, 0.15, 0.25, 0.4, 0.63, 1.33])
-            mge_ebins = np.array([1.3, 2.5, 5., 10., 500.])
-            mgm_ebins = np.array([1.3, 3.0, 500.])
-            mre_ebins = np.array([1.3, 2.5, 5.0, 500.])
-            mrm_ebins = np.array([0.6, 1.3, 2.5, 5., 500.])
-            mro_ebins = np.array([1.3, 2.5, 5.0, 10., 500.])
-            pcs_ebins = np.array([0.1, 10., 1.0e5])
-            pct_ebins = np.array([0.1, 10.0, 50., 1.0e5])
-            z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2,
-                               0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            mge_ebins = np.array([1.3, 2.5, 5.0, 10.0, 500.0])
+            mgm_ebins = np.array([1.3, 3.0, 500.0])
+            mre_ebins = np.array([1.3, 2.5, 5.0, 500.0])
+            mrm_ebins = np.array([0.6, 1.3, 2.5, 5.0, 500.0])
+            mro_ebins = np.array([1.3, 2.5, 5.0, 10.0, 500.0])
+            pcs_ebins = np.array([0.1, 10.0, 1.0e5])
+            pct_ebins = np.array([0.1, 10.0, 50.0, 1.0e5])
+            z10bins = np.array(
+                [-1, -0.8, -0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+            )
             z1bins = np.array([-1, 1.0])
             self.EnergyBins = {
                 0: sge_ebins,
@@ -275,7 +292,8 @@ class Reader:
                 14: mrm_ebins,
                 15: mro_ebins,
                 16: pcs_ebins,
-                17: pct_ebins}
+                17: pct_ebins,
+            }
             self.CzBins = {
                 0: z1bins,
                 1: z10bins,
@@ -294,20 +312,24 @@ class Reader:
                 14: z10bins,
                 15: z10bins,
                 16: z10bins,
-                17: z10bins}
+                17: z10bins,
+            }
             self.MaxNumberOfEnergyBins = 5
             self.MaxNumberOfCzBins = 10
-        elif self.Experiment == 'IceCube-Upgrade' or self.Experiment == 'IC' or self.Experiment == 'DeepCore' or self.Experiment == 'ORCA':
+        elif (
+            self.Experiment == "IceCube-Upgrade"
+            or self.Experiment == "IC"
+            or self.Experiment == "DeepCore"
+            or self.Experiment == "ORCA"
+        ):
             Erec_max = 1e4
             NErec = 40
             erec = np.logspace(
-                np.log10(
-                    self.Erec_min),
-                np.log10(Erec_max),
-                NErec + 1,
-                endpoint=True)
-            z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2,
-                               0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+                np.log10(self.Erec_min), np.log10(Erec_max), NErec + 1, endpoint=True
+            )
+            z10bins = np.array(
+                [-1, -0.8, -0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+            )
             self.EnergyBins = {0: erec, 1: erec}
             self.CzBins = {0: z10bins, 1: z10bins}
             self.MaxNumberOfEnergyBins = 40
@@ -340,15 +362,16 @@ class Reader:
         # self.coin_fraction = LoadSystematics.ICUp(self.EnergyBins, self.CzBins, 'coin_fraction', cut=self.FewEntries)
 
     def BFOscillator(
-            self,
-            neutrino_flavors,
-            Sin2Theta12=0,
-            Sin2Theta13=0,
-            Sin2Theta23=0,
-            Dm221=0,
-            Dm231=0,
-            dCP=0,
-            Ordering='normal'):
+        self,
+        neutrino_flavors,
+        Sin2Theta12=0,
+        Sin2Theta13=0,
+        Sin2Theta23=0,
+        Dm221=0,
+        Dm231=0,
+        dCP=0,
+        Ordering="normal",
+    ):
         self.weightOscBF = self.Oscillator(
             neutrino_flavors,
             Sin2Theta12,
@@ -357,34 +380,25 @@ class Reader:
             Dm221,
             Dm231,
             dCP,
-            Ordering)
+            Ordering,
+        )
         self.weightOscBF_binned = self.Exp_wBinIt(1)
         self.FewEntries = self.weightOscBF_binned > 4
         self.weightOscBF_binned = self.weightOscBF_binned[self.FewEntries]
         self.NumberOfBins = self.weightOscBF_binned.size
 
-        if self.Experiment == 'IceCube-Upgrade' or self.Experiment == 'IC' or self.Experiment == 'DeepCore' or self.Experiment == 'ORCA':
+        if (
+            self.Experiment == "IceCube-Upgrade"
+            or self.Experiment == "IC"
+            or self.Experiment == "DeepCore"
+            or self.Experiment == "ORCA"
+        ):
             self.ICSystematicTables()
 
     def BinOscillator(
-            self,
-            neutrino_flavors,
-            t12,
-            t13,
-            t23,
-            dm21,
-            dm31,
-            dcp,
-            Ordering='normal'):
-        w = self.Oscillator(
-            neutrino_flavors,
-            t12,
-            t13,
-            t23,
-            dm21,
-            dm31,
-            dcp,
-            Ordering)
+        self, neutrino_flavors, t12, t13, t23, dm21, dm31, dcp, Ordering="normal"
+    ):
+        w = self.Oscillator(neutrino_flavors, t12, t13, t23, dm21, dm31, dcp, Ordering)
         wo = self.wBinIt(w)
         return wo
 
@@ -395,8 +409,11 @@ class Reader:
             cond = self.Sample == s
             dummy_w = array[cond]
             Obs, __, __ = np.histogram2d(
-                E[cond], self.CosZReco[cond], bins=(
-                    self.EnergyBins[s], self.CzBins[s]), weights=dummy_w)
+                E[cond],
+                self.CosZReco[cond],
+                bins=(self.EnergyBins[s], self.CzBins[s]),
+                weights=dummy_w,
+            )
             v = np.append(v, Obs)
         v = v.reshape(-1)
         if len(self.FewEntries) > 0:
@@ -410,12 +427,19 @@ class Reader:
         return self.wBinIt(array * self.weightOscBF, shift_E=shift_E)
 
     def InitialFlux(self):
-        if self.Experiment == 'Super-Kamiokande' or self.Experiment == 'SK' or self.Experiment == 'SuperK-Gd' or self.Experiment == 'SKIV' or self.Experiment == 'SuperK_Htag' or self.Experiment == 'SuperK_Gdtag':
-            flux = nuflux.makeFlux('IPhonda2014_sk_solmin')
+        if (
+            self.Experiment == "Super-Kamiokande"
+            or self.Experiment == "SK"
+            or self.Experiment == "SuperK-Gd"
+            or self.Experiment == "SKIV"
+            or self.Experiment == "SuperK_Htag"
+            or self.Experiment == "SuperK_Gdtag"
+        ):
+            flux = nuflux.makeFlux("IPhonda2014_sk_solmin")
             E_min = 0.1
             E_max = 4.0e2
         else:
-            flux = nuflux.makeFlux('IPhonda2014_spl_solmin')
+            flux = nuflux.makeFlux("IPhonda2014_spl_solmin")
             E_min = 1.0
             E_max = 1.0e3
 
@@ -430,43 +454,41 @@ class Reader:
 
         # Initialize the flux
         AtmInitialFlux = np.zeros(
-            (len(cth_nodes), len(energy_nodes), 2, neutrino_flavors))
+            (len(cth_nodes), len(energy_nodes), 2, neutrino_flavors)
+        )
 
         for ic, nu_cos_zenith in enumerate(cth_nodes):
             for ie, nu_energy in enumerate(energy_range):
                 AtmInitialFlux[ic][ie][0][0] = flux.getFlux(
-                    nuflux.NuE, nu_energy, nu_cos_zenith)  # nue
+                    nuflux.NuE, nu_energy, nu_cos_zenith
+                )  # nue
                 AtmInitialFlux[ic][ie][1][0] = flux.getFlux(
-                    nuflux.NuEBar, nu_energy, nu_cos_zenith)  # nue bar
+                    nuflux.NuEBar, nu_energy, nu_cos_zenith
+                )  # nue bar
                 AtmInitialFlux[ic][ie][0][1] = flux.getFlux(
-                    nuflux.NuMu, nu_energy, nu_cos_zenith)  # numu
+                    nuflux.NuMu, nu_energy, nu_cos_zenith
+                )  # numu
                 AtmInitialFlux[ic][ie][1][1] = flux.getFlux(
-                    nuflux.NuMuBar, nu_energy, nu_cos_zenith)  # numu bar
-                AtmInitialFlux[ic][ie][0][2] = 0.  # nutau
-                AtmInitialFlux[ic][ie][1][2] = 0.  # nutau bar
+                    nuflux.NuMuBar, nu_energy, nu_cos_zenith
+                )  # numu bar
+                AtmInitialFlux[ic][ie][0][2] = 0.0  # nutau
+                AtmInitialFlux[ic][ie][1][2] = 0.0  # nutau bar
         self.energy_nodes = energy_nodes
         self.cth_nodes = cth_nodes
         self.AtmInitialFlux = AtmInitialFlux
 
     def Oscillator(
-            self,
-            neutrino_flavors,
-            t12,
-            t13,
-            t23,
-            dm21,
-            dm31,
-            dcp,
-            Ordering='normal'):
+        self, neutrino_flavors, t12, t13, t23, dm21, dm31, dcp, Ordering="normal"
+    ):
         units = nsq.Const()
         interactions = False
         AtmOsc = nsq.nuSQUIDSAtm(
             self.cth_nodes,
-            self.energy_nodes *
-            units.GeV,
+            self.energy_nodes * units.GeV,
             neutrino_flavors,
             nsq.NeutrinoType.both,
-            interactions)
+            interactions,
+        )
         AtmOsc.Set_REL_ERROR(1.0e-4)
         AtmOsc.Set_ABS_ERROR(1.0e-4)
         AtmOsc.Set_MixingAngle(0, 1, asin(sqrt(t12)))
@@ -474,7 +496,7 @@ class Reader:
         AtmOsc.Set_MixingAngle(1, 2, asin(sqrt(t23)))
         AtmOsc.Set_SquareMassDifference(1, dm21)
         AtmOsc.Set_SquareMassDifference(2, dm31)
-        if Ordering != 'normal':
+        if Ordering != "normal":
             AtmOsc.Set_SquareMassDifference(2, dm21 - dm31)
         AtmOsc.Set_CPPhase(0, 2, dcp)
         AtmOsc.Set_initial_state(self.AtmInitialFlux, nsq.Basis.flavor)
@@ -486,7 +508,15 @@ class Reader:
         neutype = neutype.astype(np.uint32).tolist()
         neuflavor = neuflavor.astype(np.uint32).tolist()
 
-        w = list(map(AtmOsc.EvalFlavor, neuflavor, self.CosZTrue,
-                 self.ETrue * units.GeV, neutype, repeat(True)))
+        w = list(
+            map(
+                AtmOsc.EvalFlavor,
+                neuflavor,
+                self.CosZTrue,
+                self.ETrue * units.GeV,
+                neutype,
+                repeat(True),
+            )
+        )
 
         return np.array(w)

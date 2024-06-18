@@ -8,17 +8,16 @@ def Manager():
 
 
 def ICUp(Ebin, Zbin, syst, cut=[]):
-
     hp_nue_cc = pd.read_csv("Systematics/hyperplanes_nue_cc.csv")
     hp_numu_cc = pd.read_csv("Systematics/hyperplanes_numu_cc.csv")
     hp_nutau_cc = pd.read_csv("Systematics/hyperplanes_nutau_cc.csv")
     hp_nu_nc = pd.read_csv("Systematics/hyperplanes_all_nc.csv")
 
-    method = 'nearest'
+    method = "nearest"
 
-    grid_cz = hp_nue_cc['reco_coszen'].to_numpy()
-    grid_Er = hp_nue_cc['reco_energy'].to_numpy()
-    pid_nue = hp_nue_cc['pid'].to_numpy()
+    grid_cz = hp_nue_cc["reco_coszen"].to_numpy()
+    grid_Er = hp_nue_cc["reco_energy"].to_numpy()
+    pid_nue = hp_nue_cc["pid"].to_numpy()
     ICSyst = [
         "offset",
         "ice_absorption",
@@ -26,9 +25,10 @@ def ICUp(Ebin, Zbin, syst, cut=[]):
         "opt_eff_headon",
         "opt_eff_lateral",
         "opt_eff_overall",
-        "coin_fraction"]
+        "coin_fraction",
+    ]
     if syst not in ICSyst:
-        print('Systematic source not known for IC.')
+        print("Systematic source not known for IC.")
 
     # for syst in ICSyst:
     values_nueCC = hp_nue_cc[syst].to_numpy()
@@ -58,29 +58,25 @@ def ICUp(Ebin, Zbin, syst, cut=[]):
 
         newCz, newEr = np.meshgrid(zbin, ebin)
 
-        nuecc = np.append(
-            nuecc, griddata(
-                points, nue, (newCz, newEr), method=method))
+        nuecc = np.append(nuecc, griddata(points, nue, (newCz, newEr), method=method))
         numucc = np.append(
-            numucc, griddata(
-                points, numu, (newCz, newEr), method=method))
+            numucc, griddata(points, numu, (newCz, newEr), method=method)
+        )
         nutaucc = np.append(
-            nutaucc, griddata(
-                points, nutau, (newCz, newEr), method=method))
-        nc = np.append(
-            nc, griddata(
-                points, nuNC, (newCz, newEr), method=method))
+            nutaucc, griddata(points, nutau, (newCz, newEr), method=method)
+        )
+        nc = np.append(nc, griddata(points, nuNC, (newCz, newEr), method=method))
 
     if len(cut) > 0:
-        dic['nueCC'] = nuecc.reshape(-1)[cut]
-        dic['numuCC'] = numucc.reshape(-1)[cut]
-        dic['nutauCC'] = nutaucc.reshape(-1)[cut]
-        dic['NC'] = nc.reshape(-1)[cut]
+        dic["nueCC"] = nuecc.reshape(-1)[cut]
+        dic["numuCC"] = numucc.reshape(-1)[cut]
+        dic["nutauCC"] = nutaucc.reshape(-1)[cut]
+        dic["NC"] = nc.reshape(-1)[cut]
     else:
-        dic['nueCC'] = nuecc.reshape(-1)
-        dic['numuCC'] = numucc.reshape(-1)
-        dic['nutauCC'] = nutaucc.reshape(-1)
-        dic['NC'] = nc.reshape(-1)
+        dic["nueCC"] = nuecc.reshape(-1)
+        dic["numuCC"] = numucc.reshape(-1)
+        dic["nutauCC"] = nutaucc.reshape(-1)
+        dic["NC"] = nc.reshape(-1)
 
     return dic
 

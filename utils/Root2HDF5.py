@@ -12,18 +12,19 @@ infile = args.fname
 tree = args.treename
 
 if infile == 'NULL':
-    sys.exit('Hey! You forgot to introduce your GENIE file')
+    sys.exit('Hey! You forgot to introduce your ROOT file')
 print('Converting ', tree, ' ROOT tree to HDF5 file.')
 
 f = upt.open(infile)
 keep_columns = f[tree].keys()
 print('Tree variables to be stored in ', infile, '.hdf5')
-print(keep_columns)
+#print(keep_columns)
 
 dt = h5py.special_dtype(vlen=np.float32)
 
 with h5py.File(infile + '.hdf5', 'w') as hf:
     for i, br in enumerate(keep_columns):
+        print(f"Storing variable {br}")
         dummy = f.get(tree)[br].array(
             interpretation=None,
             entry_start=None,
@@ -33,6 +34,7 @@ with h5py.File(infile + '.hdf5', 'w') as hf:
             array_cache='inherit',
             library='np')
         dummy = np.array(dummy)
+        print(dummy.shape)
         if dummy.dtype == np.dtype('object'):
             # Special treatment for variable length datasets
             dt = h5py.special_dtype(vlen=np.float64)

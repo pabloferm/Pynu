@@ -7,9 +7,9 @@ from .SuperK_Atm_Official import SuperK_IV, SuperK_IV_noNtag
 class HyperK(SuperK_IV):
     def __init__(self, dict_of_details, scenario):
         super(HyperK, self).__init__(dict_of_details, scenario)
-        self.Detector = 'HyperK'
-        self.SOURCE = 'Atmospheric'
-        self.Target = 'Water'
+        self.Detector = "HyperK"
+        self.SOURCE = "Atmospheric"
+        self.Target = "Water"
         self.SCENARIO = scenario
 
         self.SetDefinition()
@@ -21,13 +21,13 @@ class HyperK(SuperK_IV):
 class HyperK_NoNeutron(SuperK_IV_noNtag):
     def __init__(self, dict_of_details, scenario):
         super(HyperK_NoNeutron, self).__init__(dict_of_details, scenario)
-        self.Detector = 'HyperK_NoNeutron'
-        self.SOURCE = 'Atmospheric'
-        self.Target = 'Water'
+        self.Detector = "HyperK_NoNeutron"
+        self.SOURCE = "Atmospheric"
+        self.Target = "Water"
         self.SCENARIO = scenario
 
         self.SetDefinition()
-        print('definition')
+        print("definition")
         print(self.Definition)
 
         self.NORM *= 8.2

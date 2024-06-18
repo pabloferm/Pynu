@@ -13,12 +13,12 @@ class Experiment:
         self.SOURCE = None
         self.SCENARIO = None
 
-        self.TotalMCexposure = dict_of_details['TotalMCexposure']
-        self.FitExposure = dict_of_details['Exposure']
+        self.TotalMCexposure = dict_of_details["TotalMCexposure"]
+        self.FitExposure = dict_of_details["Exposure"]
         self.FewEntries = None
         self.NORM = self.FitExposure / self.TotalMCexposure
-        self.MCFiles = dict_of_details['MCFiles']
-        self.DataFiles = dict_of_details['DataFiles']
+        self.MCFiles = dict_of_details["MCFiles"]
+        self.DataFiles = dict_of_details["DataFiles"]
 
         if len(self.DataFiles) > 0:
             self.DataFit = True
@@ -45,10 +45,11 @@ class Experiment:
 
     def SetDefinition(self):
         self.Definition = {
-            self.Detector: 'Detector',
-            self.Target: 'XSection',
-            self.SOURCE: 'Flux',
-            self.SCENARIO: 'Osc'}
+            self.Detector: "Detector",
+            self.Target: "XSection",
+            self.SOURCE: "Flux",
+            self.SCENARIO: "Osc",
+        }
 
     def MCVariables(self):
         pass
@@ -65,8 +66,8 @@ class Experiment:
                         self.MC[key] = np.append(self.MC[key], value)
                     else:
                         print(
-                            'Warning: MC files have not the same variables, it may produce errors.')
-
+                            "Warning: MC files have not the same variables, it may produce errors."
+                        )
         if self.DataFit:
             self.Data = {}
             for i, f in enumerate(self.DataFiles):
@@ -79,17 +80,19 @@ class Experiment:
                             self.Data[key] = np.append(self.Data[key], value)
                         else:
                             print(
-                                'Warning: Data files have not the same variables, it may produce errors.')
+                                "Warning: Data files have not the same variables, it may produce errors."
+                            )
 
     def set_KDE_1D(self):
         self.KDEer = []
-        kde = FFTKDE(bw='silverman', kernel='gaussian')
+        kde = FFTKDE(bw="silverman", kernel="gaussian")
         data = self.EReco[self.Sample == 0]
         norm = data.size
         x, y = kde.fit(data)(2**10)
         import matplotlib.pyplot as plt
+
         y *= norm / np.sum(y)
-        plt.plot(x, y, label='FFTKDE')
+        plt.plot(x, y, label="FFTKDE")
         plt.hist(data, bins=15)
         plt.show()
 
@@ -98,14 +101,16 @@ class Experiment:
     def SetBinner_1D(self):  # 1D energy binning
         self.Binner = [
             bh.Histogram(bh.axis.Variable(self.EnergyBins[s]))
-            for s in range(self.NumberOfSamples)]
+            for s in range(self.NumberOfSamples)
+        ]
 
     def SetBinner_2D(self):  # 2D energy binning
         self.Binner = [
             bh.Histogram(
-                bh.axis.Variable(self.EnergyBins[s]),
-                bh.axis.Variable(self.CTBins[s]))
-            for s in range(self.NumberOfSamples)]
+                bh.axis.Variable(self.EnergyBins[s]), bh.axis.Variable(self.CTBins[s])
+            )
+            for s in range(self.NumberOfSamples)
+        ]
 
     def DeleteBinner(self):
         self.Binner = []
@@ -125,20 +130,21 @@ class Experiment:
         else:
             E = self.EReco * self.scale_E + self.bias_E
 
-        v = np.array([])
+        v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
-            v = np.hstack(
-                (v, hist.fill(
-                    E[self.Sample == i],
-                    weight=array[self.Sample == i] * self.BaseWeight
-                    [self.Sample == i]).values().reshape(-1)))
+            sample_mask = self.Sample == i
+            E_sample = E[sample_mask]
+            weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
+            
+            hist.fill(E_sample, weight=weight_sample)
+            v_list[i] = hist.values().reshape(-1)
 
+        v = np.concatenate(v_list)
         return v
 
+
     # 2D energy and cos(angle) binning
-    def BinIt_MC_2D(
-            self,
-            array):
+    def BinIt_MC_2D(self, array):
         for hist in self.Binner:
             hist.reset()
 
@@ -147,39 +153,63 @@ class Experiment:
         else:
             E = self.EReco * self.scale_E + self.bias_E
 
-        v = np.array([])
+        v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
-            v = np.hstack(
-                (v, hist.fill(
-                    E[self.Sample == i],
-                    self.CosThetaReco[self.Sample == i],
-                    weight=array[self.Sample == i] * self.BaseWeight
-                    [self.Sample == i]).values().reshape(-1)))
+            sample_mask = self.Sample == i
+            E_sample = E[sample_mask]
+            CosThetaReco_sample = self.CosThetaReco[sample_mask]
+            weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
+            
+            hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
+            v_list[i] = hist.values().reshape(-1)
+
+        v = np.concatenate(v_list)
         return v
+
 
     def BinIt_Data_1D(self):  # 1D energy binning
-        v = np.array([])
+        v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
-            v = np.hstack(
-                (v, hist.fill(self.dEReco[self.dSample == i]).values().reshape(-1)))
+            sample_mask = self.dSample == i
+            E_sample = self.dEReco[sample_mask]
+            
+            hist.fill(E_sample)
+            v_list[i] = hist.values().reshape(-1)
+
+        v = np.concatenate(v_list)
         return v
 
-    def BinIt_Data_2D(self):  # 2D energy and cos(angle) binning
-        v = np.array([])
-        for i, hist in enumerate(self.Binner):
-            v = np.hstack((v, hist.fill(
-                self.dEReco[self.dSample == i],
-                self.dCosThetaReco[self.dSample == i]).values().reshape(-1)))
+
+    def BinIt_Data_2D(self, counts=None):  # 2D energy and cos(angle) binning
+        v_list = [None] * self.NumberOfSamples
+        if np.any(counts):
+            for i, hist in enumerate(self.Binner):
+                sample_mask = self.dSample == i
+                E_sample = self.dEReco[sample_mask]
+                CosThetaReco_sample = self.dCosThetaReco[sample_mask]
+                weight_sample = counts[self.dSample == i]
+                hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
+                v_list[i] = hist.values().reshape(-1)
+
+        else:
+            for i, hist in enumerate(self.Binner):
+                sample_mask = self.dSample == i
+                E_sample = self.dEReco[sample_mask]
+                CosThetaReco_sample = self.dCosThetaReco[sample_mask]
+                hist.fill(E_sample, CosThetaReco_sample)
+                v_list[i] = hist.values().reshape(-1)
+
+        v = np.concatenate(v_list)
         return v
 
     # Contains all default weights of the analysis
 
     def StartPhysicsWeights(self):
-        '''Start physics weights from scratch, i.e. equal to 1'''
+        """Start physics weights from scratch, i.e. equal to 1"""
         self.PhysicsWeight = 1
 
     def UpdatePhysicsWeights(self, w):
-        '''Update physics weights for the experiment by mutiplying the existing weights with the input vector `w`'''
+        """Update physics weights for the experiment by mutiplying the existing weights with the input vector `w`"""
         self.PhysicsWeight = self.PhysicsWeight * w
 
     # Contains all non-changing weights of the analysis, i.e. fixed
@@ -204,7 +234,7 @@ class Experiment:
 
     def SetExpectedBinned(self):
         self.ExpectedBinned = self.BinMC(self.ExpectedWeight)
-        self.RemoveFewEntries('Expected')
+        self.RemoveFewEntries("Expected")
 
     def SetObservedBinned(self):
         if self.DataFit:
@@ -213,7 +243,7 @@ class Experiment:
             self.ObservedBinned = self.BinMC(self.NominalWeight)
 
         self.FewEntries = self.ObservedBinned > 4
-        self.RemoveFewEntries('Observed')
+        self.RemoveFewEntries("Observed")
 
     def GetObservedBinned(self):
         return self.ObservedBinned
@@ -222,11 +252,13 @@ class Experiment:
         return self.ExpectedBinned
 
     def RemoveFewEntries(self, which):
-        if which == 'Observed':
+        if which == "Observed":
             self.ObservedBinned = self.ObservedBinned[self.FewEntries]
         # elif which == 'Nominal':
         # 	self.NominalBinned = self.NominalBinned[self.FewEntries]
-        elif which == 'Expected':
+        elif which == "Expected":
             self.ExpectedBinned = self.ExpectedBinned[self.FewEntries]
         else:
-            print('Warning: No valid item to remove entries with few bins, please select Observed, Nominal or Expected.')
+            print(
+                "Warning: No valid item to remove entries with few bins, please select Observed, Nominal or Expected."
+            )
