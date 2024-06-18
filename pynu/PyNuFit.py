@@ -282,7 +282,6 @@ class PyNuFit:
         """ Statistics only computation to start guiding the minimization """
         X2_stats = self.LLH.stats_only(self.Expectation)
         print(f"Stats only, chi2 = {X2_stats}")
-        print(self.Observation)
 
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", X2_stats)
 
