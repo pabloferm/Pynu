@@ -9,7 +9,6 @@ from inspect import signature
 
 
 class PhysicsTunes:
-
     # @logd(file=False, logging_level='debug')
     def __init__(self, experiment, scenario, neutrino_flavors, set_all=False):
         self.Detector = experiment.Detector
@@ -148,15 +147,19 @@ class Tune:
                 if isinstance(obj, (list, tuple, set, frozenset)):
                     return sum(get_size(i) for i in obj) + sys.getsizeof(obj)
                 if isinstance(obj, dict):
-                    return sum(get_size(k) + get_size(v) for k, v in obj.items()) + sys.getsizeof(obj)
+                    return sum(
+                        get_size(k) + get_size(v) for k, v in obj.items()
+                    ) + sys.getsizeof(obj)
                 return sys.getsizeof(obj)
 
             # Create a cache key from normalized arguments
-            cache_key = tuple((k, make_hashable(v)) for k, v in bound_args.arguments.items())
+            cache_key = tuple(
+                (k, make_hashable(v)) for k, v in bound_args.arguments.items()
+            )
 
             if cache_key in self.cache:
                 print("Using cached result.")
-                return self.cache[cache_key]['result']
+                return self.cache[cache_key]["result"]
 
             start_time = time.time()
             result = func(*bound_args.args, **bound_args.kwargs)
@@ -167,9 +170,9 @@ class Tune:
 
             # Add the new result to the cache
             self.cache[cache_key] = {
-                'result': result, 
-                'size': result_size, 
-                'computation_time': computation_time
+                "result": result,
+                "size": result_size,
+                "computation_time": computation_time,
             }
 
             self.cache_size += result_size
@@ -177,18 +180,21 @@ class Tune:
             # Enforce cache size limit
             while self.cache_size > self.max_cache_size:
                 # Find the entry with the highest computation time
-                least_time_key = min(self.cache, key=lambda k: self.cache[k]['computation_time'])
-                self.cache_size -= self.cache[least_time_key]['size']
+                least_time_key = min(
+                    self.cache, key=lambda k: self.cache[k]["computation_time"]
+                )
+                self.cache_size -= self.cache[least_time_key]["size"]
                 del self.cache[least_time_key]
 
             return result
+
         return wrapper
 
     # @logd(file=False, logging_level='debug')
     @cache_method
     def Get(self, tune, exp, x):
-        """ Get specific weights for a given `experiment` from tune evaluated 
-        at `x`, given the name of the `tune`. """
+        """Get specific weights for a given `experiment` from tune evaluated
+        at `x`, given the name of the `tune`."""
         try:
             return self.__getattribute__(tune)(exp, x)
         except BaseException:

@@ -135,13 +135,12 @@ class Experiment:
             sample_mask = self.Sample == i
             E_sample = E[sample_mask]
             weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
-            
+
             hist.fill(E_sample, weight=weight_sample)
             v_list[i] = hist.values().reshape(-1)
 
         v = np.concatenate(v_list)
         return v
-
 
     # 2D energy and cos(angle) binning
     def BinIt_MC_2D(self, array):
@@ -159,26 +158,24 @@ class Experiment:
             E_sample = E[sample_mask]
             CosThetaReco_sample = self.CosThetaReco[sample_mask]
             weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
-            
+
             hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
             v_list[i] = hist.values().reshape(-1)
 
         v = np.concatenate(v_list)
         return v
 
-
     def BinIt_Data_1D(self):  # 1D energy binning
         v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
             sample_mask = self.dSample == i
             E_sample = self.dEReco[sample_mask]
-            
+
             hist.fill(E_sample)
             v_list[i] = hist.values().reshape(-1)
 
         v = np.concatenate(v_list)
         return v
-
 
     def BinIt_Data_2D(self, counts=None):  # 2D energy and cos(angle) binning
         v_list = [None] * self.NumberOfSamples

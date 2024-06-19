@@ -9,8 +9,11 @@ import h5py
 
 import analysis_reader as ar  # contains parse class to read and setup the analysis
 import Experiments as Exp  # contains rd class to read and setup each experiment
-from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT # contains everything to modify your simulations
+from PhysicsTunes.PhysicsTunes import (
+    PhysicsTunes as PT,
+)  # contains everything to modify your simulations
 import fitter as ft  # does all the fitting calculations
+
 
 class PyNuFit:
     """Top class containing everything"""
@@ -33,7 +36,6 @@ class PyNuFit:
         """ Compute Observation """
         self.ComputeBinnedObservation()
 
-
     def ComputeBinnedObservation(self):
         self.ApplyFixedWeights()
         self.ApplyNominalWeights()
@@ -41,12 +43,7 @@ class PyNuFit:
         self.ApplyOscillations("Nominal")
         self.SetBinnedObservedEvents()
 
-
-    def ComputeBinnedExpectation(
-            self,
-            point,
-            nuisance_vector=None,
-            physics=False):
+    def ComputeBinnedExpectation(self, point, nuisance_vector=None, physics=False):
         if physics:
             self.StartPhysics()
             self.ApplyPhysicsWeights(point)
@@ -66,7 +63,6 @@ class PyNuFit:
 
         self.SetExpectedWeights()
         self.SetBinnedExpectedEvents()
-
 
     def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
         if nuisance_vector is None:
@@ -304,9 +300,10 @@ class PyNuFit:
 
             """Analytic estimate for priors and bounds at first order"""
             AnalyticPrior, AnalyticBounds = self.LLH.analytic_priors_bounds(
-                self.Expectation, self.DiffExpectation)
+                self.Expectation, self.DiffExpectation
+            )
 
-            '''Combined chi^2 minimization'''
+            """Combined chi^2 minimization"""
             # if method == 'GD':
             #     from .gradient_descent_minimizer import gradient_descent_minimizer
             #     gradient_descent_minimizer(
@@ -359,26 +356,26 @@ class PyNuFit:
                 self.model_tester_and_gradient,
                 AnalyticPrior,
                 # method="BFGS",
-                method='L-BFGS-B',
+                method="L-BFGS-B",
                 jac=True,
                 # jac=False,
                 bounds=AnalyticBounds,
                 tol=eps,
-                options={
-                    'disp': self.verbosity})
+                options={"disp": self.verbosity},
+            )
 
-            else:
-                res = minimize(
-                    self.model_tester_and_gradient,
-                    AnalyticPrior,
-                    # method="Newton-CG", # 5min 45s
-                    # method="BFGS", # 2min 38s
-                    method="L-BFGS-B", # 3min 11s
-                    jac=True,
-                    bounds=AnalyticBounds,
-                    tol=eps,
-                    options={"disp": self.verbosity},
-                )
+            # else:
+            #     res = minimize(
+            #         self.model_tester_and_gradient,
+            #         AnalyticPrior,
+            #         # method="Newton-CG", # 5min 45s
+            #         # method="BFGS", # 2min 38s
+            #         method="L-BFGS-B", # 3min 11s
+            #         jac=True,
+            #         bounds=AnalyticBounds,
+            #         tol=eps,
+            #         options={"disp": self.verbosity},
+            #     )
 
             self.WriteToOutFile(
                 "Nuisance Parameters", self.Analysis.NuisanceList, res.x.tolist()
@@ -390,17 +387,15 @@ class PyNuFit:
 
         return -X2_stats
 
-
     def fisher_information(self, nuisance_vector):
-        ''' Compute expected and its derivatives '''
+        """Compute expected and its derivatives"""
         self.ComputeBinnedExpectation(
-            self.point, nuisance_vector=nuisance_vector)  # Nominal expectation
+            self.point, nuisance_vector=nuisance_vector
+        )  # Nominal expectation
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
-        ''' The gradient of the above '''
-        I = self.LLH.approximate_fisher(
-            self.Expectation,
-            self.DiffExpectation)
+        """ The gradient of the above """
+        I = self.LLH.approximate_fisher(self.Expectation, self.DiffExpectation)
 
         return I
 
@@ -496,7 +491,7 @@ class PyNuFit:
     def WriteToOutFile(self, block, item, value):
         while True:
             try:
-                with open(self.outfile, 'a') as f:
+                with open(self.outfile, "a") as f:
                     fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     fcntl.flock(f, fcntl.LOCK_UN)
                     break
@@ -511,4 +506,3 @@ class PyNuFit:
                     hf[block + "/" + source + "/" + par][self.point] = val
             except BaseException:
                 hf[block + "/" + item][self.point] = value
-

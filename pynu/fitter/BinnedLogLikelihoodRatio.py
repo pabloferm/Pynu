@@ -238,16 +238,16 @@ class BinnedLogLikelihoodRatio:
 
         return priors_2nd
 
-
     def approximate_fisher(self, expectation, diff_expectation):
         I_stats = 0
         for i, dE in enumerate(diff_expectation.values()):
-            for O, E, dEdx in zip(self.observation.values(),
-                                  expectation.values(), dE.values()):
+            for O, E, dEdx in zip(
+                self.observation.values(), expectation.values(), dE.values()
+            ):
                 I_stats += np.sum(O / E**2 * dEdx**2)
 
         I_prior = 0
         for sig in self.sigma_nuisance:
-            I_prior += 1/sig**2
+            I_prior += 1 / sig**2
 
         return I_stats + I_prior
