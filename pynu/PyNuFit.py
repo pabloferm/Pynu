@@ -355,11 +355,11 @@ class PyNuFit:
                 # self.model_tester_and_gradient,
                 self.model_tester_and_gradient,
                 AnalyticPrior,
-                # method="BFGS",
-                method="L-BFGS-B",
+                method="BFGS",
+                # method="L-BFGS-B",
                 jac=True,
                 # jac=False,
-                bounds=AnalyticBounds,
+                # bounds=AnalyticBounds,
                 tol=eps,
                 options={"disp": self.verbosity},
             )
@@ -471,20 +471,26 @@ class PyNuFit:
                 this = grp.create_group(key)
                 for par in self.Analysis.Physics[key]:
                     idx = self.Analysis.PhysicsList.index(par)
-                    this.create_dataset(
-                        par, data=physics_lists[idx], compression="gzip"
-                    )
+                    if par == "Ordering":
+                        dt = h5py.special_dtype(vlen=str)
+                        this.create_dataset(
+                            par, data=physics_lists[idx], compression="gzip", dtype=dt
+                        )
+                    else:
+                        this.create_dataset(
+                            par, data=physics_lists[idx], compression="gzip"
+                        )
 
             grp = hf.create_group("Analysis")
             grp.create_dataset(
                 "Chi2 Stats. Only",
-                data=[0.0] * self.Analysis.NumberOfPhysPoints,
+                data=[999.0] * self.Analysis.NumberOfPhysPoints,
                 compression="gzip",
             )
             if self.Analysis.wSyst:
                 grp.create_dataset(
                     "Chi2 Systs.",
-                    data=[0.0] * self.Analysis.NumberOfPhysPoints,
+                    data=[999.0] * self.Analysis.NumberOfPhysPoints,
                     compression="gzip",
                 )
 
@@ -496,7 +502,7 @@ class PyNuFit:
                     fcntl.flock(f, fcntl.LOCK_UN)
                     break
             except IOError:
-                time.sleep(1)
+                time.sleep(0.2)
 
         with h5py.File(self.outfile, "r+") as hf:
             print("Writing to output file.")
