@@ -250,6 +250,58 @@ class SuperK_2023(SuperK):
             self.DataVariables()
             self.BinData()
 
+    def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
+        
+        AtmInitialFlux = np.zeros(
+            (len(cth_nodes), len(energy_nodes), 2, neutrino_flavors)
+        )
+
+        flux_he = nuflux.makeFlux("honda2006")
+        flux = nuflux.makeFlux("IPhonda2014_sk_solmin")
+
+        for ic, nu_cos_zenith in enumerate(cth_nodes):
+            for ie, nu_energy in enumerate(energy_nodes):
+                if nu_energy > 1e4:
+                    AtmInitialFlux[ic][ie][0][0] = flux_he.getFlux(
+                        nuflux.NuE, nu_energy, nu_cos_zenith
+                    )  # nue
+                    AtmInitialFlux[ic][ie][1][0] = flux_he.getFlux(
+                        nuflux.NuEBar, nu_energy, nu_cos_zenith
+                    )  # nue bar
+                    AtmInitialFlux[ic][ie][0][1] = flux_he.getFlux(
+                        nuflux.NuMu, nu_energy, nu_cos_zenith
+                    )  # numu
+                    AtmInitialFlux[ic][ie][1][1] = flux_he.getFlux(
+                        nuflux.NuMuBar, nu_energy, nu_cos_zenith
+                    )  # numu bar
+                    AtmInitialFlux[ic][ie][0][2] = 0.0  # nutau
+                    AtmInitialFlux[ic][ie][1][2] = 0.0  # nutau bar
+                elif nu_energy > 1e-1 and nu_energy < 1e4:
+                    AtmInitialFlux[ic][ie][0][0] = flux.getFlux(
+                        nuflux.NuE, nu_energy, nu_cos_zenith
+                    )  # nue
+                    AtmInitialFlux[ic][ie][1][0] = flux.getFlux(
+                        nuflux.NuEBar, nu_energy, nu_cos_zenith
+                    )  # nue bar
+                    AtmInitialFlux[ic][ie][0][1] = flux.getFlux(
+                        nuflux.NuMu, nu_energy, nu_cos_zenith
+                    )  # numu
+                    AtmInitialFlux[ic][ie][1][1] = flux.getFlux(
+                        nuflux.NuMuBar, nu_energy, nu_cos_zenith
+                    )  # numu bar
+                    AtmInitialFlux[ic][ie][0][2] = 0.0  # nutau
+                    AtmInitialFlux[ic][ie][1][2] = 0.0  # nutau bar
+                elif nu_energy < 1e-1:
+                    AtmInitialFlux[ic][ie][0][0] = -0.0292*np.log10(nu_energy)*2 - 0.0277*np.log10(nu_energy) + 0.0122  # nue
+                    AtmInitialFlux[ic][ie][1][0] = -0.0292*np.log10(nu_energy)*2 - 0.0277*np.log10(nu_energy) + 0.0122  # nue bar
+                    AtmInitialFlux[ic][ie][0][1] = -0.0691*np.log10(nu_energy)*2 - 0.0797*np.log10(nu_energy) + 0.0154  # numu
+                    AtmInitialFlux[ic][ie][1][1] = -0.0691*np.log10(nu_energy)*2 - 0.0797*np.log10(nu_energy) + 0.0154  # numu bar
+                    AtmInitialFlux[ic][ie][0][2] = 0.0  # nutau
+                    AtmInitialFlux[ic][ie][1][2] = 0.0  # nutau bar
+
+        return AtmInitialFlux
+
+        
     def MCVariables(self):
         d_itype = self.MC["itype"]
         # condition = d_itype > -1
