@@ -130,7 +130,7 @@ class Plot:
 
                     ax[i, j].set_ylabel(r"$\chi^2$", fontsize=12)
                     ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
-                    ax[i, j].set_ylim(0, 25)
+                    ax[i, j].set_ylim(0, 16)
                     ax[i, j].tick_params(axis="both", labelsize=12)
                     axmin, axmax = ax[i, j].get_xlim()
                     for lv in self.levels_1d:
@@ -334,7 +334,7 @@ class Plot:
 
                     else:
                         axis[i].plot(x, y, linewidth=0.5, label="Stats. only")
-                axis[i].set_ylim(0, 25)
+                axis[i].set_ylim(0, 16)
                 axis[i].set_xlabel(self.Format(item))
                 axis[i].set_ylabel(r"$\chi^2$")
                 axis[i].legend()

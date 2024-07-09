@@ -290,10 +290,7 @@ class PyNuFit:
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", X2_stats)
 
         if self.Analysis.wSyst:
-            if X2_stats > 5e2:
-                eps = 1e-4
-            else:
-                eps = None
+            eps = 1e-5
 
             """Get Jacobian of expected events w.r.t. nuisance parameters"""
             self.ComputeBinnedDiffExpectation()
