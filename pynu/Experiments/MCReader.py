@@ -6,6 +6,7 @@ import pathlib
 import pandas as pd
 import h5py
 import numpy as np
+import uproot as upt
 
 
 # , dict_of_fixed, dict_of_true, dict_of_nominal):
@@ -105,10 +106,22 @@ def Manager(detector, source, dict_of_details, scenario):
 
 def reader(filename):
     extension = pathlib.Path(filename).suffix
+    fdata = {}
     if extension == ".root":
-        sys.exit(
-            "Not there yet. Please go to utils/ and convert it to HD5F.\nSupported file types are HDF5 and csv"
-        )
+        with upt.open(filename) as rf:
+            print(rf.keys())
+            if "fiTQun;1" in rf.keys():
+                tree = "fiTQun"
+            elif "osc_tuple;1" in rf.keys():
+                tree = "osc_tuple"
+            else:
+                sys.exit("Not there yet. Please go to utils/ and convert it to HD5F.\nSupported file types are HDF5 and csv")
+        with upt.open(filename + ":" + tree) as rf:
+            for var in rf.keys():
+                fdata[var] = rf[var].array(library="np")
+        print("root fdata")
+        print(fdata)
+
     elif (
         extension == ".HDF5"
         or extension == ".HDF"
@@ -116,13 +129,11 @@ def reader(filename):
         or extension == ".hdf5"
         or extension == ".h5"
     ):
-        fdata = {}
         with h5py.File(filename, "r") as hf:
             for var in hf.keys():
                 fdata[var] = np.array(hf[var])
     elif extension == ".csv":
         data = pd.read_csv(filename)
-        fdata = {}
         for var in data:
             if int(pd.__version__[0]) > 0:
                 fdata[var] = data[var].to_numpy()
