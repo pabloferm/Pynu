@@ -161,7 +161,7 @@ class SuperK_Htag(SuperK):
 
         self.Detector = "SuperK_Htag_Pheno"
 
-        self.Definition()
+        self.SetDefinition()
 
         self.Binning()
 
@@ -230,25 +230,15 @@ class SuperK_Htag(SuperK):
 class SuperK_Gdtag(SuperK_Htag):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_Gdtag, self).__init__(dict_of_details, scenario)
-
         self.Detector = "SuperK_Gdtag_Pheno"
-
-        self.Definition()
+        self.SetDefinition()
 
 
 class SuperK_2023(SuperK):
     def __init__(self, dict_of_details, scenario):
         super(SuperK_2023, self).__init__(dict_of_details, scenario)
-
-        self.Detector = "SuperK_2023"
-
+        self.Detector = "SuperK_pheno_2023"
         self.SetDefinition()
-        self.Binning()
-        self.SetBinner_2D()
-
-        if self.DataFit:
-            self.DataVariables()
-            self.BinData()
 
     def MCVariables(self):
         d_itype = self.MC["itype"]
@@ -279,16 +269,58 @@ class SuperK_2023(SuperK):
 
         del self.MC
 
+    def sample_index(self, sample_name_array):
+        self.sample_names = {
+            0: "sk1-3_fc_subgev_1ring_elike_0decaye",
+            1: "sk1-3_fc_subgev_1ring_elike_1decaye",
+            2: "sk1-5_fc_1ring_ncpi0",
+            3: "sk1-3_fc_subgev_1ring_mulike_0decaye",
+            4: "sk1-3_fc_subgev_1ring_mulike_1decaye",
+            5: "sk1-3_fc_subgev_1ring_mulike_2decaye",
+            6: "sk1-5_fc_2ring_ncpi0",
+            7: "sk1-3_fc_multigev_1ring_nuelike",
+            8: "sk1-3_fc_multigev_1ring_nuebarlike",
+            9: "sk1-3_fc_multigev_1ring_mulike",
+            10: "sk1-5_fc_multigev_multiring_nuelike",
+            11: "sk1-5_fc_multigev_multiring_nuebarlike",
+            12: "sk1-5_fc_multigev_multiring_mulike",
+            13: "sk1-5_fc_multigev_multiring_other",
+            14: "sk1-5_pc_stop",
+            15: "sk1-5_pc_thru",
+            16: "sk1-5_upmu_stop",
+            17: "sk1-5_upmu_thru_nonshowering",
+            18: "sk1-5_upmu_thru_showering",
+            19: "sk4-5_fc_subgev_1ring_nuelike",
+            20: "sk4-5_fc_subgev_1ring_nuebarlike_0neutron",
+            21: "sk4-5_fc_subgev_1ring_nuebarlike_1neutron",
+            22: "sk4-5_fc_subgev_1ring_numulike",
+            23: "sk4-5_fc_subgev_1ring_numubarlike",
+            24: "sk4-5_fc_multigev_1ring_nuelike",
+            25: "sk4-5_fc_multigev_1ring_nuebarlike_0neutron",
+            26: "sk4-5_fc_multigev_1ring_nuebarlike_1neutron",
+            27: "sk4-5_fc_multigev_1ring_numulike",
+            28: "sk4-5_fc_multigev_1ring_numubarlike",
+        }
+        index = np.zeros_like(sample_name_array)
+        inverted_sample_names = dict(
+            zip(self.sample_names.values(), self.sample_names.keys())
+        )
+        for i, sample in enumerate(sample_name_array):
+            index[i] = inverted_sample_names[sample]
+        return index
+
     def DataVariables(self):
-        d_itype = self.Data["itype"]
-        # condition = (d_itype < 16) * (d_itype > -1)
-        self.dEReco = self.Data["evis"]
-        self.dCosZReco = self.Data["recodirZ"]
-        self.dSample = self.Data["itype"]  # Sample of each event
-        # self.dDecayE = self.Data["muedk"]
-        self.dNumberOfEvents = self.Sample.size
+        self.dEReco = 0.5 * (self.Data["E_reco(up)"] + self.Data["E_reco(low)"])
+        self.dCosZReco = 0.5 * (self.Data["Cz_reco(up)"] + self.Data["Cz_reco(low)"])
+        self.dSample = self.sample_index(self.Data["Sample"])  # Sample of each event
+        self.dEntries = self.Data["entries"]
+        self.dNumberOfEvents = np.sum(self.dEntries)
 
         del self.Data
+
+    def BinData(self):
+        self.dCosThetaReco = self.dCosZReco
+        return self.BinIt_Data_2D(entries=self.dEntries)
 
     def Binning(self):
         sg_ebins = np.array(
@@ -322,37 +354,7 @@ class SuperK_2023(SuperK):
             [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0.0]
         )
         z1bins = np.array([-1, 1.0])
-        self.sample_names = {
-            0: "sk1-3_fc_subgev_1ring_elike_0decaye",
-            1: "sk1-3_fc_subgev_1ring_elike_1decaye",
-            2: "sk1-5_fc_1ring_ncpi0",
-            3: "sk1-3_fc_subgev_1ring_mulike_0decaye",
-            4: "sk1-3_fc_subgev_1ring_mulike_1decaye",
-            5: "sk1-3_fc_subgev_1ring_mulike_2decaye",
-            6: "sk1-5_fc_2ring_ncpi0",
-            7: "sk1-3_fc_multigev_1ring_nuelike",
-            8: "sk1-3_fc_multigev_1ring_nuebarlike",
-            9: "sk1-3_fc_multigev_1ring_mulike",
-            10: "sk1-5_fc_multigev_multiring_nuelike",
-            11: "sk1-5_fc_multigev_multiring_nuebarlike",
-            12: "sk1-5_fc_multigev_multiring_mulike",
-            13: "sk1-5_fc_multigev_multiring_other",
-            14: "sk1-5_pc_stop",
-            15: "sk1-5_pc_thru",
-            16: "sk1-5_upmu_stop",
-            17: "sk1-5_upmu_thru_nonshowering",
-            18: "sk1-5_upmu_thru_showering",
-            19: "sk4-5_fc_subgev_1ring_nuelike",
-            20: "sk4-5_fc_subgev_1ring_nuebarlike_0neutron",
-            21: "sk4-5_fc_subgev_1ring_nuebarlike_1neutron",
-            22: "sk4-5_fc_subgev_1ring_numulike",
-            23: "sk4-5_fc_subgev_1ring_numubarlike",
-            24: "sk4-5_fc_multigev_1ring_nuelike",
-            25: "sk4-5_fc_multigev_1ring_nuebarlike_0neutron",
-            26: "sk4-5_fc_multigev_1ring_nuebarlike_1neutron",
-            27: "sk4-5_fc_multigev_1ring_numulike",
-            28: "sk4-5_fc_multigev_1ring_numubarlike",
-        }
+
         self.EnergyBins = {
             0: sg_ebins,
             1: sg_ebins,

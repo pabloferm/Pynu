@@ -3,8 +3,10 @@ import numpy as np
 from scipy.optimize import minimize
 import time
 
+
 def cost_function(x, y, z):
     return (x - 2) ** 2 + (y - 3) ** 2 + (z - 4) ** 2
+
 
 start = time.time()
 
@@ -24,7 +26,7 @@ start = time.time()
 x0 = np.zeros(3)
 print(type(x0))
 
-res = minimize(cost_function, x0, method='L-BFGS-B')
+res = minimize(cost_function, x0, method="L-BFGS-B")
 
 end = time.time()
 print("Elapsed (numba with compilation) = %s" % (end - start))

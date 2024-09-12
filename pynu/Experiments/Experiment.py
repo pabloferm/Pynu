@@ -80,7 +80,7 @@ class Experiment:
                             self.Data[key] = np.append(self.Data[key], value)
                         else:
                             print(
-                                "Warning: Data files have not the same variables, it may produce errors."
+                                "Notice: Data files have not the same variables, it might produce errors."
                             )
 
     def set_KDE_1D(self):
@@ -135,13 +135,12 @@ class Experiment:
             sample_mask = self.Sample == i
             E_sample = E[sample_mask]
             weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
-            
+
             hist.fill(E_sample, weight=weight_sample)
             v_list[i] = hist.values().reshape(-1)
 
         v = np.concatenate(v_list)
         return v
-
 
     # 2D energy and cos(angle) binning
     def BinIt_MC_2D(self, array):
@@ -159,35 +158,38 @@ class Experiment:
             E_sample = E[sample_mask]
             CosThetaReco_sample = self.CosThetaReco[sample_mask]
             weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
-            
+
             hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
             v_list[i] = hist.values().reshape(-1)
 
         v = np.concatenate(v_list)
         return v
 
-
     def BinIt_Data_1D(self):  # 1D energy binning
+        for hist in self.Binner:
+            hist.reset()
         v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
             sample_mask = self.dSample == i
             E_sample = self.dEReco[sample_mask]
-            
+
             hist.fill(E_sample)
             v_list[i] = hist.values().reshape(-1)
 
         v = np.concatenate(v_list)
         return v
 
-
-    def BinIt_Data_2D(self, counts=None):  # 2D energy and cos(angle) binning
+    def BinIt_Data_2D(self, entries=None):  # 2D energy and cos(angle) binning
+        for hist in self.Binner:
+            hist.reset()
         v_list = [None] * self.NumberOfSamples
-        if np.any(counts):
+        # if np.any(entries):
+        if entries is not None:
             for i, hist in enumerate(self.Binner):
                 sample_mask = self.dSample == i
                 E_sample = self.dEReco[sample_mask]
                 CosThetaReco_sample = self.dCosThetaReco[sample_mask]
-                weight_sample = counts[self.dSample == i]
+                weight_sample = entries[self.dSample == i]
                 hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
                 v_list[i] = hist.values().reshape(-1)
 

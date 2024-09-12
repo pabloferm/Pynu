@@ -9,7 +9,9 @@ import h5py
 
 import analysis_reader as ar  # contains parse class to read and setup the analysis
 import Experiments as Exp  # contains rd class to read and setup each experiment
-from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT # contains everything to modify your simulations
+from PhysicsTunes.PhysicsTunes import (
+    PhysicsTunes as PT,
+)  # contains everything to modify your simulations
 import fitter as ft  # does all the fitting calculations
 
 
@@ -225,11 +227,13 @@ class PyNuFit:
         """Computes the derivative with respect the nuisance parameter nuis"""
         """ Returns a dict of nuis : experiment : partial of weight with respect to nuis over weight """
         dWoverW = {}
-
         for source, nuisance_list in self.Analysis.Nuisance.items():
+            print(source)
+            print(nuisance_list)
             for name, exp in self.Experiments.items():
                 if source in exp.Definition.keys():
                     tune_block = exp.Definition[source]
+                    print(tune_block)
                     for tune in self.Analysis.Nuisance[source]:
                         dWoverW[tune] = {name: 0}
                         idx = self.Analysis.NuisanceList.index(tune)
@@ -242,6 +246,14 @@ class PyNuFit:
                                 "diff_" + tune, vector[idx]
                             ) / self.PhysicsTunes[name].GetXSection(tune, vector[idx])
                         elif tune_block == "Detector":
+                            print(
+                                f"self.PhysicsTunes[{name}].GetDetector(diff_{tune}, {vector[idx]})"
+                            )
+                            print(
+                                self.PhysicsTunes[name].GetDetector(
+                                    "diff_" + tune, vector[idx]
+                                )
+                            )
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetDetector(
                                 "diff_" + tune, vector[idx]
                             ) / self.PhysicsTunes[name].GetDetector(tune, vector[idx])
@@ -347,7 +359,7 @@ class PyNuFit:
                     AnalyticPrior,
                     # method="Newton-CG", # 5min 45s
                     # method="BFGS", # 2min 38s
-                    method="L-BFGS-B", # 3min 11s
+                    method="L-BFGS-B",  # 3min 11s
                     jac=True,
                     bounds=AnalyticBounds,
                     tol=eps,
@@ -456,7 +468,7 @@ class PyNuFit:
     def WriteToOutFile(self, block, item, value):
         while True:
             try:
-                with open(self.outfile, 'a') as f:
+                with open(self.outfile, "a") as f:
                     fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     fcntl.flock(f, fcntl.LOCK_UN)
                     break
@@ -471,4 +483,3 @@ class PyNuFit:
                     hf[block + "/" + source + "/" + par][self.point] = val
             except BaseException:
                 hf[block + "/" + item][self.point] = value
-

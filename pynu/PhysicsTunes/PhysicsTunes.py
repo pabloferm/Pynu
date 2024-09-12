@@ -89,13 +89,29 @@ class PhysicsTunes:
 
             self.DetectorTunes = DeepCore()
         elif "SuperK" in self.Detector:  # needs more work
-            from .Detector.SKIVDetector import SuperK_IV
+            if "IV" in self.Detector:
+                from .Detector.SKIVDetector import SuperK_IV
 
-            self.DetectorTunes = SuperK_IV()
+                self.DetectorTunes = SuperK_IV()
+            elif "Gd" in self.Detector:
+                from .Detector.SKGdDetector import SuperK_Gd
+
+                self.DetectorTunes = SuperK_Gd()
+            elif "2023" in self.Detector:
+                from .Detector.SKCombinedDetector import SuperK_Combined
+
+                self.DetectorTunes = SuperK_Combined()
+            else:
+                from .Detector.SKDetector import SuperK
+
+                self.DetectorTunes = SuperK()
         elif "HyperK" in self.Detector:  # to be changed
-            from .Detector.SKDetector import SuperK
+            if "NoNeutron" in self.Detector:
+                pass
+            else:
+                from .Detector.SKDetector import SuperK
 
-            self.DetectorTunes = SuperK()
+                self.DetectorTunes = SuperK()
         else:
             sys.exit(f"{self.Detector} detector not found.")
 

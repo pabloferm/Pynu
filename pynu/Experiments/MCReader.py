@@ -12,7 +12,7 @@ import numpy as np
 def Manager(detector, source, dict_of_details, scenario):
     if "SuperK" in detector:
         if source == "Atmospheric":
-            if "Pheno" in detector:
+            if "pheno" in detector:
                 if "Htag" in detector:
                     from .SuperK_Atm_Pheno import SuperK_Htag
 
@@ -94,6 +94,14 @@ def Manager(detector, source, dict_of_details, scenario):
             from .IceCube import DeepCore
 
             return DeepCore(dict_of_details, scenario)
+        else:
+            sys.exit("No valid source for " + detector)
+
+    elif detector == "ORCA":
+        if source == "Atmospheric":
+            from .Orca import Orca
+
+            return Orca(dict_of_details, scenario)
         else:
             sys.exit("No valid source for " + detector)
 
