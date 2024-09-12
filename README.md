@@ -76,4 +76,4 @@ options:
 
 ## Report
 
-Not yet...
+Not yet... The idea is to automatically produce a template presentation or report where the analysis information is dumped to including plots, tables and key measures.
