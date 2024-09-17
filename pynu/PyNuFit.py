@@ -228,12 +228,9 @@ class PyNuFit:
         """ Returns a dict of nuis : experiment : partial of weight with respect to nuis over weight """
         dWoverW = {}
         for source, nuisance_list in self.Analysis.Nuisance.items():
-            print(source)
-            print(nuisance_list)
             for name, exp in self.Experiments.items():
                 if source in exp.Definition.keys():
                     tune_block = exp.Definition[source]
-                    print(tune_block)
                     for tune in self.Analysis.Nuisance[source]:
                         dWoverW[tune] = {name: 0}
                         idx = self.Analysis.NuisanceList.index(tune)
@@ -246,14 +243,6 @@ class PyNuFit:
                                 "diff_" + tune, vector[idx]
                             ) / self.PhysicsTunes[name].GetXSection(tune, vector[idx])
                         elif tune_block == "Detector":
-                            print(
-                                f"self.PhysicsTunes[{name}].GetDetector(diff_{tune}, {vector[idx]})"
-                            )
-                            print(
-                                self.PhysicsTunes[name].GetDetector(
-                                    "diff_" + tune, vector[idx]
-                                )
-                            )
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetDetector(
                                 "diff_" + tune, vector[idx]
                             ) / self.PhysicsTunes[name].GetDetector(tune, vector[idx])
