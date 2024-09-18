@@ -1,5 +1,6 @@
 from PhysicsTunes import Tune
-from .SKDetector import SuperK
+
+# from .SKDetector import SuperK
 import numpy as np
 
 import sys
@@ -11,8 +12,72 @@ sys.path.append("../")
 ############################################
 
 
-class SuperK_Combined(SuperK):
-    def FCPC_separation(self, experiment, x):
+class SuperK_Combined(Tune):
+    def energy_scale(self, experiment, x):
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.energy_scale`."""
+        logging.info(f"Computing {experiment.Detector} energy scale tune.")
+        return SuperK.energy_scale(experiment, x)
+
+    def diff_energy_scale(self, experiment, x):
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_energy_scale`."""
+        logging.info(f"Computing {experiment.Detector} energy scale tune derivative.")
+        return SuperK.diff_energy_scale(experiment, x)
+
+    def fiducial_volume(self, experiment, x):
+        r"""Method changing the efficiency of the fiducial volume cut.
+        NOTE: Currently, it applies a normalization factor on all events. More precise implementation coming soon.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
+        return x
+
+    def diff_fiducial_volume(self, experiment, x):
+        r"""Method for computing the derivative of the weights w.r.t. the tuning parameter of the fiducial volumen.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the derivative of the `fiducial_volume` weights.
+        """
+        return 1
+
+    def subgev_2ring_pi0(self, experiment, x):
+        r"""Method changing the fraction of 2-ring $\pi^0$-like events.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
+        pi02r = np.ones(experiment.NumberOfEvents)
+        pi02r[experiment.Sample == 6] = x
+        return pi02r
+
+    def diff_subgev_2ring_pi0(self, experiment, x):
+        r"""Method for computing the derivative of the weights of the 2-ring $\pi^0$-like events w.r.t.
+        the tuning parameter.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the derivative of the `subgev_2ring_pi0` weights.
+        """
+        pi02r = np.zeros(experiment.NumberOfEvents)
+        pi02r[experiment.Sample == 6] = 1
+        return pi02r
+
+    def fcpc_separation(self, experiment, x):
         r"""Method changing the efficiency of the fully and partially-contained events in SK.
 
         Args:
@@ -32,15 +97,15 @@ class SuperK_Combined(SuperK):
 
         fcpc[fc] = x
 
-        wFC = np.sum(experiment.Weight[fc])
-        wPC = np.sum(experiment.Weight[pc])
-        y = ((wPC + wFC) - x * wFC) / wPC
+        wfc = np.sum(experiment.Weight[fc])
+        wpc = np.sum(experiment.Weight[pc])
+        y = ((wpc + wfc) - x * wfc) / wpc
 
         fcpc[pc] = y
 
         return fcpc
 
-    def diff_FCPC_separation(self, experiment, x):
+    def diff_fcpc_separation(self, experiment, x):
         r"""Method for computing the derivative of the weights of the fully and partially-contained events
         w.r.t. the tuning parameter.
 
@@ -49,7 +114,7 @@ class SuperK_Combined(SuperK):
             experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
-            Numpy.array or float with the derivative of the `FCPC_separation` weights.
+            Numpy.array or float with the derivative of the `fcpc_separation` weights.
         """
         # print(f"Entering {__name__}")
         fcpc = np.zeros(experiment.NumberOfEvents)
@@ -60,15 +125,15 @@ class SuperK_Combined(SuperK):
 
         fcpc[fc] = 1
 
-        wFC = np.sum(experiment.Weight[fc])
-        wPC = np.sum(experiment.Weight[pc])
-        y = -wFC / wPC
+        wfc = np.sum(experiment.Weight[fc])
+        wpc = np.sum(experiment.Weight[pc])
+        y = -wfc / wpc
 
         fcpc[pc] = y
 
         return fcpc
 
-    def FC_reduction(self, experiment, x):
+    def fc_reduction(self, experiment, x):
         r"""Method changing the efficiency of the fully-contained events reduction in SK.
 
         Args:
@@ -85,7 +150,7 @@ class SuperK_Combined(SuperK):
 
         return fc
 
-    def diff_FC_reduction(self, experiment, x):
+    def diff_fc_reduction(self, experiment, x):
         r"""Method for computing the derivative of the weights of the fully-contained events w.r.t.
         the tuning parameter.
 
@@ -94,7 +159,7 @@ class SuperK_Combined(SuperK):
             experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
-            Numpy.array or float with the derivative of the `FC_reduction` weights.
+            Numpy.array or float with the derivative of the `fc_reduction` weights.
         """
         fc = np.zeros(experiment.NumberOfEvents)
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
@@ -103,7 +168,7 @@ class SuperK_Combined(SuperK):
 
         return fc
 
-    def PC_reduction(self, experiment, x):
+    def pc_reduction(self, experiment, x):
         r"""Method changing the efficiency of the partially-contained events reduction in SK.
 
         Args:
@@ -118,7 +183,7 @@ class SuperK_Combined(SuperK):
         w[pc] = x
         return w
 
-    def diff_PC_reduction(self, experiment, x):
+    def diff_pc_reduction(self, experiment, x):
         r"""Method for computing the derivative of the weights of the partially-contained events w.r.t.
         the tuning parameter.
 
@@ -127,7 +192,7 @@ class SuperK_Combined(SuperK):
             experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
-            Numpy.array or float with the derivative of the `PC_reduction` weights.
+            Numpy.array or float with the derivative of the `pc_reduction` weights.
         """
         w = np.zeros(experiment.NumberOfEvents)
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
@@ -332,7 +397,7 @@ class SuperK_Combined(SuperK):
         return mr
 
     def pc_stopthru_separation(self, experiment, x):
-        r"""Method changing the efficiency of PC-StopThru separation.
+        r"""Method changing the efficiency of pc-StopThru separation.
 
         Args:
             x (float): Value of the tuning parameter.
@@ -351,8 +416,8 @@ class SuperK_Combined(SuperK):
         mr[experiment.Sample == pct] = 1 + r - r * x
         return mr
 
-    def diff_PC_StopThru_separation(self, experiment, x):
-        r"""Method for computing the derivative of the weights of the PC and Stop Thru events w.r.t. the
+    def diff_pc_stopthru_separation(self, experiment, x):
+        r"""Method for computing the derivative of the weights of the pc and Stop Thru events w.r.t. the
         tuning parameter.
 
         Args:

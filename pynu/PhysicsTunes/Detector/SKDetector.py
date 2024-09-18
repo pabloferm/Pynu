@@ -70,7 +70,7 @@ class SuperK(Tune):
         """
         pass
 
-    def FCPC_separation(self, experiment, x):
+    def fcpc_separation(self, experiment, x):
         r"""Method changing the efficiency of the fully and partially-contained events in SK.
 
         Args:
@@ -90,27 +90,27 @@ class SuperK(Tune):
             or experiment.Detector == "SuperK_Gdtag"
         ):
             fcpc[experiment.Sample < 16] = x
-            wFC = np.sum(experiment.Weight[experiment.Sample < 16])
-            wPC = np.sum(
+            wfc = np.sum(experiment.Weight[experiment.Sample < 16])
+            wpc = np.sum(
                 experiment.Weight[
                     np.logical_or(experiment.Sample == 16, experiment.Sample == 17)
                 ]
             )
-            y = ((wPC + wFC) - x * wFC) / wPC
+            y = ((wpc + wfc) - x * wfc) / wpc
             fcpc[np.logical_or(experiment.Sample == 16, experiment.Sample == 17)] = y
         else:
             fcpc[experiment.Sample < 14] = x
-            wFC = np.sum(experiment.Weight[experiment.Sample < 14])
-            wPC = np.sum(
+            wfc = np.sum(experiment.Weight[experiment.Sample < 14])
+            wpc = np.sum(
                 experiment.Weight[
                     np.logical_or(experiment.Sample == 14, experiment.Sample == 15)
                 ]
             )
-            y = ((wPC + wFC) - x * wFC) / wPC
+            y = ((wpc + wfc) - x * wfc) / wpc
             fcpc[np.logical_or(experiment.Sample == 14, experiment.Sample == 15)] = y
         return fcpc
 
-    def diff_FCPC_separation(self, experiment, x):
+    def diff_fcpc_separation(self, experiment, x):
         r"""Method for computing the derivative of the weights of the fully and partially-contained events
         w.r.t. the tuning parameter.
 
@@ -119,7 +119,7 @@ class SuperK(Tune):
             experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
-            Numpy.array or float with the derivative of the `FCPC_separation` weights.
+            Numpy.array or float with the derivative of the `fcpc_separation` weights.
         """
         print(f"Entering {__name__}")
         fcpc = np.zeros(experiment.NumberOfEvents)
@@ -130,27 +130,27 @@ class SuperK(Tune):
             or experiment.Experiment == "SuperK_Gdtag"
         ):
             fcpc[experiment.Sample < 16] = 1
-            wFC = np.sum(experiment.Weight[experiment.Sample < 16])
-            wPC = np.sum(
+            wfc = np.sum(experiment.Weight[experiment.Sample < 16])
+            wpc = np.sum(
                 experiment.Weight[
                     np.logical_or(experiment.Sample == 16, experiment.Sample == 17)
                 ]
             )
-            y = (-wFC) / wPC
+            y = (-wfc) / wpc
             fcpc[np.logical_or(experiment.Sample == 16, experiment.Sample == 17)] = y
         else:
             fcpc[experiment.Sample < 14] = 1
-            wFC = np.sum(experiment.Weight[experiment.Sample < 14])
-            wPC = np.sum(
+            wfc = np.sum(experiment.Weight[experiment.Sample < 14])
+            wpc = np.sum(
                 experiment.Weight[
                     np.logical_or(experiment.Sample == 14, experiment.Sample == 15)
                 ]
             )
-            y = (-wFC) / wPC
+            y = (-wfc) / wpc
             fcpc[np.logical_or(experiment.Sample == 14, experiment.Sample == 15)] = y
         return fcpc
 
-    def FC_reduction(self, experiment, x):
+    def fc_reduction(self, experiment, x):
         r"""Method changing the efficiency of the fully-contained events reduction in SK.
 
         Args:
@@ -172,7 +172,7 @@ class SuperK(Tune):
             fc[experiment.Sample < 14] = x
         return fc
 
-    def diff_FC_reduction(self, experiment, x):
+    def diff_fc_reduction(self, experiment, x):
         r"""Method for computing the derivative of the weights of the fully-contained events w.r.t.
         the tuning parameter.
 
@@ -181,7 +181,7 @@ class SuperK(Tune):
             experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
-            Numpy.array or float with the derivative of the `FC_reduction` weights.
+            Numpy.array or float with the derivative of the `fc_reduction` weights.
         """
         fc = np.zeros(experiment.NumberOfEvents)
         if (
@@ -220,7 +220,7 @@ class SuperK(Tune):
         """
         return 1
 
-    def PC_reduction(self, experiment, x):
+    def pc_reduction(self, experiment, x):
         r"""Method changing the efficiency of the partially-contained events reduction in SK.
 
         Args:
@@ -242,7 +242,7 @@ class SuperK(Tune):
             pc[np.logical_or(experiment.Sample == 14, experiment.Sample == 15)] = x
         return pc
 
-    def diff_PC_reduction(self, experiment, x):
+    def diff_pc_reduction(self, experiment, x):
         r"""Method for computing the derivative of the weights of the partially-contained events w.r.t.
         the tuning parameter.
 
@@ -251,7 +251,7 @@ class SuperK(Tune):
             experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
-            Numpy.array or float with the derivative of the `PC_reduction` weights.
+            Numpy.array or float with the derivative of the `pc_reduction` weights.
         """
         pc = np.zeros(experiment.NumberOfEvents)
         if (
@@ -548,7 +548,7 @@ class SuperK(Tune):
         return mr
 
     def pc_stopthru_separation(self, experiment, x):
-        r"""Method changing the efficiency of PC-StopThru separation.
+        r"""Method changing the efficiency of pc-StopThru separation.
 
         Args:
             x (float): Value of the tuning parameter.
@@ -576,8 +576,8 @@ class SuperK(Tune):
         mr[experiment.Sample == pct] = 1 + r - r * x
         return mr
 
-    def diff_PC_StopThru_separation(self, experiment, x):
-        r"""Method for computing the derivative of the weights of the PC and Stop Thru events w.r.t. the
+    def diff_pc_StopThru_separation(self, experiment, x):
+        r"""Method for computing the derivative of the weights of the pc and Stop Thru events w.r.t. the
         tuning parameter.
 
         Args:

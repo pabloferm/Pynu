@@ -12,12 +12,12 @@ import numpy as np
 def Manager(detector, source, dict_of_details, scenario):
     if "SuperK" in detector:
         if source == "Atmospheric":
-            if "pheno" in detector:
-                if "Htag" in detector:
+            if "pheno" in detector.lower():
+                if "htag" in detector.lower():
                     from .SuperK_Atm_Pheno import SuperK_Htag
 
                     return SuperK_Htag(dict_of_details, scenario)
-                elif "Gdtag" in detector:
+                elif "gdtag" in detector.lower():
                     from .SuperK_Atm_Pheno import SuperK_Gdtag
 
                     return SuperK_Gdtag(dict_of_details, scenario)

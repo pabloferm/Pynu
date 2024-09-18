@@ -258,6 +258,7 @@ class SuperK_2023(SuperK):
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
         self.NumberOfSamples = 1 + np.amax(self.Samples)
+        self.NumberOfSamples = self.NumberOfSamples.astype(int)
         self.Erec_max = max(self.EReco)
         self.Erec_min = min(self.EReco)
         self.Etrue_min = min(self.ETrue)
