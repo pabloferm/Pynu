@@ -3,6 +3,7 @@
 # from .Oscillations.Oscillations import Oscillations
 import sys
 from functools import wraps
+import time
 from inspect import signature
 
 class PhysicsTunes:
