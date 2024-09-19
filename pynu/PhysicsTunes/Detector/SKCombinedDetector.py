@@ -34,6 +34,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         return x
 
     def diff_fiducial_volume(self, experiment, x):
@@ -46,6 +47,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `fiducial_volume` weights.
         """
+        if self._unphysical_value(x): return 0
         return 1
 
     def subgev_2ring_pi0(self, experiment, x):
@@ -58,6 +60,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         pi02r = np.ones(experiment.NumberOfEvents)
         pi02r[experiment.Sample == 6] = x
         return pi02r
@@ -73,6 +76,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `subgev_2ring_pi0` weights.
         """
+        if self._unphysical_value(x): return 0
         pi02r = np.zeros(experiment.NumberOfEvents)
         pi02r[experiment.Sample == 6] = 1
         return pi02r
@@ -89,6 +93,7 @@ class SuperK_Combined(Tune):
         """
         # logging.info(f"Entering {__name__}")
         # print(f"Entering {__name__} in combined")
+        if self._unphysical_value(x): return 1e3
         fcpc = np.ones(experiment.NumberOfEvents)
 
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
@@ -117,6 +122,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the derivative of the `fcpc_separation` weights.
         """
         # print(f"Entering {__name__}")
+        if self._unphysical_value(x): return 0
         fcpc = np.zeros(experiment.NumberOfEvents)
 
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
@@ -143,6 +149,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         fc = np.ones(experiment.NumberOfEvents)
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
         um = (experiment.Sample >= 16) & (experiment.Sample <= 18)
@@ -161,6 +168,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `fc_reduction` weights.
         """
+        if self._unphysical_value(x): return 0
         fc = np.zeros(experiment.NumberOfEvents)
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
         um = (experiment.Sample >= 16) & (experiment.Sample <= 18)
@@ -178,6 +186,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         w = np.ones(experiment.NumberOfEvents)
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
         w[pc] = x
@@ -194,6 +203,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `pc_reduction` weights.
         """
+        if self._unphysical_value(x): return 0
         w = np.zeros(experiment.NumberOfEvents)
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
         w[pc] = 1
@@ -209,6 +219,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         pi01r = np.ones(experiment.NumberOfEvents)
         pi01r[experiment.Sample == 2] = x
         return pi01r
@@ -224,11 +235,13 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `subgev_1ring_pi0` weights.
         """
+        if self._unphysical_value(x): return 0
         pi01r = np.zeros(experiment.NumberOfEvents)
         pi01r[experiment.Sample == 2] = 1
         return pi01r
 
     def mge_nonubkg(self, experiment, x):
+        if self._unphysical_value(x): return 1e3
         w = np.ones(experiment.NumberOfEvents)
         mge = (
             (experiment.Sample == 7)
@@ -241,6 +254,7 @@ class SuperK_Combined(Tune):
         return w
 
     def diff_mge_nonubkg(self, experiment, x):
+        if self._unphysical_value(x): return 0
         w = np.zeros(experiment.NumberOfEvents)
         mge = (
             (experiment.Sample == 7)
@@ -262,6 +276,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         mr = np.ones(experiment.NumberOfEvents)
         n0 = np.sum(experiment.Weight[experiment.Sample == 10])
         n1 = np.sum(experiment.Weight[experiment.Sample == 11])
@@ -281,6 +296,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `multiring_nunubar_separation` weights.
         """
+        if self._unphysical_value(x): return 0
         mr = np.zeros(experiment.NumberOfEvents)
         n0 = np.sum(experiment.Weight[experiment.Sample == 10])
         n1 = np.sum(experiment.Weight[experiment.Sample == 11])
@@ -299,6 +315,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         e0 = 10
         e1 = 11
         e2 = 13
@@ -328,6 +345,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `multiring_emu_separation` weights.
         """
+        if self._unphysical_value(x): return 0
         e0 = 10
         e1 = 11
         e2 = 13
@@ -357,6 +375,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         e0 = 10
         e1 = 11
         o0 = 13
@@ -382,6 +401,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `multiring_eother_separation` weights.
         """
+        if self._unphysical_value(x): return 0
         e0 = 10
         e1 = 11
         o0 = 13
@@ -406,6 +426,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         pcs = 14
         pct = 15
         mr = np.ones(experiment.NumberOfEvents)
@@ -427,6 +448,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `pc_stopthru_separation` weights.
         """
+        if self._unphysical_value(x): return 0
         pcs = 14
         pct = 15
         mr = np.zeros(experiment.NumberOfEvents)
@@ -447,6 +469,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         r1 = 2
         r2 = 6
         mr = np.ones(experiment.NumberOfEvents)
@@ -468,6 +491,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `pi0_ring_separation` weights.
         """
+        if self._unphysical_value(x): return 0
         r1 = 2
         r2 = 6
         mr = np.zeros(experiment.NumberOfEvents)
@@ -488,6 +512,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         r1 = [0, 1, 7, 8, 19, 20, 21]
         r2 = [10, 11, 13, 24, 25, 26]
         mr = np.ones(experiment.NumberOfEvents)
@@ -515,6 +540,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `e_ring_separation` weights.
         """
+        if self._unphysical_value(x): return 0
         r1 = [0, 1, 7, 8, 19, 20, 21]
         r2 = [10, 11, 13, 24, 25, 26]
         mr = np.zeros(experiment.NumberOfEvents)
@@ -541,6 +567,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         r1 = [3, 4, 5, 9, 22, 23, 27, 28]
         r2 = [12]
         mr = np.ones(experiment.NumberOfEvents)
@@ -568,6 +595,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `mu_ring_separation` weights.
         """
+        if self._unphysical_value(x): return 0
         r1 = [3, 4, 5, 9, 22, 23, 27, 28]
         r2 = [12]
         mr = np.zeros(experiment.NumberOfEvents)
@@ -594,6 +622,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         e = [0, 1, 7, 8, 19, 20, 21, 24, 25, 26]
         mu = [3, 4, 5, 9, 22, 23, 27, 28]
         mr = np.ones(experiment.NumberOfEvents)
@@ -621,6 +650,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `singlering_pid` weights.
         """
+        if self._unphysical_value(x): return 0
         e = [0, 1, 7, 8, 19, 20, 21, 24, 25, 26]
         mu = [3, 4, 5, 9, 22, 23, 27, 28]
         mr = np.zeros(experiment.NumberOfEvents)
@@ -647,6 +677,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         e = [10, 11, 13]
         mu = [12]
         mr = np.ones(experiment.NumberOfEvents)
@@ -674,6 +705,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `multiring_pid` weights.
         """
+        if self._unphysical_value(x): return 0
         e = [10, 11, 13]
         mu = [12]
         mr = np.zeros(experiment.NumberOfEvents)
@@ -700,6 +732,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         nn = np.ones(experiment.NumberOfEvents)
         nn0 = (
             (experiment.Sample == 20)
@@ -731,6 +764,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `neutron_tagging` weights.
         """
+        if self._unphysical_value(x): return 0
         nn = np.zeros(experiment.NumberOfEvents)
         nn0 = (
             (experiment.Sample == 20)
@@ -761,6 +795,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x): return 1e3
         mue = np.ones(experiment.NumberOfEvents)
         n0 = np.sum(experiment.DecayE < 1)
         n1 = np.sum((experiment.DecayE >= 1) & (experiment.DecayE < 2))
@@ -788,6 +823,7 @@ class SuperK_Combined(Tune):
         Returns:
             Numpy.array or float with the derivative of the `decay_e_tagging` weights.
         """
+        if self._unphysical_value(x): return 0
         mue = np.zeros(experiment.NumberOfEvents)
         n0 = np.sum(experiment.DecayE < 1)
         n1 = np.sum((experiment.DecayE >= 1) & (experiment.DecayE < 2))
@@ -805,6 +841,7 @@ class SuperK_Combined(Tune):
         return mue
 
     def upmu_shower_separation(self, experiment, x):
+        if self._unphysical_value(x): return 1e3
         um = np.ones(experiment.NumberOfEvents)
         n0 = np.sum(experiment.Weight[experiment.Sample == 18])
         n1 = np.sum(experiment.Weight[experiment.Sample == 17])
@@ -814,6 +851,7 @@ class SuperK_Combined(Tune):
         return um
 
     def diff_upmu_shower_separation(self, experiment, x):
+        if self._unphysical_value(x): return 0
         um = np.zeros(experiment.NumberOfEvents)
         n0 = np.sum(experiment.Weight[experiment.Sample == 18])
         n1 = np.sum(experiment.Weight[experiment.Sample == 17])
@@ -823,31 +861,37 @@ class SuperK_Combined(Tune):
         return um
 
     def upmu_stop_bkg(self, experiment, x):
+        if self._unphysical_value(x): return 1e3
         um = np.ones(experiment.NumberOfEvents)
         um[experiment.Sample == 16] = x
         return um
 
     def diff_upmu_stop_bkg(self, experiment, x):
+        if self._unphysical_value(x): return 0
         um = np.zeros(experiment.NumberOfEvents)
         um[experiment.Sample == 16] = 1
         return um
 
     def upmu_showering_bkg(self, experiment, x):
+        if self._unphysical_value(x): return 1e3
         um = np.ones(experiment.NumberOfEvents)
         um[experiment.Sample == 18] = x
         return um
 
     def diff_upmu_showering_bkg(self, experiment, x):
+        if self._unphysical_value(x): return 0
         um = np.zeros(experiment.NumberOfEvents)
         um[experiment.Sample == 18] = 1
         return um
 
     def upmu_nonshowering_bkg(self, experiment, x):
+        if self._unphysical_value(x): return 1e3
         um = np.ones(experiment.NumberOfEvents)
         um[experiment.Sample == 17] = x
         return um
 
     def diff_upmu_nonshowering_bkg(self, experiment, x):
+        if self._unphysical_value(x): return 0
         um = np.zeros(experiment.NumberOfEvents)
         um[experiment.Sample == 17] = 1
         return um

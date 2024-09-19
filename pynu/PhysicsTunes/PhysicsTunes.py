@@ -151,3 +151,8 @@ class Tune:
             print(tune + " not found!!")
             return 1
         print("====================================")
+
+    def _unphysical_value(self, x, unphys_low=0, unphys_up=9999999):
+        if x < unphys_low or x > unphys_up: return True
+        return False
+
