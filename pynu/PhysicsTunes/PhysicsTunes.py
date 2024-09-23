@@ -1,6 +1,6 @@
 # from .CrossSection import *
 # from .Detector import *
-# from .Oscillations.Oscillations import Oscillations
+# from .Oscillations.Oscillations import Oscillations.
 import sys
 from functools import wraps
 import time
@@ -56,19 +56,15 @@ class PhysicsTunes:
 
     # @logd(file=False, logging_level='debug')
     def SetFlux(self):
+        if self.SOURCE == "Solar":
+            return
         if self.SOURCE == "Atmospheric":
             from .Flux.AtmoFlux import AtmosphericFlux
 
             self.FluxTunes = AtmosphericFlux()
-        elif self.SOURCE == "Solar":
-            pass
         elif self.SOURCE == "Reactors":
             pass
-        elif self.SOURCE in ["Accelerator", "LBL", "T2K"]:
-            # from .SuperK.SuperK import SuperK_LBL
-            # return SuperK_LBL(experiment)
-            pass
-        else:
+        elif self.SOURCE not in ["Accelerator", "LBL", "T2K"]:
             sys.exit(f"{self._Experiment.SOURCE} source not found.")
 
     # @logd(file=False, logging_level='debug')
@@ -108,9 +104,7 @@ class PhysicsTunes:
 
                 self.DetectorTunes = SuperK()
         elif "HyperK" in self.Detector:  # to be changed
-            if "NoNeutron" in self.Detector:
-                pass
-            else:
+            if "NoNeutron" not in self.Detector:
                 from .Detector.SKDetector import SuperK
 
                 self.DetectorTunes = SuperK()
@@ -134,7 +128,6 @@ class PhysicsTunes:
 
 class Tune:
     """Base class for physics tunes"""
-
     # @logd(file=False, logging_level='debug')
     def __init__(self):
         self.cache = {}
@@ -214,11 +207,10 @@ class Tune:
         try:
             return self.__getattribute__(tune)(exp, x)
         except BaseException:
-            print(tune + " not found!!")
+            print(f"{tune} not found!!")
             return 1
         print("====================================")
 
     def _unphysical_value(self, x, unphys_low=0, unphys_up=9999999):
-        if x < unphys_low or x > unphys_up: return True
-        return False
+        return x < unphys_low or x > unphys_up
 

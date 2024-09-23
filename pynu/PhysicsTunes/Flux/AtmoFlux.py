@@ -228,7 +228,7 @@ class AtmosphericFlux(Tune):
             zenith[experiment.CosZTrue < 0]
             - x * np.tanh(experiment.CosZTrue[experiment.CosZTrue < 0]) ** 2
         )
-        if self._unphysical_value(x): return 0
+        if self._unphysical_value(x): return 1e3
         return zenith
 
     def diff_zenith_up(self, experiment, x):
@@ -285,6 +285,7 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `zenith_up` weights.
         """
+        if self._unphysical_value(x): return 0
         zenith = np.zeros(experiment.NumberOfEvents)
         zenith[experiment.CosZTrue >= 0] = -(
             np.tanh(experiment.CosZTrue[experiment.CosZTrue >= 0]) ** 2
