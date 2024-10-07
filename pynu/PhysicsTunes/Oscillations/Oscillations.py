@@ -56,15 +56,15 @@ class Oscillator(Tune):
     def ApplyParameters(self):
         for i in range(1, self.NeutrinoFlavors):
             for j in range(i):
-                s_theta = "Sin2Theta" + str(j + 1) + str(i + 1)
+                s_theta = f"Sin2Theta{str(j + 1)}{str(i + 1)}"
                 if s_theta in self.Parameters:
                     theta = self.Parameters[s_theta]
                     self.Osc.Set_MixingAngle(j, i, asin(sqrt(theta)))
-            s_dm = "Dm2" + str(i + 1) + "1"
-        if s_dm in self.Parameters:
-            dm = self.Parameters[s_dm]
-            if "inverted" in self.Parameters["Ordering"] and s_dm == "Dm231":
-                dm = self.Parameters["Dm221"] - self.Parameters["Dm231"]
+            s_dm = f"Dm2{str(i + 1)}1"
+            if s_dm in self.Parameters:
+                dm = self.Parameters[s_dm]
+                if "inverted" in self.Parameters["Ordering"] and s_dm == "Dm231":
+                    dm = self.Parameters["Dm221"] - self.Parameters["Dm231"]
             self.Osc.Set_SquareMassDifference(i, dm)
         if "dCP" in self.Parameters:
             self.Osc.Set_CPPhase(0, 2, self.Parameters["dCP"])

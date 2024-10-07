@@ -281,7 +281,7 @@ class PyNuFit:
             sys.exit("Mode not yet implemented")
 
     # 'SLSQP' 'GD' 'ADAM' 'MINUIT'
-    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B"):
+    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=1e-3):
         if not self.Analysis.do_point(point):
             print(f"Skipping point {point}.")
             return False
@@ -299,81 +299,77 @@ class PyNuFit:
 
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", X2_stats)
 
-        return self._fitter(method) if self.Analysis.wSyst else -X2_stats
+        if self.Analysis.wSyst:
 
-    # TODO Rename this here and in `FitModel`
-    def _fitter(self, method):
-        eps = 1e-4
+            """Get Jacobian of expected events w.r.t. nuisance parameters"""
+            self.ComputeBinnedDiffExpectation()
 
-        """Get Jacobian of expected events w.r.t. nuisance parameters"""
-        self.ComputeBinnedDiffExpectation()
-
-        """Analytic estimate for priors and bounds at first order"""
-        AnalyticPrior, AnalyticBounds = self.LLH.analytic_priors_bounds(
-            self.Expectation, self.DiffExpectation
-        )
-
-        """Combined chi^2 minimization"""
-        if method == "GD":
-            from .gradient_descent_minimizer import gradient_descent_minimizer
-
-            gradient_descent_minimizer(
-                self.model_tester_and_gradient,
-                AnalyticPrior,
-                # epsilon = eps,
-                bounds=AnalyticBounds,
+            """Analytic estimate for priors and bounds at first order"""
+            AnalyticPrior, AnalyticBounds = self.LLH.analytic_priors_bounds(
+                self.Expectation, self.DiffExpectation
             )
 
-        elif method == "ADAM":
-            from .adam_minimizer import adam_minimizer
+            """Combined chi^2 minimization"""
+            if method == "GD":
+                from .gradient_descent_minimizer import gradient_descent_minimizer
 
-            adam_minimizer(
-                self.model_tester_and_gradient,
-                AnalyticPrior,
-                # precission = eps,
-                bounds=AnalyticBounds,
+                gradient_descent_minimizer(
+                    self.model_tester_and_gradient,
+                    AnalyticPrior,
+                    # epsilon = eps,
+                    bounds=AnalyticBounds,
+                )
+
+            elif method == "ADAM":
+                from .adam_minimizer import adam_minimizer
+
+                adam_minimizer(
+                    self.model_tester_and_gradient,
+                    AnalyticPrior,
+                    # precission = eps,
+                    bounds=AnalyticBounds,
+                )
+
+            elif method == "MINUIT":
+                import iminuit
+
+                res = iminuit.minimize(
+                    self.model_tester,
+                    AnalyticPrior,
+                    method="migrad",
+                    jac=self.model_tester_gradient,
+                    bounds=AnalyticBounds,
+                    tol=eps,
+                    options={"disp": self.verbosity},
+                )
+
+            elif method == "TEST":
+                for i in range(2 * self.Analysis.NumberOfNuis):
+                    x = np.asarray(AnalyticPrior) - (
+                        i - self.Analysis.NumberOfNuis
+                    ) * np.asarray(self.Analysis.NuisSigmaList)
+                    x2, dx2 = self.model_tester_and_gradient(x)
+
+            else:
+                res = minimize(
+                    self.model_tester_and_gradient,
+                    AnalyticPrior,
+                    # method="Newton-CG", # 5min 45s
+                    # method="BFGS",  # 2min 38s
+                    method="L-BFGS-B",  # 3min 11s
+                    jac=True,
+                    bounds=AnalyticBounds,
+                    tol=eps,
+                    options={"disp": self.verbosity},
+                )
+
+            self.WriteToOutFile(
+                "Nuisance Parameters", self.Analysis.NuisanceList, res.x.tolist()
             )
+            self.WriteToOutFile("Analysis", "Chi2 Systs.", res.fun)
 
-        elif method == "MINUIT":
-            import iminuit
-
-            res = iminuit.minimize(
-                self.model_tester,
-                AnalyticPrior,
-                method="migrad",
-                jac=self.model_tester_gradient,
-                bounds=AnalyticBounds,
-                tol=eps,
-                options={"disp": self.verbosity},
-            )
-
-        elif method == "TEST":
-            for i in range(2 * self.Analysis.NumberOfNuis):
-                x = np.asarray(AnalyticPrior) - (
-                    i - self.Analysis.NumberOfNuis
-                ) * np.asarray(self.Analysis.NuisSigmaList)
-                x2, dx2 = self.model_tester_and_gradient(x)
-
-        else:
-            res = minimize(
-                self.model_tester_and_gradient,
-                AnalyticPrior,
-                # method="Newton-CG", # 5min 45s
-                # method="BFGS",  # 2min 38s
-                method="L-BFGS-B",  # 3min 11s
-                jac=True,
-                bounds=AnalyticBounds,
-                tol=eps,
-                options={"disp": self.verbosity},
-            )
-
-        self.WriteToOutFile(
-            "Nuisance Parameters", self.Analysis.NuisanceList, res.x.tolist()
-        )
-
-        self.WriteToOutFile("Analysis", "Chi2 Systs.", res.fun)
-
-        return -0.5 * res.fun
+            return -0.5 * res.fun
+        return -X2_stats
 
     def model_tester_and_gradient(self, nuisance_vector):
         """Compute expected and its derivatives"""

@@ -24,7 +24,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
-        if self._unphysical_value(x): return 1e3
         return x
 
     def diff_normalization(self, experiment, x):
@@ -39,7 +38,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `normalization` weights.
         """
-        if self._unphysical_value(x): return 0
         return 1
 
     def normalization_below1GeV(self, experiment, x):
@@ -54,7 +52,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
-        if self._unphysical_value(x): return 1e3
         nev = np.ones(experiment.NumberOfEvents)
         nev[experiment.ETrue < 1] = x
         return nev
@@ -71,7 +68,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `normalization_below1GeV` weights.
         """
-        if self._unphysical_value(x): return 0
         nev = np.zeros(experiment.NumberOfEvents)
         nev[experiment.ETrue < 1] = 1
         return nev
@@ -87,7 +83,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
-        if self._unphysical_value(x): return 1e3
         nev = np.ones(experiment.NumberOfEvents)
         nev[experiment.ETrue > 1] = x
         return nev
@@ -104,7 +99,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `normalization_above1GeV` weights.
         """
-        if self._unphysical_value(x): return 0
         nev = np.zeros(experiment.NumberOfEvents)
         nev[experiment.ETrue > 1] = 1
         return nev
@@ -121,7 +115,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
-        if self._unphysical_value(x): return 1e3
         E0Gam = 10  # GeV
         nev = (experiment.ETrue / E0Gam) ** x
         return nev
@@ -138,7 +131,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `tilt` weights.
         """
-        if self._unphysical_value(x): return 0
         E0Gam = 10  # GeV
         nev = (experiment.ETrue / E0Gam) ** x * np.log(experiment.ETrue / E0Gam)
         return nev
@@ -154,7 +146,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
-        if self._unphysical_value(x): return 1e3
         nnbar = np.ones(experiment.NumberOfEvents)
         nnbar[experiment.nuPDG < 0] = x
         return nnbar
@@ -171,7 +162,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `nunubar_ratio` weights.
         """
-        if self._unphysical_value(x): return 0
         nnbar = np.zeros(experiment.NumberOfEvents)
         nnbar[experiment.nuPDG < 0] = 1
         return nnbar
@@ -187,7 +177,6 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
-        if self._unphysical_value(x): return 1e3
         eovermu = np.ones(experiment.NumberOfEvents)
         eovermu[np.abs(experiment.nuPDG) == 12] = x
         return eovermu
@@ -206,7 +195,6 @@ class AtmosphericFlux(Tune):
         """
         eovermu = np.zeros(experiment.NumberOfEvents)
         eovermu[abs(experiment.nuPDG) == 12] = 1
-        if self._unphysical_value(x): return 0
         return eovermu
 
     def zenith_up(self, experiment, x):
@@ -228,7 +216,6 @@ class AtmosphericFlux(Tune):
             zenith[experiment.CosZTrue < 0]
             - x * np.tanh(experiment.CosZTrue[experiment.CosZTrue < 0]) ** 2
         )
-        if self._unphysical_value(x): return 1e3
         return zenith
 
     def diff_zenith_up(self, experiment, x):
@@ -248,7 +235,6 @@ class AtmosphericFlux(Tune):
         zenith[experiment.CosZTrue < 0] = -(
             np.tanh(experiment.CosZTrue[experiment.CosZTrue < 0]) ** 2
         )
-        if self._unphysical_value(x): return 0
         return zenith
 
     def zenith_down(self, experiment, x):
