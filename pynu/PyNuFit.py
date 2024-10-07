@@ -281,7 +281,7 @@ class PyNuFit:
             sys.exit("Mode not yet implemented")
 
     # 'SLSQP' 'GD' 'ADAM' 'MINUIT'
-    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=1e-3):
+    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=1e-5):
         if not self.Analysis.do_point(point):
             print(f"Skipping point {point}.")
             return False
