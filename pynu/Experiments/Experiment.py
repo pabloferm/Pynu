@@ -20,11 +20,7 @@ class Experiment:
         self.MCFiles = dict_of_details["MCFiles"]
         self.DataFiles = dict_of_details["DataFiles"]
 
-        if len(self.DataFiles) > 0:
-            self.DataFit = True
-        else:
-            self.DataFit = False
-
+        self.DataFit = len(self.DataFiles) > 0
         self.Reader()
 
         self.FewEntries = []
@@ -96,8 +92,6 @@ class Experiment:
         plt.hist(data, bins=15)
         plt.show()
 
-        pass
-
     def SetBinner_1D(self):  # 1D energy binning
         self.Binner = [
             bh.Histogram(bh.axis.Variable(self.EnergyBins[s]))
@@ -139,8 +133,7 @@ class Experiment:
             hist.fill(E_sample, weight=weight_sample)
             v_list[i] = hist.values().reshape(-1)
 
-        v = np.concatenate(v_list)
-        return v
+        return np.concatenate(v_list)
 
     # 2D energy and cos(angle) binning
     def BinIt_MC_2D(self, array):
@@ -162,8 +155,7 @@ class Experiment:
             hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
             v_list[i] = hist.values().reshape(-1)
 
-        v = np.concatenate(v_list)
-        return v
+        return np.concatenate(v_list)
 
     def BinIt_Data_1D(self):  # 1D energy binning
         for hist in self.Binner:
@@ -176,8 +168,7 @@ class Experiment:
             hist.fill(E_sample)
             v_list[i] = hist.values().reshape(-1)
 
-        v = np.concatenate(v_list)
-        return v
+        return np.concatenate(v_list)
 
     def BinIt_Data_2D(self, entries=None):  # 2D energy and cos(angle) binning
         for hist in self.Binner:
@@ -201,11 +192,9 @@ class Experiment:
                 hist.fill(E_sample, CosThetaReco_sample)
                 v_list[i] = hist.values().reshape(-1)
 
-        v = np.concatenate(v_list)
-        return v
+        return np.concatenate(v_list)
 
     # Contains all default weights of the analysis
-
     def StartPhysicsWeights(self):
         """Start physics weights from scratch, i.e. equal to 1"""
         self.PhysicsWeight = 1
