@@ -212,13 +212,13 @@ class Tune:
         """Get specific weights for a given `experiment` from tune evaluated
         at `x`, given the name of the `tune`."""
         try:
+            print(f"{tune} at {x} for {exp}")
             return self.__getattribute__(tune)(exp, x)
         except BaseException:
-            print(tune + " not found!!")
+            print(f"{tune} not found!!")
             return 1
         print("====================================")
 
     def _unphysical_value(self, x, unphys_low=0, unphys_up=9999999):
         if x < unphys_low or x > unphys_up: return True
         return False
-

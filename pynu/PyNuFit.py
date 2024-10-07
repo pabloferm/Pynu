@@ -269,7 +269,7 @@ class PyNuFit:
             sys.exit("Mode not yet implemented")
 
     # 'SLSQP' 'GD' 'ADAM' 'MINUIT'
-    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B"):
+    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=1e-3):
         if not self.Analysis.do_point(point):
             print(f"Skipping point {point}.")
             return False
@@ -288,11 +288,6 @@ class PyNuFit:
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", X2_stats)
 
         if self.Analysis.wSyst:
-            if X2_stats > 5e2:
-                eps = 1e-4
-            else:
-                eps = None
-            eps = 1e-3
 
             """Get Jacobian of expected events w.r.t. nuisance parameters"""
             self.ComputeBinnedDiffExpectation()
@@ -346,12 +341,13 @@ class PyNuFit:
             else:
                 res = minimize(
                     self.model_tester_and_gradient,
-                    AnalyticPrior,
+                    self.Analysis.NuisNominalList,
+                    # AnalyticPrior,
                     # method="Newton-CG", # 5min 45s
-                    method="BFGS",  # 2min 38s
-                    # method="L-BFGS-B",  # 3min 11s
+                    # method="BFGS",  # 2min 38s
+                    method="L-BFGS-B",  # 3min 11s
                     jac=True,
-                    # bounds=AnalyticBounds,
+                    bounds=AnalyticBounds,
                     tol=eps,
                     options={"disp": self.verbosity},
                 )
@@ -361,6 +357,7 @@ class PyNuFit:
             )
 
             self.WriteToOutFile("Analysis", "Chi2 Systs.", res.fun)
+            print(f"Chi2 w/ systematics: {res.fun}")
 
             return -0.5 * res.fun
 

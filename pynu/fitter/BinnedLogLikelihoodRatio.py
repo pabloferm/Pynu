@@ -65,12 +65,7 @@ class BinnedLogLikelihoodRatio:
         Returns:
             Float with the value of $\chi^2$ with nuisance.
         """
-        X2: float
-        if set(nuisance) == set(self.nominal_nuisance):
-            X2 = self.stats_only(expectation)
-        else:
-            X2 = self.stats_only(expectation) + self.nuisance_penalty(nuisance)
-        return X2
+        return self.stats_only(expectation) + self.nuisance_penalty(nuisance)
 
     def gradient(self, expectation, diff_expectation, nuisance):
         r"""Returns the gradient of binned $\chi^2$ computed analytically, given the dictionary of binned
@@ -186,6 +181,11 @@ class BinnedLogLikelihoodRatio:
         delta[delta == 0] = sig[delta == 0]
 
         bounds = np.c_[priors - delta, priors + delta]
+        # new no calculation, 3 sigma region
+        delta_up = 3*sig
+        delta_lo = 3*sig
+        delta_lo[(mu>0) & (delta_lo<0)] = 0.1
+        bounds = np.c_[priors - delta_lo, priors + delta_up]
         bounds = tuple(map(tuple, bounds))
 
         self.diff_expectation_nominal = diff_expectation
