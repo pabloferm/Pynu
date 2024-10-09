@@ -86,6 +86,10 @@ class PhysicsTunes:
             from .Detector.DeepCoreDetector import DeepCore
 
             self.DetectorTunes = DeepCore()
+
+        elif 'IceCube-2017' in self.Detector: # needs more work
+            from .Detector.IC2017Detector import IC2017
+            self.DetectorTunes = IC2017()
         elif "SuperK" in self.Detector:  # needs more work
             if "IV" in self.Detector:
                 from .Detector.SKIVDetector import SuperK_IV
