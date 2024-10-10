@@ -35,7 +35,9 @@ class AtmosphericOscillations(Oscillator):
         )
 
     def GetOscillations(self):
-        print(f"At computation time oscillation parameters are, \ns12:{self.Osc.Get_MixingAngle(0, 1)}\ns13:{self.Osc.Get_MixingAngle(0, 2)}\ns23:{self.Osc.Get_MixingAngle(1, 2)}\ndm221:{self.Osc.Get_SquareMassDifference(1)}\ndm231:{self.Osc.Get_SquareMassDifference(2)}")
+        print(
+            f"At computation time oscillation parameters are, \ns12:{self.Osc.Get_MixingAngle(0, 1)}\ns13:{self.Osc.Get_MixingAngle(0, 2)}\ns23:{self.Osc.Get_MixingAngle(1, 2)}\ndm221:{self.Osc.Get_SquareMassDifference(1)}\ndm231:{self.Osc.Get_SquareMassDifference(2)}"
+        )
         self.Osc.Set_initial_state(self.InitialFlux, nsq.Basis.flavor)
         self.Osc.EvolveState()
         w = list(

@@ -182,9 +182,9 @@ class BinnedLogLikelihoodRatio:
 
         bounds = np.c_[priors - delta, priors + delta]
         # new no calculation, 3 sigma region
-        delta_up = 3*sig
-        delta_lo = 3*sig
-        delta_lo[(mu>0) & (delta_lo<0)] = 0.1
+        delta_up = 3 * sig
+        delta_lo = 3 * sig
+        delta_lo[(mu > 0) & (delta_lo < 0)] = 0.1
         bounds = np.c_[priors - delta_lo, priors + delta_up]
         bounds = tuple(map(tuple, bounds))
 

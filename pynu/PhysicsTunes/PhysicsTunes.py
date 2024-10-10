@@ -132,6 +132,7 @@ class PhysicsTunes:
 
 class Tune:
     """Base class for physics tunes"""
+
     # @logd(file=False, logging_level='debug')
     def __init__(self):
         self.cache = {}

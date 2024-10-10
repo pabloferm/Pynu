@@ -234,8 +234,6 @@ def Manager(detector, source, dict_of_details, scenario):
 '''
 
 
-
-
 def reader(filename):
     extension = pathlib.Path(filename).suffix
     if extension == ".root":
