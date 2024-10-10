@@ -235,15 +235,9 @@ class PyNuFit:
                         dWoverW[tune] = {name: 0}
                         idx = self.Analysis.NuisanceList.index(tune)
                         if tune_block == "Detector":
-                            dWoverW[tune][name] = self.PhysicsTunes[
-                                name
-                            ].GetDetector(
+                            dWoverW[tune][name] = self.PhysicsTunes[name].GetDetector(
                                 f"diff_{tune}", vector[idx]
-                            ) / self.PhysicsTunes[
-                                name
-                            ].GetDetector(
-                                tune, vector[idx]
-                            )
+                            ) / self.PhysicsTunes[name].GetDetector(tune, vector[idx])
                         elif tune_block == "Flux":
                             dWoverW[tune][name] = self.PhysicsTunes[name].GetFlux(
                                 f"diff_{tune}", vector[idx]
@@ -258,15 +252,9 @@ class PyNuFit:
                                 ].OscillationTunes.GetOscillations()
                             )
                         elif tune_block == "XSection":
-                            dWoverW[tune][name] = self.PhysicsTunes[
-                                name
-                            ].GetXSection(
+                            dWoverW[tune][name] = self.PhysicsTunes[name].GetXSection(
                                 f"diff_{tune}", vector[idx]
-                            ) / self.PhysicsTunes[
-                                name
-                            ].GetXSection(
-                                tune, vector[idx]
-                            )
+                            ) / self.PhysicsTunes[name].GetXSection(tune, vector[idx])
         return dWoverW
 
     def set_likelihood(self, mode):
@@ -300,7 +288,6 @@ class PyNuFit:
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", X2_stats)
 
         if self.Analysis.wSyst:
-
             """Get Jacobian of expected events w.r.t. nuisance parameters"""
             self.ComputeBinnedDiffExpectation()
 
@@ -477,7 +464,7 @@ class PyNuFit:
 
 
 # project to improve ApplyWeights
-'''
+"""
 def ApplyWeights(self, tag, vector=None):
     # Define tag-based configuration
     tag_config = {
@@ -532,4 +519,4 @@ def ApplyWeights(self, tag, vector=None):
 
                 if w is not None:
                     update_weights(exp, tune_block, w)
-'''
+"""
