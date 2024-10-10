@@ -57,8 +57,8 @@ class PhysicsTunes:
     # @logd(file=False, logging_level='debug')
     def SetFlux(self):
         if self.SOURCE == "Solar":
-            return
-        if self.SOURCE == "Atmospheric":
+            pass
+        elif self.SOURCE == "Atmospheric":
             from .Flux.AtmoFlux import AtmosphericFlux
 
             self.FluxTunes = AtmosphericFlux()
@@ -90,6 +90,7 @@ class PhysicsTunes:
         elif 'IceCube-2017' in self.Detector: # needs more work
             from .Detector.IC2017Detector import IC2017
             self.DetectorTunes = IC2017()
+
         elif "SuperK" in self.Detector:  # needs more work
             if "IV" in self.Detector:
                 from .Detector.SKIVDetector import SuperK_IV
@@ -210,7 +211,7 @@ class Tune:
         """Get specific weights for a given `experiment` from tune evaluated
         at `x`, given the name of the `tune`."""
         try:
-            print(f"{tune} at {x} for {exp}")
+            # print(f"{tune} at {x} for {exp}")
             return self.__getattribute__(tune)(exp, x)
         except BaseException:
             print(f"{tune} not found!!")
