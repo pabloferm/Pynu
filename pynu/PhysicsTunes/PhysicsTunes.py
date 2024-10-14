@@ -3,6 +3,7 @@ from functools import wraps
 import time
 from inspect import signature
 
+
 class PhysicsTunes:
     """Contains all physics tunes of a given experiment"""
 
@@ -40,7 +41,7 @@ class PhysicsTunes:
 
     # @logd(file=False, logging_level='debug')
     def GetXSection(self, func_name, x):
-        #return getattr(self.XSectionTunes, func_name)(self._Experiment, x)
+        # return getattr(self.XSectionTunes, func_name)(self._Experiment, x)
         return self.XSectionTunes.Get(func_name, self._Experiment, x)
 
     # @logd(file=False, logging_level='debug')
@@ -84,8 +85,9 @@ class PhysicsTunes:
 
             self.DetectorTunes = DeepCore()
 
-        elif 'IceCube-2017' in self.Detector: # needs more work
+        elif "IceCube-2017" in self.Detector:  # needs more work
             from .Detector.IC2017Detector import IC2017
+
             self.DetectorTunes = IC2017()
 
         elif "SuperK" in self.Detector:  # needs more work
@@ -131,7 +133,7 @@ class PhysicsTunes:
 class Tune:
     """Base class for physics tunes"""
 
-    def __init__(self, MAX_CACHE_SIZE_MB = 100):
+    def __init__(self, MAX_CACHE_SIZE_MB=100):
         self.cache = {}
         self.cache_size = 0
         self.MAX_CACHE_SIZE = MAX_CACHE_SIZE_MB * 1024 * 1024
@@ -168,7 +170,9 @@ class Tune:
             )
 
             if cache_key in self.cache:
-                print(f"Using previously cached result for {cache_key[1][1]} of {cache_key[2][1].SOURCE} at {cache_key[2][1].Detector}, with x = {cache_key[3][1]}.")
+                print(
+                    f"Using previously cached result for {cache_key[1][1]} of {cache_key[2][1].SOURCE} at {cache_key[2][1].Detector}, with x = {cache_key[3][1]}."
+                )
                 return self.cache[cache_key]["result"]
 
             start_time = time.time()
@@ -200,23 +204,22 @@ class Tune:
 
         return wrapper
 
-
     @cache_method
     def Get(self, tune, exp, x):
         """Get specific weights for a given `experiment` from tune evaluated
         at `x`, given the name of the `tune`."""
         try:
-            print(f"Computing {tune} weights for {exp.SOURCE} at {exp.Detector}, with x = {x}")
+            print(
+                f"Computing {tune} weights for {exp.SOURCE} at {exp.Detector}, with x = {x}"
+            )
             return self.__getattribute__(tune.strip())(exp, x)
         except BaseException:
-            sys.exit(f"{tune} not found. Please, check if it is defined, the name is correct and/or the implementation refers to existing variables of {exp.SOURCE} at {exp.Detector}")
-            
+            sys.exit(
+                f"{tune} not found. Please, check if it is defined, the name is correct and/or the implementation refers to existing variables of {exp.SOURCE} at {exp.Detector}"
+            )
 
     def _unphysical_value(self, x, unphys_low=0, unphys_up=9999999):
         return x < unphys_low or x > unphys_up
-
-
-
 
 
 def _unphysical(condition):
@@ -225,5 +228,7 @@ def _unphysical(condition):
             if condition(param):
                 return 0.0  # Alternate result
             return func(param)  # Original result
+
         return wrapper
+
     return decorator

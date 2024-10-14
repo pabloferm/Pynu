@@ -269,7 +269,9 @@ class PyNuFit:
             sys.exit("Mode not yet implemented")
 
     # 'SLSQP' 'GD' 'ADAM' 'MINUIT'
-    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=None):
+    def FitModel(
+        self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=None
+    ):
         if not self.Analysis.do_point(point):
             print(f"Skipping point {point}.")
             return False
@@ -282,7 +284,9 @@ class PyNuFit:
         self.ComputeBinnedExpectation(self.point, physics=True)  # Nominal expectation
 
         """ Statistics only computation to start guiding the minimization """
-        X2_stats = self.LLH.stats_and_systematics(self.Expectation, self.Analysis.NuisNominalList)
+        X2_stats = self.LLH.stats_and_systematics(
+            self.Expectation, self.Analysis.NuisNominalList
+        )
         print(f"Stats only, chi2 = {X2_stats}")
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", X2_stats)
 
@@ -340,14 +344,20 @@ class PyNuFit:
                 res = minimize(
                     self.model_tester_and_gradient,
                     self.Analysis.NuisNominalList,
-                    #AnalyticPrior,
+                    # AnalyticPrior,
                     # method="Newton-CG", # 5min 45s
                     method="BFGS",  # 2min 38s
                     # method="L-BFGS-B",  # 3min 11s
                     jac=True,
                     # bounds=AnalyticBounds,
                     tol=eps,
-                    options={"disp": self.verbosity, "hess_inv0": self.fisher_information(self.Analysis.NuisNominalList), "gtol": 1e-3},
+                    options={
+                        "disp": self.verbosity,
+                        "hess_inv0": self.fisher_information(
+                            self.Analysis.NuisNominalList
+                        ),
+                        "gtol": 1e-3,
+                    },
                 )
 
             self.WriteToOutFile(
@@ -357,7 +367,6 @@ class PyNuFit:
 
             return -0.5 * res.fun
         return -0.5 * X2_stats
-
 
     def fisher_information(self, nuisance_vector):
         """Compute expected and its derivatives"""
@@ -371,11 +380,14 @@ class PyNuFit:
 
         return np.diag(I)
 
-
     def model_tester_and_gradient(self, nuisance_vector):
         if self.verbosity:
-            print(f"Values of varying parameters:\n{self.Analysis.NuisanceList}\n{nuisance_vector}")
-            print("--------------------------------------------------------------------------")
+            print(
+                f"Values of varying parameters:\n{self.Analysis.NuisanceList}\n{nuisance_vector}"
+            )
+            print(
+                "--------------------------------------------------------------------------"
+            )
         """Compute expected and its derivatives"""
         self.ComputeBinnedExpectation(
             self.point, nuisance_vector=nuisance_vector

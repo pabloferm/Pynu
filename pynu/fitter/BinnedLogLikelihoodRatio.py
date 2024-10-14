@@ -16,7 +16,9 @@ class BinnedLogLikelihoodRatio:
     Poisson statistics.
     """
 
-    def __init__(self, observation, nominal_nuisance, sigma_nuisance, dist_nuisance) -> None:
+    def __init__(
+        self, observation, nominal_nuisance, sigma_nuisance, dist_nuisance
+    ) -> None:
         r"""Initiates the class by storing the non-changing items of the $\chi^2$ calculation.
 
         Args:
@@ -51,7 +53,7 @@ class BinnedLogLikelihoodRatio:
         for O, E in zip(self.observation.values(), expectation.values()):
             # print(f"Obervation, {O}")
             # print(f"Expectation, {E}")
-            if np.any(E)<=0:
+            if np.any(E) <= 0:
                 X2 = 9e9
                 # sys.exit("Negative number of events. Please check the physics tunes you are using (printing their value might help).")
             X2 += np.sum(E - O + O * np.log(O / E))
@@ -188,12 +190,14 @@ class BinnedLogLikelihoodRatio:
         delta = np.minimum(2 * np.abs(priors - mu), sig)
         delta[delta == 0] = sig[delta == 0]
 
-        bounds = np.c_[priors - 3 * delta, priors + 3 * delta] # there is no good reason for the factor 3, just being safe
+        bounds = np.c_[
+            priors - 3 * delta, priors + 3 * delta
+        ]  # there is no good reason for the factor 3, just being safe
         # new no calculation, 3 sigma region
-        #delta_up = 3 * sig
-        #delta_lo = 3 * sig
-        #delta_lo[(mu > 0) & (delta_lo < 0)] = 0.1
-        #bounds = np.c_[priors - delta_lo, priors + delta_up]
+        # delta_up = 3 * sig
+        # delta_lo = 3 * sig
+        # delta_lo[(mu > 0) & (delta_lo < 0)] = 0.1
+        # bounds = np.c_[priors - delta_lo, priors + delta_up]
         bounds = tuple(map(tuple, bounds))
 
         self.diff_expectation_nominal = diff_expectation

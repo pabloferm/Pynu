@@ -90,12 +90,13 @@ def Manager(detector, source, dict_of_details, scenario):
         else:
             sys.exit("No valid source for " + detector)
 
-    elif 'IceCube-2017' in detector:
-        if source == 'Atmospheric':
+    elif "IceCube-2017" in detector:
+        if source == "Atmospheric":
             from .IC2017 import IC2017
+
             return IC2017(dict_of_details, scenario)
         else:
-            sys.exit('No valid source for ' + detector)
+            sys.exit("No valid source for " + detector)
 
     elif detector == "ORCA":
         if source == "Atmospheric":

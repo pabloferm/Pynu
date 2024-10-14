@@ -9,9 +9,9 @@ class IC2017(Experiment):
     def __init__(self, dict_of_details, scenario):
         super(IC2017, self).__init__(dict_of_details)
 
-        self.Detector = 'IceCube-2017'
-        self.Target = 'Water'
-        self.SOURCE = 'Atmospheric'
+        self.Detector = "IceCube-2017"
+        self.Target = "Water"
+        self.SOURCE = "Atmospheric"
         self.SCENARIO = scenario
 
         self.SetDefinition()
@@ -26,18 +26,18 @@ class IC2017(Experiment):
             self.BinData()
 
     def MCVariables(self):
-        d_itype = self.MC['pid']
-        d_Etrue = self.MC['true_energy']
-        self.EReco = self.MC['reco_energy']
-        self.CosZReco = np.cos(self.MC['reco_coszen'])
-        self.CosZTrue = np.cos(self.MC['true_coszen'])
-        #self.AziTrue = self.MC['true_azimuth']
-        self.CC = self.MC['type'] > 0
-        self.NC = self.MC['type'] == 0
-        self.nuPDG = np.int_(self.MC['pdg'])
-        self.ETrue = self.MC['true_energy']
-        self.Weight = self.MC['weight']
-        self.Sample = self.MC['pid']  # Sample of each event
+        d_itype = self.MC["pid"]
+        d_Etrue = self.MC["true_energy"]
+        self.EReco = self.MC["reco_energy"]
+        self.CosZReco = np.cos(self.MC["reco_coszen"])
+        self.CosZTrue = np.cos(self.MC["true_coszen"])
+        # self.AziTrue = self.MC['true_azimuth']
+        self.CC = self.MC["type"] > 0
+        self.NC = self.MC["type"] == 0
+        self.nuPDG = np.int_(self.MC["pdg"])
+        self.ETrue = self.MC["true_energy"]
+        self.Weight = self.MC["weight"]
+        self.Sample = self.MC["pid"]  # Sample of each event
         self.Mode = self.NEUTMode()
 
         self.NumberOfEvents = self.Sample.size
@@ -49,7 +49,7 @@ class IC2017(Experiment):
         self.Etrue_min = np.amin(self.ETrue)
         self.Etrue_max = np.amax(self.ETrue)
         self.E_edges = [5.623413, 56.23413]
-        #self.E_edges = [self.Erec_min, self.Erec_max]
+        # self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
         self.NORM *= 1006 * 24 * 60 * 60 * 1e4
@@ -79,10 +79,10 @@ class IC2017(Experiment):
                 AtmInitialFlux[ic][ie][1][2] = 0.  # nutau bar
         return AtmInitialFlux
     """
-    
+
     def NEUTMode(self):
-        noNEUTmode = self.MC['type']
-        nuPDG = self.MC['pdg']
+        noNEUTmode = self.MC["type"]
+        nuPDG = self.MC["pdg"]
         c_mode = np.logical_and(nuPDG > 0, noNEUTmode == 0)
         noNEUTmode[c_mode] = 31
         c_mode = np.logical_and(nuPDG > 0, noNEUTmode == 1)
@@ -106,10 +106,10 @@ class IC2017(Experiment):
         return noNEUTmode
 
     def DataVariables(self):
-        self.Data['pid']
-        self.dEReco = self.Data['reco_energy']
-        self.dCosZReco = np.cos(self.Data['reco_coszen'])
-        self.dSample = self.Data['pid']  # Sample of each event
+        self.Data["pid"]
+        self.dEReco = self.Data["reco_energy"]
+        self.dCosZReco = np.cos(self.Data["reco_coszen"])
+        self.dSample = self.Data["pid"]  # Sample of each event
         self.dNumberOfEvents = self.Sample.size
 
         del self.Data
@@ -124,16 +124,25 @@ class IC2017(Experiment):
 
     def Binning(self):
         NErec = 8
-        #erec = np.logspace(
+        # erec = np.logspace(
         #    np.log10(
         #        self.Erec_min), np.log10(
         #        self.Erec_max), NErec + 1, endpoint=True)
-        erec = np.array([5.623413,  7.498942, 10., 
-                    13.335215, 17.782795, 23.713737, 
-                    31.622776, 42.16965 , 56.23413])
+        erec = np.array(
+            [
+                5.623413,
+                7.498942,
+                10.0,
+                13.335215,
+                17.782795,
+                23.713737,
+                31.622776,
+                42.16965,
+                56.23413,
+            ]
+        )
 
-        z10bins = np.array([-1., -0.75, -0.5 , -0.25,  
-            0., 0.25, 0.5, 0.75, 1.])
+        z10bins = np.array([-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0])
 
         self.EnergyBins = {0: erec, 1: erec}
         self.CTBins = {0: z10bins, 1: z10bins}
