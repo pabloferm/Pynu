@@ -251,7 +251,7 @@ class SuperK_2023(SuperK):
         self.CC = np.abs(self.Mode) < 30
         self.nuPDG = self.MC["ipnu"]
         self.ETrue = self.MC["pnu"]
-        self.Weight = self.MC["tune_weights"] * self.MC["inv_flux"]
+        self.Weight = self.MC["inv_flux"]
         self.Sample = self.MC["itype"]  # Sample of each event
         self.DecayE = self.MC["muedk"]
 

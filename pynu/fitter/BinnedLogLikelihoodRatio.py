@@ -50,9 +50,10 @@ class BinnedLogLikelihoodRatio:
         X2: float = 0
         for O, E in zip(self.observation.values(), expectation.values()):
             # print(f"Obervation, {O}")
-            print(f"Expectation, {E}")
+            # print(f"Expectation, {E}")
             if np.any(E)<=0:
-                X2 += 9e9
+                X2 = 9e9
+                # sys.exit("Negative number of events. Please check the physics tunes you are using (printing their value might help).")
             X2 += np.sum(E - O + O * np.log(O / E))
         return 2 * X2
 
@@ -243,3 +244,53 @@ class BinnedLogLikelihoodRatio:
         priors_2nd = (D_Chi2_1 * X_0 - D_Chi2_0 * X_1) / (D_Chi2_1 - D_Chi2_0)
 
         return priors_2nd
+
+    def hessian_approximation(self, expectation_prior, diff_expectation_prior, prior):
+        r"""Assumes second derivative terms of weights w.r.t. parameters are negligible and Gaussian priors.
+
+        $\nabla^2 \chi^2 \approx \sum \frac{O}{E'^2}\bigg(\partial_j E'\bigg)^2$
+
+        NOTE: To be done.
+
+        Args:
+            expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events
+            (numpy.array) similarly to observation, but for a given physics and nuisance values.
+            diff_expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (nuisance parameter (str):
+            (Experiment(str): binned events (numpy.array)).
+            priors (list of float): Values of nuisance parameter estimates other than the nominal values.
+
+        Returns:
+            Numpy array with the estimate for the nuisance parameters.
+
+        """
+
+        pass
+
+    def approximate_fisher(self, expectation, diff_expectation):
+        r"""Assumes second derivative terms of weights w.r.t. parameters are negligible and Gaussian priors.
+
+        $\nabla^2_k \pi(\theta) \approx \nsum \frac{O_i}{E_i^2} \left.\Bigg(\frac{\partial E_i}{\partial \theta_k}\Bigg)^2\right\vert_{\theta_k=\hat{\theta}_k} + \mathcal{I}_j(\theta_k)$
+
+        Args:
+            expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events
+            (numpy.array) similarly to observation, but for a given physics and nuisance values.
+            diff_expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (nuisance parameter (str):
+            (Experiment(str): binned events (numpy.array)).
+            priors (list of float): Values of nuisance parameter estimates other than the nominal values.
+
+        Returns:
+            Numpy array with the estimate for the nuisance parameters.
+
+        """
+        I_stats = np.zeros(self.number_of_nuisance)
+        for i, dE in enumerate(diff_expectation.values()):
+            for O, E, dEdx in zip(
+                self.observation.values(), expectation.values(), dE.values()
+            ):
+                I_stats[i] += np.sum(O / E**2 * dEdx**2)
+
+        I_prior = np.zeros(self.number_of_nuisance)
+        for i, sig in enumerate(self.sigma_nuisance):
+            I_prior[i] += 1 / sig**2
+
+        return I_stats + I_prior

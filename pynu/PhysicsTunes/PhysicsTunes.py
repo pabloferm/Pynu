@@ -1,6 +1,3 @@
-# from .CrossSection import *
-# from .Detector import *
-# from .Oscillations.Oscillations import Oscillations.
 import sys
 from functools import wraps
 import time
@@ -9,7 +6,6 @@ from inspect import signature
 class PhysicsTunes:
     """Contains all physics tunes of a given experiment"""
 
-    # @logd(file=False, logging_level='debug')
     def __init__(self, experiment, scenario, neutrino_flavors, set_all=False):
         self.Detector = experiment.Detector
         self.Target = experiment.Target
@@ -135,7 +131,6 @@ class PhysicsTunes:
 class Tune:
     """Base class for physics tunes"""
 
-    # @logd(file=False, logging_level='debug')
     def __init__(self, MAX_CACHE_SIZE_MB = 100):
         self.cache = {}
         self.cache_size = 0
@@ -205,7 +200,7 @@ class Tune:
 
         return wrapper
 
-    # @logd(file=False, logging_level='debug')
+
     @cache_method
     def Get(self, tune, exp, x):
         """Get specific weights for a given `experiment` from tune evaluated
@@ -216,7 +211,19 @@ class Tune:
         except BaseException:
             sys.exit(f"{tune} not found. Please, check if it is defined, the name is correct and/or the implementation refers to existing variables of {exp.SOURCE} at {exp.Detector}")
             
-        print("====================================")
 
     def _unphysical_value(self, x, unphys_low=0, unphys_up=9999999):
         return x < unphys_low or x > unphys_up
+
+
+
+
+
+def _unphysical(condition):
+    def decorator(func):
+        def wrapper(param):
+            if condition(param):
+                return 0.0  # Alternate result
+            return func(param)  # Original result
+        return wrapper
+    return decorator

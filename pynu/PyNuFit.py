@@ -339,14 +339,15 @@ class PyNuFit:
             else:
                 res = minimize(
                     self.model_tester_and_gradient,
-                    AnalyticPrior,
+                    self.Analysis.NuisNominalList,
+                    #AnalyticPrior,
                     # method="Newton-CG", # 5min 45s
-                    # method="BFGS",  # 2min 38s
-                    method="L-BFGS-B",  # 3min 11s
+                    method="BFGS",  # 2min 38s
+                    # method="L-BFGS-B",  # 3min 11s
                     jac=True,
-                    bounds=AnalyticBounds,
+                    # bounds=AnalyticBounds,
                     tol=eps,
-                    options={"disp": self.verbosity},
+                    options={"disp": self.verbosity, "hess_inv0": self.fisher_information(self.Analysis.NuisNominalList), "gtol": 1e-3},
                 )
 
             self.WriteToOutFile(
@@ -356,6 +357,20 @@ class PyNuFit:
 
             return -0.5 * res.fun
         return -0.5 * X2_stats
+
+
+    def fisher_information(self, nuisance_vector):
+        """Compute expected and its derivatives"""
+        self.ComputeBinnedExpectation(
+            self.point, nuisance_vector=nuisance_vector
+        )  # Nominal expectation
+        self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
+
+        """ The gradient of the above """
+        I = self.LLH.approximate_fisher(self.Expectation, self.DiffExpectation)
+
+        return np.diag(I)
+
 
     def model_tester_and_gradient(self, nuisance_vector):
         if self.verbosity:

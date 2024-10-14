@@ -58,6 +58,7 @@ class IC2017(Experiment):
 
         del self.MC
 
+    """
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
         flux = nuflux.makeFlux('IPhonda2014_spl_solmin')
 
@@ -77,7 +78,8 @@ class IC2017(Experiment):
                 AtmInitialFlux[ic][ie][0][2] = 0.  # nutau
                 AtmInitialFlux[ic][ie][1][2] = 0.  # nutau bar
         return AtmInitialFlux
-
+    """
+    
     def NEUTMode(self):
         noNEUTmode = self.MC['type']
         nuPDG = self.MC['pdg']
