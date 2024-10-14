@@ -44,6 +44,7 @@ class PhysicsTunes:
 
     # @logd(file=False, logging_level='debug')
     def GetXSection(self, func_name, x):
+        #return getattr(self.XSectionTunes, func_name)(self._Experiment, x)
         return self.XSectionTunes.Get(func_name, self._Experiment, x)
 
     # @logd(file=False, logging_level='debug')
@@ -135,11 +136,10 @@ class Tune:
     """Base class for physics tunes"""
 
     # @logd(file=False, logging_level='debug')
-    def __init__(self):
+    def __init__(self, MAX_CACHE_SIZE_MB = 100):
         self.cache = {}
         self.cache_size = 0
-        max_cache_size_mb = 100
-        self.max_cache_size = max_cache_size_mb * 1024 * 1024
+        self.MAX_CACHE_SIZE = MAX_CACHE_SIZE_MB * 1024 * 1024
 
     def cache_method(func):
         @wraps(func)
@@ -173,7 +173,7 @@ class Tune:
             )
 
             if cache_key in self.cache:
-                print("Using cached result.")
+                print(f"Using previously cached result for {cache_key[1][1]} of {cache_key[2][1].SOURCE} at {cache_key[2][1].Detector}, with x = {cache_key[3][1]}.")
                 return self.cache[cache_key]["result"]
 
             start_time = time.time()
@@ -193,7 +193,7 @@ class Tune:
             self.cache_size += result_size
 
             # Enforce cache size limit
-            while self.cache_size > self.max_cache_size:
+            while self.cache_size > self.MAX_CACHE_SIZE:
                 # Find the entry with the highest computation time
                 least_time_key = min(
                     self.cache, key=lambda k: self.cache[k]["computation_time"]
@@ -211,11 +211,11 @@ class Tune:
         """Get specific weights for a given `experiment` from tune evaluated
         at `x`, given the name of the `tune`."""
         try:
-            # print(f"{tune} at {x} for {exp}")
-            return self.__getattribute__(tune)(exp, x)
+            print(f"Computing {tune} weights for {exp.SOURCE} at {exp.Detector}, with x = {x}")
+            return self.__getattribute__(tune.strip())(exp, x)
         except BaseException:
-            print(f"{tune} not found!!")
-            return 1
+            sys.exit(f"{tune} not found. Please, check if it is defined, the name is correct and/or the implementation refers to existing variables of {exp.SOURCE} at {exp.Detector}")
+            
         print("====================================")
 
     def _unphysical_value(self, x, unphys_low=0, unphys_up=9999999):

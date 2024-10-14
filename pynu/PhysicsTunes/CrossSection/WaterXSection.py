@@ -78,16 +78,16 @@ class WaterXSection(Tune):
         return nc
 
     def DIS(self, experiment, x):
-        dis = np.ones(experiment.NumberOfEvents)
+        w = np.ones(experiment.NumberOfEvents)
         cond = np.abs(experiment.Mode) > 25 * experiment.CC
-        dis[cond] = x
-        return dis
+        w[cond] = x
+        return w
 
     def diff_DIS(self, experiment, x):
-        dis = np.zeros(experiment.NumberOfEvents)
+        w = np.zeros(experiment.NumberOfEvents)
         cond = np.abs(experiment.Mode) > 25 * experiment.CC
-        dis[cond] = 1
-        return dis
+        w[cond] = 1
+        return w
 
     def CCQE(self, experiment, x):
         ccqe = np.ones(experiment.NumberOfEvents)

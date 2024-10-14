@@ -6,10 +6,28 @@
 <!-- Atmospheric neutrinos -->
 	<NeutrinoSource name="Atmospheric">
 		<status> 1 </status>
-        <nuisance name='normalization_above1GeV'>
+		<nuisance name='normalization_below1GeV'>
 			<status> 1 </status>
-			<sigma> 0.1 </sigma>
+			<sigma> 0.25 </sigma>
 			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='normalization_above1GeV'>
+			<status> 1 </status>
+			<sigma> 0.15 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='zenith_up'>
+			<status> 1 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 0.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='zenith_down'>
+			<status> 1 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 0.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
 		<nuisance name='nunubar_ratio'>
@@ -24,23 +42,11 @@
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
-		<nuisance name='zenith_up'>
-			<status> 1 </status>
-			<sigma> 0.02 </sigma>
-			<nominal> 0.0 </nominal>
-			<distribution> normal </distribution>
-		</nuisance>	
-		<nuisance name='zenith_down'>
-			<status> 1 </status>
-			<sigma> 0.02 </sigma>
-			<nominal> 0.0 </nominal>
-			<distribution> normal </distribution>
-		</nuisance>		
 		<nuisance name='tilt'>
-			<points> 9 </points>
-			<min> 0.9 </min>
-			<max> 1.1 </max>
-			<true> 1.0 </true>
+			<status> 1 </status>
+			<sigma> 0.10 </sigma>
+			<nominal> 0.0 </nominal>
+			<distribution> normal </distribution>
 		</nuisance>
 	</NeutrinoSource>
 
@@ -52,23 +58,86 @@
 <!-- Water-Cherenkov -->
 	<NeutrinoTarget name="Water">
 		<status> 1 </status>
-		<physics name='XSecNuTau'>
-			<points> 9 </points>
-			<min> 0.75 </min>
-			<max> 1.25 </max>
-			<true> 1.0 </true>
-		</physics>
-		<nuisance name='DIS'>
-			<status> 1 </status>
-			<sigma> 0.05 </sigma>
+		<nuisance name='XSecNuTau'>
+			<status> 0 </status>
+			<sigma> 0.2 </sigma>
 			<nominal> 1.0 </nominal>
 			<distribution> normal </distribution>
 		</nuisance>
-		<fixed name='NCHad'>
-			<status> 1 </status>
-			<value> 1.0 </value>
-		</fixed>
+		<nuisance name='NCoverCC'>
+			<status> 0 </status>
+			<sigma> 0.2 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='NCHad'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='DIS'>
+			<status> 0 </status>
+			<sigma> 0.05 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>		
+		<nuisance name='CCQE'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CCQENuBarNu'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CCQEMuE'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CC1Pi_Pi0Pi'>
+			<status> 0 </status>
+			<sigma> 0.4 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CC1Pi_NuBarNuE'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CC1Pi_NuBarNuMu'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CC1PiProduction'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='CohPiProduction'>
+			<status> 0 </status>
+			<sigma> 1.0 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
+		<nuisance name='AxialMass'>
+			<status> 0 </status>
+			<sigma> 0.1 </sigma>
+			<nominal> 1.0 </nominal>
+			<distribution> normal </distribution>
+		</nuisance>
 	</NeutrinoTarget>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
 

@@ -269,7 +269,7 @@ class PyNuFit:
             sys.exit("Mode not yet implemented")
 
     # 'SLSQP' 'GD' 'ADAM' 'MINUIT'
-    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=1e-5):
+    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=None):
         if not self.Analysis.do_point(point):
             print(f"Skipping point {point}.")
             return False
@@ -282,9 +282,8 @@ class PyNuFit:
         self.ComputeBinnedExpectation(self.point, physics=True)  # Nominal expectation
 
         """ Statistics only computation to start guiding the minimization """
-        X2_stats = self.LLH.stats_only(self.Expectation)
+        X2_stats = self.LLH.stats_and_systematics(self.Expectation, self.Analysis.NuisNominalList)
         print(f"Stats only, chi2 = {X2_stats}")
-
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", X2_stats)
 
         if self.Analysis.wSyst:
@@ -356,9 +355,12 @@ class PyNuFit:
             self.WriteToOutFile("Analysis", "Chi2 Systs.", res.fun)
 
             return -0.5 * res.fun
-        return -X2_stats
+        return -0.5 * X2_stats
 
     def model_tester_and_gradient(self, nuisance_vector):
+        if self.verbosity:
+            print(f"Values of varying parameters:\n{self.Analysis.NuisanceList}\n{nuisance_vector}")
+            print("--------------------------------------------------------------------------")
         """Compute expected and its derivatives"""
         self.ComputeBinnedExpectation(
             self.point, nuisance_vector=nuisance_vector

@@ -28,20 +28,17 @@ class IC2017(Experiment):
     def MCVariables(self):
         d_itype = self.MC['pid']
         d_Etrue = self.MC['true_energy']
-        condition = (d_Etrue > 1.0) * (d_itype > -1)
-        condCC = (d_Etrue > 1.0) * (d_itype > 0)
-        condNC = (d_Etrue > 1.0) * (d_itype == 0)
-        self.EReco = self.MC['reco_energy'][condition]
-        self.CosZReco = np.cos(self.MC['reco_coszen'][condition])
-        self.CosZTrue = np.cos(self.MC['true_coszen'][condition])
-        #self.AziTrue = self.MC['true_azimuth'][condition]
-        #self.CC = self.MC['type'][condCC]
-        #self.NC = self.MC['type'][condNC]
-        self.nuPDG = np.int_(self.MC['pdg'][condition])
-        self.ETrue = self.MC['true_energy'][condition]
-        self.Weight = self.MC['weight'][condition]
-        self.Sample = self.MC['pid'][condition]  # Sample of each event
-        self.Mode = self.NEUTMode()[condition]
+        self.EReco = self.MC['reco_energy']
+        self.CosZReco = np.cos(self.MC['reco_coszen'])
+        self.CosZTrue = np.cos(self.MC['true_coszen'])
+        #self.AziTrue = self.MC['true_azimuth']
+        self.CC = self.MC['type'] > 0
+        self.NC = self.MC['type'] == 0
+        self.nuPDG = np.int_(self.MC['pdg'])
+        self.ETrue = self.MC['true_energy']
+        self.Weight = self.MC['weight']
+        self.Sample = self.MC['pid']  # Sample of each event
+        self.Mode = self.NEUTMode()
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
@@ -49,8 +46,8 @@ class IC2017(Experiment):
         self.NumberOfSamples = 1 + np.amax(self.Samples)
         self.Erec_min = 5.623413
         self.Erec_max = 56.23413
-        self.Etrue_min = 1
-        self.Etrue_max = 1e3
+        self.Etrue_min = np.amin(self.ETrue)
+        self.Etrue_max = np.amax(self.ETrue)
         self.E_edges = [5.623413, 56.23413]
         #self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
