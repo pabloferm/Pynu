@@ -29,8 +29,8 @@ class IC2017(Experiment):
         d_itype = self.MC["pid"]
         d_Etrue = self.MC["true_energy"]
         self.EReco = self.MC["reco_energy"]
-        self.CosZReco = np.cos(self.MC["reco_coszen"])
-        self.CosZTrue = np.cos(self.MC["true_coszen"])
+        self.CosZReco = self.MC["reco_coszen"]
+        self.CosZTrue = self.MC["true_coszen"]
         # self.AziTrue = self.MC['true_azimuth']
         self.CC = self.MC["type"] > 0
         self.NC = self.MC["type"] == 0
@@ -104,9 +104,9 @@ class IC2017(Experiment):
         return noNEUTmode
 
     def DataVariables(self):
-        self.Data["pid"]
+        self.dCounts = self.Data["count"]
         self.dEReco = self.Data["reco_energy"]
-        self.dCosZReco = np.cos(self.Data["reco_coszen"])
+        self.dCosZReco = self.Data["reco_coszen"]
         self.dSample = self.Data["pid"]  # Sample of each event
         self.dNumberOfEvents = self.Sample.size
 
@@ -118,7 +118,7 @@ class IC2017(Experiment):
 
     def BinData(self):
         self.dCosThetaReco = self.dCosZReco
-        return self.BinIt_Data_2D()
+        return self.BinIt_Data_2D(entries=self.dCounts)
 
     def Binning(self):
         NErec = 8

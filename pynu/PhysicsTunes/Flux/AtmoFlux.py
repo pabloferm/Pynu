@@ -25,7 +25,7 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         return x
 
     def diff_normalization(self, experiment, x):
@@ -57,7 +57,7 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         nev = np.ones(experiment.NumberOfEvents)
         nev[experiment.ETrue < 1] = x
         return nev
@@ -92,7 +92,7 @@ class AtmosphericFlux(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         nev = np.ones(experiment.NumberOfEvents)
         nev[experiment.ETrue > 1] = x
         return nev
