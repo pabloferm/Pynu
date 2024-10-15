@@ -51,8 +51,8 @@ class BinnedLogLikelihoodRatio:
         """
         X2: float = 0
         for O, E in zip(self.observation.values(), expectation.values()):
-            # print(f"Obervation, {O}")
-            # print(f"Expectation, {E}")
+            print(f"Obervation, {O}")
+            print(f"Expectation, {E}")
             if np.any(E) <= 0:
                 X2 = 9e9
                 # sys.exit("Negative number of events. Please check the physics tunes you are using (printing their value might help).")

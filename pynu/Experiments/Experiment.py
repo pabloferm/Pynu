@@ -175,13 +175,12 @@ class Experiment:
             hist.reset()
         v_list = [None] * self.NumberOfSamples
         # if np.any(entries):
-        if entries is not None:
+        if entries is None:
             for i, hist in enumerate(self.Binner):
                 sample_mask = self.dSample == i
                 E_sample = self.dEReco[sample_mask]
                 CosThetaReco_sample = self.dCosThetaReco[sample_mask]
-                weight_sample = entries[self.dSample == i]
-                hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
+                hist.fill(E_sample, CosThetaReco_sample)
                 v_list[i] = hist.values().reshape(-1)
 
         else:
@@ -189,7 +188,8 @@ class Experiment:
                 sample_mask = self.dSample == i
                 E_sample = self.dEReco[sample_mask]
                 CosThetaReco_sample = self.dCosThetaReco[sample_mask]
-                hist.fill(E_sample, CosThetaReco_sample)
+                weight_sample = entries[self.dSample == i]
+                hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
                 v_list[i] = hist.values().reshape(-1)
 
         return np.concatenate(v_list)
