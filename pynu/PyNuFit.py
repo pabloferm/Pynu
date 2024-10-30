@@ -200,11 +200,11 @@ class PyNuFit:
                         else:
                             value = vec[source][tune]
                         if tune_block == "Flux":
-                            w = self.physics_tunes[name].GetFlux(tune, value)
+                            w = self.physics_tunes[name].get_flux(tune, value)
                         elif tune_block == "XSection":
-                            w = self.physics_tunes[name].GetXSection(tune, value)
+                            w = self.physics_tunes[name].get_xsection(tune, value)
                         elif tune_block == "Detector":
-                            w = self.physics_tunes[name].GetDetector(tune, value)
+                            w = self.physics_tunes[name].get_detector(tune, value)
                         elif tune_block == "Osc":
                             self.physics_tunes[name].OscillationTunes.UpdateParameter(
                                 tune, value
@@ -235,26 +235,26 @@ class PyNuFit:
                         dWoverW[tune] = {name: 0}
                         idx = self.Analysis.NuisanceList.index(tune)
                         if tune_block == "Detector":
-                            dWoverW[tune][name] = self.physics_tunes[name].GetDetector(
+                            dWoverW[tune][name] = self.physics_tunes[name].get_detector(
                                 f"diff_{tune}", vector[idx]
-                            ) / self.physics_tunes[name].GetDetector(tune, vector[idx])
+                            ) / self.physics_tunes[name].get_detector(tune, vector[idx])
                         elif tune_block == "Flux":
-                            dWoverW[tune][name] = self.physics_tunes[name].GetFlux(
+                            dWoverW[tune][name] = self.physics_tunes[name].get_flux(
                                 f"diff_{tune}", vector[idx]
-                            ) / self.physics_tunes[name].GetFlux(tune, vector[idx])
+                            ) / self.physics_tunes[name].get_flux(tune, vector[idx])
                         elif tune_block == "Osc":
                             dWoverW[tune][name] = (
-                                self.physics_tunes[name].GetOscillation(
+                                self.physics_tunes[name].get_oscillation(
                                     f"diff_{tune}", vector[idx]
                                 )
                                 / self.physics_tunes[
                                     name
-                                ].OscillationTunes.GetOscillations()
+                                ].OscillationTunes.get_oscillation()
                             )
                         elif tune_block == "XSection":
-                            dWoverW[tune][name] = self.physics_tunes[name].GetXSection(
+                            dWoverW[tune][name] = self.physics_tunes[name].get_xsection(
                                 f"diff_{tune}", vector[idx]
-                            ) / self.physics_tunes[name].GetXSection(tune, vector[idx])
+                            ) / self.physics_tunes[name].get_xsection(tune, vector[idx])
         return dWoverW
 
     def set_likelihood(self, mode):

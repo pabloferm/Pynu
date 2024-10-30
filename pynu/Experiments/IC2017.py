@@ -59,23 +59,28 @@ class IC2017(Experiment):
         del self.MC
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
-        flux = nuflux.makeFlux('IPhonda2014_spl_solmin')
+        flux = nuflux.makeFlux("IPhonda2014_spl_solmin")
 
         AtmInitialFlux = np.zeros(
-            (len(cth_nodes), len(energy_nodes), 2, neutrino_flavors))
+            (len(cth_nodes), len(energy_nodes), 2, neutrino_flavors)
+        )
 
         for ic, nu_cos_zenith in enumerate(cth_nodes):
             for ie, nu_energy in enumerate(energy_nodes):
                 AtmInitialFlux[ic][ie][0][0] = flux.getFlux(
-                    nuflux.NuE, nu_energy, nu_cos_zenith)  # nue
+                    nuflux.NuE, nu_energy, nu_cos_zenith
+                )  # nue
                 AtmInitialFlux[ic][ie][1][0] = flux.getFlux(
-                    nuflux.NuEBar, nu_energy, nu_cos_zenith)  # nue bar
+                    nuflux.NuEBar, nu_energy, nu_cos_zenith
+                )  # nue bar
                 AtmInitialFlux[ic][ie][0][1] = flux.getFlux(
-                    nuflux.NuMu, nu_energy, nu_cos_zenith)  # numu
+                    nuflux.NuMu, nu_energy, nu_cos_zenith
+                )  # numu
                 AtmInitialFlux[ic][ie][1][1] = flux.getFlux(
-                    nuflux.NuMuBar, nu_energy, nu_cos_zenith)  # numu bar
-                AtmInitialFlux[ic][ie][0][2] = 0.  # nutau
-                AtmInitialFlux[ic][ie][1][2] = 0.  # nutau bar
+                    nuflux.NuMuBar, nu_energy, nu_cos_zenith
+                )  # numu bar
+                AtmInitialFlux[ic][ie][0][2] = 0.0  # nutau
+                AtmInitialFlux[ic][ie][1][2] = 0.0  # nutau bar
         return AtmInitialFlux
 
     def NEUTMode(self):
@@ -144,3 +149,9 @@ class IC2017(Experiment):
 
         self.EnergyBins = {0: erec, 1: erec}
         self.CTBins = {0: z10bins, 1: z10bins}
+
+    def systematics(self):
+        ev = np.zeros(self.NumberOfEvents)
+        c = (np.abs(self.nuPDG) == 12) * (self.CC == 1)
+        ev[c] = 1
+        self.ExpFracNuECC = self.BinMC(ev) / self.weightOscBF_binned

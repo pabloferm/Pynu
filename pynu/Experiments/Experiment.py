@@ -36,8 +36,8 @@ class Experiment:
         self.NuisanceWeight = 1
         self.NominalWeight = 1
 
-        self.bias_E = 0
-        self.scale_E = 1
+        self.ENERGY_BIAS = 0
+        self.ENERGY_SCALE = 1
 
     def SetDefinition(self):
         self.Definition = {
@@ -110,19 +110,19 @@ class Experiment:
         self.Binner = []
 
     def set_energy_bias(self, bias_E):
-        self.bias_E = bias_E
+        self.ENERGY_BIAS = bias_E
 
     def set_energy_scale(self, scale_E):
-        self.scale_E = scale_E
+        self.ENERGY_SCALE = scale_E
 
     def BinIt_MC_1D(self, array):  # 1D energy binning
         for hist in self.Binner:
             hist.reset()
 
-        if self.scale_E == 1 and self.bias_E == 0:
+        if self.ENERGY_SCALE == 1 and self.ENERGY_BIAS == 0:
             E = self.EReco
         else:
-            E = self.EReco * self.scale_E + self.bias_E
+            E = self.EReco * self.ENERGY_SCALE + self.ENERGY_BIAS
 
         v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
@@ -140,10 +140,10 @@ class Experiment:
         for hist in self.Binner:
             hist.reset()
 
-        if self.scale_E == 1 and self.bias_E == 0:
+        if self.ENERGY_SCALE == 1 and self.ENERGY_BIAS == 0:
             E = self.EReco
         else:
-            E = self.EReco * self.scale_E + self.bias_E
+            E = self.EReco * self.ENERGY_SCALE + self.ENERGY_BIAS
 
         v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
@@ -214,11 +214,11 @@ class Experiment:
         self.NuisanceWeight = 1
 
     def UpdateNuisanceWeights(self, w):
-        self.NuisanceWeight = self.NuisanceWeight * w
+        self.NuisanceWeight *= w
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateNominalWeights(self, w):
-        self.NominalWeight = self.NominalWeight * w
+        self.NominalWeight *= w
 
     def SetExpectedWeight(self):
         self.ExpectedWeight = self.PhysicsWeight * self.NuisanceWeight

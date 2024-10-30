@@ -3,6 +3,8 @@
 
 import numpy as np
 import nuflux
+import os
+import pandas as pd
 from .Experiment import Experiment
 
 
@@ -46,8 +48,8 @@ class SuperK(Experiment):
         self.NumberOfSamples = 16
         self.Erec_max = 4e2
         self.Erec_min = 0.1
-        self.Etrue_min = 0.1
-        self.Etrue_max = 1e3
+        self.Etrue_min = 0.08
+        self.Etrue_max = 4.5e4
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
@@ -58,28 +60,83 @@ class SuperK(Experiment):
         del self.MC
 
     def SetInitialFlux(self, energy_nodes, cth_nodes, neutrino_flavors):
-        flux = nuflux.makeFlux("IPhonda2014_sk_solmin")
-
         AtmInitialFlux = np.zeros(
             (len(cth_nodes), len(energy_nodes), 2, neutrino_flavors)
         )
 
+        low_energy_nodes = energy_nodes[energy_nodes < 0.1]
+        mid_energy_nodes = energy_nodes[(energy_nodes >= 0.1) & (energy_nodes <= 1e4)]
+        hi_energy_nodes = energy_nodes[energy_nodes > 1e4]
+
+        _mid_flux = nuflux.makeFlux("IPhonda2014_sk_solmin")
+        _hi_flux = nuflux.makeFlux("honda2006")
+
+        _low_fluka_flux = pd.read_csv(
+            f"{os.environ['PYNU']}/../data/Kamioka_SolAvg_FLUKA_noerr.dat", sep=", "
+        )
+        _energy = _low_fluka_flux["E (GeV)"]
+
         for ic, nu_cos_zenith in enumerate(cth_nodes):
             for ie, nu_energy in enumerate(energy_nodes):
-                AtmInitialFlux[ic][ie][0][0] = flux.getFlux(
-                    nuflux.NuE, nu_energy, nu_cos_zenith
-                )  # nue
-                AtmInitialFlux[ic][ie][1][0] = flux.getFlux(
-                    nuflux.NuEBar, nu_energy, nu_cos_zenith
-                )  # nue bar
-                AtmInitialFlux[ic][ie][0][1] = flux.getFlux(
-                    nuflux.NuMu, nu_energy, nu_cos_zenith
-                )  # numu
-                AtmInitialFlux[ic][ie][1][1] = flux.getFlux(
-                    nuflux.NuMuBar, nu_energy, nu_cos_zenith
-                )  # numu bar
+                if nu_energy < 1e-1:
+                    AtmInitialFlux[ic][ie][0][0] = (
+                        np.interp(nu_energy, _energy, _low_fluka_flux["NuE"])
+                        / (4 * np.pi)
+                        / 1000
+                        / 9
+                    )  # nue
+                    AtmInitialFlux[ic][ie][1][0] = (
+                        np.interp(nu_energy, _energy, _low_fluka_flux["NuEBar"])
+                        / (4 * np.pi)
+                        / 1000
+                        / 9
+                    )  # nue bar
+                    AtmInitialFlux[ic][ie][0][1] = (
+                        np.interp(nu_energy, _energy, _low_fluka_flux["NuMu"])
+                        / (4 * np.pi)
+                        / 1000
+                        / 9
+                    )  # numu
+                    AtmInitialFlux[ic][ie][1][1] = (
+                        np.interp(nu_energy, _energy, _low_fluka_flux["NuMuBar"])
+                        / (4 * np.pi)
+                        / 1000
+                        / 9
+                    )  # numu bar
+                elif nu_energy > 1e4:
+                    AtmInitialFlux[ic][ie][0][0] = _hi_flux.getFlux(
+                        nuflux.NuE, nu_energy, nu_cos_zenith
+                    )  # nue
+                    AtmInitialFlux[ic][ie][1][0] = _hi_flux.getFlux(
+                        nuflux.NuEBar, nu_energy, nu_cos_zenith
+                    )  # nue bar
+                    AtmInitialFlux[ic][ie][0][1] = _hi_flux.getFlux(
+                        nuflux.NuMu, nu_energy, nu_cos_zenith
+                    )  # numu
+                    AtmInitialFlux[ic][ie][1][1] = _hi_flux.getFlux(
+                        nuflux.NuMuBar, nu_energy, nu_cos_zenith
+                    )  # numu bar
+                else:
+                    AtmInitialFlux[ic][ie][0][0] = _mid_flux.getFlux(
+                        nuflux.NuE, nu_energy, nu_cos_zenith
+                    )  # nue
+                    AtmInitialFlux[ic][ie][1][0] = _mid_flux.getFlux(
+                        nuflux.NuEBar, nu_energy, nu_cos_zenith
+                    )  # nue bar
+                    AtmInitialFlux[ic][ie][0][1] = _mid_flux.getFlux(
+                        nuflux.NuMu, nu_energy, nu_cos_zenith
+                    )  # numu
+                    AtmInitialFlux[ic][ie][1][1] = _mid_flux.getFlux(
+                        nuflux.NuMuBar, nu_energy, nu_cos_zenith
+                    )  # numu bar
+                print(f"for energy is {nu_energy}")
+                print(f"flux is {AtmInitialFlux[ic][ie][0][0]}")
                 AtmInitialFlux[ic][ie][0][2] = 0.0  # nutau
                 AtmInitialFlux[ic][ie][1][2] = 0.0  # nutau bar
+
+        del _mid_flux
+        del _hi_flux
+        del _low_fluka_flux
         return AtmInitialFlux
 
     def DataVariables(self):

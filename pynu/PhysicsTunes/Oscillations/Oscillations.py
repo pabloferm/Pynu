@@ -23,10 +23,10 @@ class Oscillator(Tune):
 
         """ Support for 3 active neutrinos and any number of sterile neutrinos """
         self.NeutrinoFlavors = neutrino_flavors
-        self.units = nsq.Const()
+        self.UNITS = nsq.Const()
         self.interactions = False
-        self.rel_error = 1e-4
-        self.abs_error = 1e-4
+        self.REL_ERROR = 1e-4
+        self.ABS_ERROR = 1e-4
         self.E_nodes = 100
         self.eps = 1e-2
 
@@ -76,7 +76,7 @@ class Oscillator(Tune):
             print("Atmospheric")
             self.Osc = nsq.nuSQUIDSAtm(
                 self.cth_nodes,
-                self.energy_nodes * self.units.GeV,
+                self.energy_nodes * self.UNITS.GeV,
                 self.NeutrinoFlavors,
                 nsq.NeutrinoType.both,
                 self.interactions,
@@ -86,8 +86,8 @@ class Oscillator(Tune):
         elif self.Source == "Accelerator":
             pass
 
-        self.Osc.Set_rel_error(self.rel_error)
-        self.Osc.Set_abs_error(self.abs_error)
+        self.Osc.Set_rel_error(self.REL_ERROR)
+        self.Osc.Set_abs_error(self.ABS_ERROR)
 
     def GetOscillations(self):
         sys.exit("Oscillator not defined.")

@@ -5,55 +5,71 @@ from inspect import signature
 
 
 class PhysicsTunes:
-    """Contains all physics tunes of a given experiment"""
+    """Class for handling the computation and application of all physics tunes relevant for a given experiment."""
 
-    def __init__(self, experiment, scenario, neutrino_flavors, set_all=False):
-        self.Detector = experiment.Detector
-        self.Target = experiment.Target
-        self.SOURCE = experiment.SOURCE
+    def __init__(
+        self, Experiment, scenario: str, neutrino_flavors: int, set_all: bool = True
+    ) -> None:
+        r"""Initial method which sets the basic information of an experiment, inhereting from the Experiment class.
 
-        self.SCENARIO = scenario
-        self.NeutrinoFlavors = neutrino_flavors
+        Args:
+            Experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment,
+            of special interest are the Monte Carlos simulations.
+            scenario (str): Name of the neutrino physics scenario used to compute oscillations.
+            neutrino_flavors (int): Number of neutrino flavors.
 
-        self._Experiment = experiment
+        Kwargs:
+            set_all (bool): Option to set all physics tunes for the experiment, that is flux, cross section, detector and physics scenario. Default is set to True as it should be the most common use.
+
+        Returns:
+            None
+        """
+        self.DETECTOR: str = Experiment.Detector
+        self.TARGET: str = Experiment.Target
+        self.SOURCE: str = Experiment.SOURCE
+        self.SCENARIO: str = scenario
+        self.NEUTRINO_FLAVORS: int = neutrino_flavors
+        self._Experiment = Experiment  # `pynu.Experiments.Experiment` class
 
         if set_all:
-            """ Set the flux """
-            self.SetFlux()
-            """ Set the cross-section """
-            self.SetXSection()
-            """ Set the detector """
-            self.SetDetector()
-            """ Set the oscillations """
-            self.SetOscillation()
+            self.set_flux()
+            self.set_xsection()
+            self.set_detector()
+            self.set_oscillation()
 
     @property
     def Experiment(self):
+        r"""Method for getting the Experiment object associated with the present set of physics tunes.
+
+        Args:
+            None.
+
+        Returns:
+            Experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment
+        """
         return self._Experiment
 
     @Experiment.setter
-    def Experiment(self, experiment):
-        self._Experiment = experiment
+    def Experiment(self, Experiment):
+        r"""Method for explicitly setting the Experiment object associated with the present set of physics tunes.
 
-    # @logd(file=False, logging_level='debug')
-    def GetFlux(self, func_name, x):
-        return self.FluxTunes.Get(func_name, self._Experiment, x)
+        Args:
+            Experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment
 
-    # @logd(file=False, logging_level='debug')
-    def GetXSection(self, func_name, x):
-        # return getattr(self.XSectionTunes, func_name)(self._Experiment, x)
-        return self.XSectionTunes.Get(func_name, self._Experiment, x)
+        Returns:
+            None.
+        """
+        self._Experiment = Experiment
 
-    # @logd(file=False, logging_level='debug')
-    def GetDetector(self, func_name, x):
-        return self.DetectorTunes.Get(func_name, self._Experiment, x)
+    def set_flux(self) -> None:
+        r"""Method for selecting the flux block of physics tunes for this experiment.
 
-    # @logd(file=False, logging_level='debug')
-    def GetOscillation(self, func_name, x):
-        return self.OscillationTunes.Get(func_name, self._Experiment, x)
+        Args:
+            None.
 
-    # @logd(file=False, logging_level='debug')
-    def SetFlux(self):
+        Returns:
+            None.
+        """
         if self.SOURCE == "Solar":
             pass
         elif self.SOURCE == "Atmospheric":
@@ -65,41 +81,79 @@ class PhysicsTunes:
         elif self.SOURCE not in ["Accelerator", "LBL", "T2K"]:
             sys.exit(f"{self._Experiment.SOURCE} source not found.")
 
-    # @logd(file=False, logging_level='debug')
-    def SetXSection(self):
-        if self.Target == "Water":
+    def get_flux(self, func_name: str, x: float):
+        r"""Method for getting the weights associated to a tune of flux block for this experiment.
+
+        Args:
+            func_name (str): Name of the tune.
+            x (float): Input parameter for the tune. TO BE GENERALIZED TO AN ARRAY OF PARAMETERS.
+
+        Returns:
+            Numpy.array with the event-by-event values corresponding to tune func_name evaluated at x.
+        """
+        return self.FluxTunes.Get(func_name, self._Experiment, x)
+
+    def set_xsection(self) -> None:
+        r"""Method for selecting the cross-section block of physics tunes for this experiment.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        if self.TARGET == "Water":
             from .CrossSection.WaterXSection import WaterXSection
 
             self.XSectionTunes = WaterXSection()
         else:
             sys.exit(f"{self._Experiment.Target} target not found.")
 
-    # @logd(file=False, logging_level='debug')
-    def SetDetector(self):
-        if self.Detector == "IceCube-Upgrade":
+    def get_xsection(self, func_name, x):
+        r"""Method for getting the weights associated to a tune of cross section block for this experiment.
+
+        Args:
+            func_name (str): Name of the tune.
+            x (float): Input parameter for the tune. TO BE GENERALIZED TO AN ARRAY OF PARAMETERS.
+
+        Returns:
+            Numpy.array with the event-by-event values corresponding to tune func_name evaluated at x.
+        """
+        return self.XSectionTunes.Get(func_name, self._Experiment, x)
+
+    def set_detector(self) -> None:
+        r"""Method for selecting the detector block of physics tunes for this experiment.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        if self.DETECTOR == "IceCube-Upgrade":
             from .Detector.ICUpDetector import ICUpgrade
 
             self.DetectorTunes = ICUpgrade()
-        elif self.Detector == "DeepCore":
+        elif self.DETECTOR == "DeepCore":
             from .Detector.DeepCoreDetector import DeepCore
 
             self.DetectorTunes = DeepCore()
 
-        elif "IceCube-2017" in self.Detector:  # needs more work
+        elif "IceCube-2017" in self.DETECTOR:  # needs more work
             from .Detector.IC2017Detector import IC2017
 
             self.DetectorTunes = IC2017()
 
-        elif "SuperK" in self.Detector:  # needs more work
-            if "IV" in self.Detector:
+        elif "SuperK" in self.DETECTOR:  # needs more work
+            if "IV" in self.DETECTOR:
                 from .Detector.SKIVDetector import SuperK_IV
 
                 self.DetectorTunes = SuperK_IV()
-            elif "Gd" in self.Detector:
+            elif "Gd" in self.DETECTOR:
                 from .Detector.SKGdDetector import SuperK_Gd
 
                 self.DetectorTunes = SuperK_Gd()
-            elif "2023" in self.Detector:
+            elif "2023" in self.DETECTOR:
                 from .Detector.SKCombinedDetector import SuperK_Combined
 
                 self.DetectorTunes = SuperK_Combined()
@@ -108,39 +162,98 @@ class PhysicsTunes:
 
                 self.DetectorTunes = SuperK()
         elif "HyperK" in self.Detector:  # to be changed
-            if "NoNeutron" not in self.Detector:
+            if "NoNeutron" not in self.DETECTOR:
                 from .Detector.SKDetector import SuperK
 
                 self.DetectorTunes = SuperK()
         else:
-            sys.exit(f"{self.Detector} detector not found.")
+            sys.exit(f"{self.DETECTOR} detector not found.")
 
-    # @logd(file=False, logging_level='debug')
-    def SetOscillation(self):
+    def get_detector(self, func_name, x):
+        r"""Method for getting the weights associated to a tune of detector block for this experiment.
+
+        Args:
+            func_name (str): Name of the tune.
+            x (float): Input parameter for the tune. TO BE GENERALIZED TO AN ARRAY OF PARAMETERS.
+
+        Returns:
+            Numpy.array with the event-by-event values corresponding to tune func_name evaluated at x.
+        """
+        return self.DetectorTunes.Get(func_name, self._Experiment, x)
+
+    def set_oscillation(self) -> None:
+        r"""Method for selecting the oscillations/physics scenario block of physics tunes for this experiment.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         if self.SOURCE == "Atmospheric":
             from .Oscillations.AtmOsc import AtmosphericOscillations
 
             self.OscillationTunes = AtmosphericOscillations(
-                self.SCENARIO, self.NeutrinoFlavors, self._Experiment
+                self.SCENARIO, self.NEUTRINO_FLAVORS, self._Experiment
             )
         else:
             sys.exit(f"{self._Experiment.SCENARIO} oscillaiton scenario not found.")
+
+    def get_oscillation(self, func_name, x):
+        r"""Method for getting the weights associated to a tune of oscillations block for this experiment.
+
+        Args:
+            func_name (str): Name of the tune.
+            x (float): Input parameter for the tune. TO BE GENERALIZED TO AN ARRAY OF PARAMETERS.
+
+        Returns:
+            Numpy.array with the event-by-event values corresponding to tune func_name evaluated at x.
+        """
+        return self.OscillationTunes.Get(func_name, self._Experiment, x)
 
 
 #############################################################################
 
 
 class Tune:
-    """Base class for physics tunes"""
+    """Base class for the physics tunes of each block. It contains generic methods which are useful for every tune."""
 
-    def __init__(self, MAX_CACHE_SIZE_MB=100):
+    def __init__(self, MAX_CACHE_SIZE_MB: float = 100) -> None:
+        r"""Sets up the basic variables for caching results.
+
+        Kwargs:
+            MAX_CACHE_SIZE_MB (float): Maximum size of cached computations in MB. Default is set to 100 MB.
+
+        Returns:
+            None.
+        """
         self.cache = {}
         self.cache_size = 0
         self.MAX_CACHE_SIZE = MAX_CACHE_SIZE_MB * 1024 * 1024
 
-    def cache_method(func):
+    def cache_method(func: str):
+        r"""Sets up the basic variables for caching results.
+
+        Args:
+            func (str): Name of tune.
+
+        Returns:
+            Numpy.array (float): Computed or cached weights for "func" tune evaluated at the provided parameter for this experiment.
+        """
+
         @wraps(func)
         def wrapper(self, *args, **kwargs):
+            r"""Stores most time consuming tunes in cache.
+
+            Args:
+                Any args for the tune, typically `x` (float) and `experiment` (`pynu.Experiments.Experiment` class).
+
+            Kwargs:
+                Any args for the tune, typically none.
+
+            Returns:
+                Numpy.array (float): Cached weights for `func` tune evaluated at the provided parameter for this experiment.
+            """
             # Normalize function arguments using the signature
             sig = signature(func)
             bound_args = sig.bind(self, *args, **kwargs)
@@ -205,23 +318,49 @@ class Tune:
         return wrapper
 
     @cache_method
-    def Get(self, tune, exp, x):
+    def Get(self, tune: str, Experiment, x: float):
         """Get specific weights for a given `experiment` from tune evaluated
-        at `x`, given the name of the `tune`."""
+        at `x`, given the name of the `tune`.
+
+        Args:
+            tune (str): Name of tune.
+            Experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+            x (float): Input parameter for the tune. TO BE GENERALIZED TO AN ARRAY OF PARAMETERS.
+
+        Returns:
+            Numpy.array (float) of computed weights for `tune` evaluated at `x` for `Experiment`.
+
+        """
         try:
             print(
-                f"Computing {tune} weights for {exp.SOURCE} at {exp.Detector}, with x = {x}"
+                f"Computing {tune} weights for {Experiment.SOURCE} at {Experiment.Detector}, with x = {x}"
             )
-            return self.__getattribute__(tune.strip())(exp, x)
+            return self.__getattribute__(tune.strip())(Experiment, x)
         except BaseException:
             sys.exit(
                 f"{tune} not found. Please, check if it is defined, the name is correct and/or the implementation refers to existing variables of {exp.SOURCE} at {exp.Detector}"
             )
 
-    def _unphysical_value(self, x, unphys_low=0, unphys_up=9999999):
+    def _unphysical_value(
+        self, x: float, unphys_low: float = 0, unphys_up: float = 9999999
+    ) -> bool:
+        """Checks if value of parameter is unphysical for a given tune to prevent non-meaningful results.
+
+        Args:
+            x (float): Input parameter for the tune. TO BE GENERALIZED TO AN ARRAY OF PARAMETERS.
+
+        Kwargs:
+            unphys_low (float): Lower bound for physicallity.
+            unphys_up (float): Upper bound for physicallity.
+
+        Returns:
+            True if x is within bounds.
+
+        """
         return x < unphys_low or x > unphys_up
 
 
+"""
 def _unphysical(condition):
     def decorator(func):
         def wrapper(param):
@@ -232,3 +371,4 @@ def _unphysical(condition):
         return wrapper
 
     return decorator
+"""

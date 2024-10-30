@@ -11,7 +11,7 @@ sys.path.append("../")
 
 
 class AtmosphericFlux(Tune):
-    r"""Class containing the tunes for the atmospheric neutrino flux."""
+    """Class containing the tunes for the atmospheric neutrino flux."""
 
     def normalization(self, experiment, x):
         r"""Method for modifying the atmospheric flux normalization.

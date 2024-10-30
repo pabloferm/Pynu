@@ -103,8 +103,8 @@ class SuperK_Combined(Tune):
         um = (experiment.Sample >= 16) & (experiment.Sample <= 18)
         fc = np.logical_not((pc | um))
 
-        wfc = np.sum(experiment.Weight[fc])
-        wpc = np.sum(experiment.Weight[pc])
+        wfc = np.sum(fc)
+        wpc = np.sum(pc)
 
         if self._unphysical_value(x):
             fcpc[fc] = 0
@@ -134,8 +134,8 @@ class SuperK_Combined(Tune):
         um = (experiment.Sample >= 16) & (experiment.Sample <= 18)
         fc = np.logical_not((pc | um))
 
-        wfc = np.sum(experiment.Weight[fc])
-        wpc = np.sum(experiment.Weight[pc])
+        wfc = np.sum(fc)
+        wpc = np.sum(pc)
 
         if self._unphysical_value(x):
             fcpc[fc] = 0
@@ -302,8 +302,8 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 0
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == 10])
-        n1 = np.sum(experiment.Weight[experiment.Sample == 11])
+        n0 = np.sum(experiment.Sample == 10)
+        n1 = np.sum(experiment.Sample == 11)
         r = n0 / n1
         mr[experiment.Sample == 10] = x
         mr[experiment.Sample == 11] = 1 + r * (1 - x)
@@ -323,8 +323,8 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 0
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == 10])
-        n1 = np.sum(experiment.Weight[experiment.Sample == 11])
+        n0 = np.sum(experiment.Sample == 10)
+        n1 = np.sum(experiment.Sample == 11)
         r = n0 / n1
         mr[experiment.Sample == 10] = 1
         mr[experiment.Sample == 11] = -r
@@ -412,10 +412,10 @@ class SuperK_Combined(Tune):
         e1 = 11
         o0 = 13
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == e0]) + np.sum(
-            experiment.Weight[experiment.Sample == e1]
+        n0 = np.sum(experiment.Sample == e0) + np.sum(
+            experiment.Sample == e1
         )
-        n1 = np.sum(experiment.Weight[experiment.Sample == o0])
+        n1 = np.sum(experiment.Sample == o0)
         r = n0 / n1
         mr[experiment.Sample == e0] = x
         mr[experiment.Sample == e1] = x
@@ -439,10 +439,10 @@ class SuperK_Combined(Tune):
         e1 = 11
         o0 = 13
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == e0]) + np.sum(
-            experiment.Weight[experiment.Sample == e1]
+        n0 = np.sum(experiment.Sample == e0) + np.sum(
+            experiment.Sample == e1
         )
-        n1 = np.sum(experiment.Weight[experiment.Sample == o0])
+        n1 = np.sum(experiment.Sample == o0)
         r = n0 / n1
         mr[experiment.Sample == e0] = 1
         mr[experiment.Sample == e1] = 1
@@ -464,8 +464,8 @@ class SuperK_Combined(Tune):
         pcs = 14
         pct = 15
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == pcs])
-        n1 = np.sum(experiment.Weight[experiment.Sample == pct])
+        n0 = np.sum(experiment.Sample == pcs)
+        n1 = np.sum(experiment.Sample == pct)
         r = n0 / n1
         mr[experiment.Sample == pcs] = x
         mr[experiment.Sample == pct] = 1 + r * (1 - x)
@@ -487,8 +487,8 @@ class SuperK_Combined(Tune):
         pcs = 14
         pct = 15
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == pcs])
-        n1 = np.sum(experiment.Weight[experiment.Sample == pct])
+        n0 = np.sum(experiment.Sample == pcs)
+        n1 = np.sum(experiment.Sample == pct)
         r = n0 / n1
         mr[experiment.Sample == pcs] = 1
         mr[experiment.Sample == pct] = -r
@@ -509,8 +509,8 @@ class SuperK_Combined(Tune):
         r1 = 2
         r2 = 6
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == r1])
-        n1 = np.sum(experiment.Weight[experiment.Sample == r2])
+        n0 = np.sum(experiment.Sample == r1)
+        n1 = np.sum(experiment.Sample == r2)
         r = n0 / n1
         mr[experiment.Sample == r1] = x
         mr[experiment.Sample == r2] = 1 + r * (1 - x)
@@ -532,8 +532,8 @@ class SuperK_Combined(Tune):
         r1 = 2
         r2 = 6
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == r1])
-        n1 = np.sum(experiment.Weight[experiment.Sample == r2])
+        n0 = np.sum(experiment.Sample == r1)
+        n1 = np.sum(experiment.Sample == r2)
         r = n0 / n1
         mr[experiment.Sample == r1] = 1
         mr[experiment.Sample == r2] = -r
@@ -555,10 +555,10 @@ class SuperK_Combined(Tune):
         r2 = [10, 11, 13, 24, 25, 26]
         mr = np.ones(experiment.NumberOfEvents)
         n0 = sum(
-            np.sum(experiment.Weight[experiment.Sample == sample]) for sample in r1
+            np.sum(experiment.Sample == sample) for sample in r1
         )
         n1 = sum(
-            np.sum(experiment.Weight[experiment.Sample == sample]) for sample in r2
+            np.sum(experiment.Sample == sample) for sample in r2
         )
         r = n0 / n1
         for sample in r1:
@@ -584,10 +584,10 @@ class SuperK_Combined(Tune):
         r2 = [10, 11, 13, 24, 25, 26]
         mr = np.zeros(experiment.NumberOfEvents)
         n0 = sum(
-            np.sum(experiment.Weight[experiment.Sample == sample]) for sample in r1
+            np.sum(experiment.Sample == sample) for sample in r1
         )
         n1 = sum(
-            np.sum(experiment.Weight[experiment.Sample == sample]) for sample in r2
+            np.sum(experiment.Sample == sample) for sample in r2
         )
         r = n0 / n1
         for sample in r1:
@@ -612,10 +612,10 @@ class SuperK_Combined(Tune):
         r2 = [12]
         mr = np.ones(experiment.NumberOfEvents)
         n0 = sum(
-            np.sum(experiment.Weight[experiment.Sample == sample]) for sample in r1
+            np.sum(experiment.Sample == sample) for sample in r1
         )
         n1 = sum(
-            np.sum(experiment.Weight[experiment.Sample == sample]) for sample in r2
+            np.sum(experiment.Sample == sample) for sample in r2
         )
         r = n0 / n1
         for sample in r1:
@@ -641,10 +641,10 @@ class SuperK_Combined(Tune):
         r2 = [12]
         mr = np.zeros(experiment.NumberOfEvents)
         n0 = sum(
-            np.sum(experiment.Weight[experiment.Sample == sample]) for sample in r1
+            np.sum(experiment.Sample == sample) for sample in r1
         )
         n1 = sum(
-            np.sum(experiment.Weight[experiment.Sample == sample]) for sample in r2
+            np.sum(experiment.Sample == sample) for sample in r2
         )
         r = n0 / n1
         for sample in r1:
@@ -668,9 +668,9 @@ class SuperK_Combined(Tune):
         e = [0, 1, 7, 8, 19, 20, 21, 24, 25, 26]
         mu = [3, 4, 5, 9, 22, 23, 27, 28]
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = sum(np.sum(experiment.Weight[experiment.Sample == sample]) for sample in e)
+        n0 = sum(np.sum(experiment.Sample == sample) for sample in e)
         n1 = sum(
-            np.sum(experiment.Weight[experiment.Sample == sample]) for sample in mu
+            np.sum(experiment.Sample == sample) for sample in mu
         )
         r = n0 / n1
         for sample in e:
@@ -893,8 +893,8 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 0
         um = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == 18])
-        n1 = np.sum(experiment.Weight[experiment.Sample == 17])
+        n0 = np.sum(experiment.Sample == 18)
+        n1 = np.sum(experiment.Sample == 17)
         r = n0 / n1
         if self._unphysical_value(1 + r * (1 - x)):
             return 1e-3
@@ -906,8 +906,8 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 0
         um = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Weight[experiment.Sample == 18])
-        n1 = np.sum(experiment.Weight[experiment.Sample == 17])
+        n0 = np.sum(experiment.Sample == 18)
+        n1 = np.sum(experiment.Sample == 17)
         r = n0 / n1
         if self._unphysical_value(1 + r * (1 - x)):
             return 0
