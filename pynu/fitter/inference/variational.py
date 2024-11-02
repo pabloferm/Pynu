@@ -26,14 +26,7 @@ class SVGD:
         return (Kxy, dxkxy)
 
     def update(
-        self,
-        x0,
-        lnprob,
-        n_iter=1000,
-        stepsize=1e-3,
-        bandwidth=-1,
-        alpha=0.9,
-        debug=True,
+        self, x0, lnprob, n_iter=100, stepsize=1e-3, bandwidth=-1, alpha=0.9, debug=True
     ):
         # Check input
         if x0 is None or lnprob is None:
