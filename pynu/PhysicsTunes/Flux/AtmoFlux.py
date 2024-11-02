@@ -11,7 +11,7 @@ sys.path.append("../")
 
 
 class AtmosphericFlux(Tune):
-    r"""Class containing the tunes for the atmospheric neutrino flux."""
+    """Class containing the tunes for the atmospheric neutrino flux."""
 
     def normalization(self, experiment, x):
         r"""Method for modifying the atmospheric flux normalization.
@@ -24,6 +24,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x):
+            return 1e-3
         return x
 
     def diff_normalization(self, experiment, x):
@@ -38,6 +40,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `normalization` weights.
         """
+        if self._unphysical_value(x):
+            return 0
         return 1
 
     def normalization_below1GeV(self, experiment, x):
@@ -52,6 +56,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x):
+            return 1e-3
         nev = np.ones(experiment.NumberOfEvents)
         nev[experiment.ETrue < 1] = x
         return nev
@@ -68,6 +74,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `normalization_below1GeV` weights.
         """
+        if self._unphysical_value(x):
+            return 0
         nev = np.zeros(experiment.NumberOfEvents)
         nev[experiment.ETrue < 1] = 1
         return nev
@@ -83,6 +91,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x):
+            return 1e-3
         nev = np.ones(experiment.NumberOfEvents)
         nev[experiment.ETrue > 1] = x
         return nev
@@ -99,6 +109,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `normalization_above1GeV` weights.
         """
+        if self._unphysical_value(x):
+            return 0
         nev = np.zeros(experiment.NumberOfEvents)
         nev[experiment.ETrue > 1] = 1
         return nev
@@ -146,6 +158,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x):
+            return 0
         nnbar = np.ones(experiment.NumberOfEvents)
         nnbar[experiment.nuPDG < 0] = x
         return nnbar
@@ -162,6 +176,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `nunubar_ratio` weights.
         """
+        if self._unphysical_value(x):
+            return 0
         nnbar = np.zeros(experiment.NumberOfEvents)
         nnbar[experiment.nuPDG < 0] = 1
         return nnbar
@@ -177,6 +193,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the weights from this tune.
         """
+        if self._unphysical_value(x):
+            return 0
         eovermu = np.ones(experiment.NumberOfEvents)
         eovermu[np.abs(experiment.nuPDG) == 12] = x
         return eovermu
@@ -193,6 +211,8 @@ class AtmosphericFlux(Tune):
         Returns:
             Numpy.array or float with the derivative of the `flavor_ratio` weights.
         """
+        if self._unphysical_value(x):
+            return 0
         eovermu = np.zeros(experiment.NumberOfEvents)
         eovermu[abs(experiment.nuPDG) == 12] = 1
         return eovermu

@@ -20,11 +20,7 @@ class Experiment:
         self.MCFiles = dict_of_details["MCFiles"]
         self.DataFiles = dict_of_details["DataFiles"]
 
-        if len(self.DataFiles) > 0:
-            self.DataFit = True
-        else:
-            self.DataFit = False
-
+        self.DataFit = len(self.DataFiles) > 0
         self.Reader()
 
         self.FewEntries = []
@@ -40,8 +36,8 @@ class Experiment:
         self.NuisanceWeight = 1
         self.NominalWeight = 1
 
-        self.bias_E = 0
-        self.scale_E = 1
+        self.ENERGY_BIAS = 0
+        self.ENERGY_SCALE = 1
 
     def SetDefinition(self):
         self.Definition = {
@@ -68,7 +64,6 @@ class Experiment:
                         print(
                             "Warning: MC files have not the same variables, it may produce errors."
                         )
-
         if self.DataFit:
             self.Data = {}
             for i, f in enumerate(self.DataFiles):
@@ -81,7 +76,7 @@ class Experiment:
                             self.Data[key] = np.append(self.Data[key], value)
                         else:
                             print(
-                                "Warning: Data files have not the same variables, it may produce errors."
+                                "Notice: Data files have not the same variables, it might produce errors."
                             )
 
     def set_KDE_1D(self):
@@ -96,8 +91,6 @@ class Experiment:
         plt.plot(x, y, label="FFTKDE")
         plt.hist(data, bins=15)
         plt.show()
-
-        pass
 
     def SetBinner_1D(self):  # 1D energy binning
         self.Binner = [
@@ -117,90 +110,91 @@ class Experiment:
         self.Binner = []
 
     def set_energy_bias(self, bias_E):
-        self.bias_E = bias_E
+        self.ENERGY_BIAS = bias_E
 
     def set_energy_scale(self, scale_E):
-        self.scale_E = scale_E
+        self.ENERGY_SCALE = scale_E
 
     def BinIt_MC_1D(self, array):  # 1D energy binning
         for hist in self.Binner:
             hist.reset()
 
-        if self.scale_E == 1 and self.bias_E == 0:
+        if self.ENERGY_SCALE == 1 and self.ENERGY_BIAS == 0:
             E = self.EReco
         else:
-            E = self.EReco * self.scale_E + self.bias_E
+            E = self.EReco * self.ENERGY_SCALE + self.ENERGY_BIAS
 
-        v = np.array([])
+        v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
-            v = np.hstack(
-                (
-                    v,
-                    hist.fill(
-                        E[self.Sample == i],
-                        weight=array[self.Sample == i]
-                        * self.BaseWeight[self.Sample == i],
-                    )
-                    .values()
-                    .reshape(-1),
-                )
-            )
+            sample_mask = self.Sample == i
+            E_sample = E[sample_mask]
+            weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
 
-        return v
+            hist.fill(E_sample, weight=weight_sample)
+            v_list[i] = hist.values().reshape(-1)
+
+        return np.concatenate(v_list)
 
     # 2D energy and cos(angle) binning
     def BinIt_MC_2D(self, array):
         for hist in self.Binner:
             hist.reset()
 
-        if self.scale_E == 1 and self.bias_E == 0:
+        if self.ENERGY_SCALE == 1 and self.ENERGY_BIAS == 0:
             E = self.EReco
         else:
-            E = self.EReco * self.scale_E + self.bias_E
+            E = self.EReco * self.ENERGY_SCALE + self.ENERGY_BIAS
 
-        v = np.array([])
+        v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
-            v = np.hstack(
-                (
-                    v,
-                    hist.fill(
-                        E[self.Sample == i],
-                        self.CosThetaReco[self.Sample == i],
-                        weight=array[self.Sample == i]
-                        * self.BaseWeight[self.Sample == i],
-                    )
-                    .values()
-                    .reshape(-1),
-                )
-            )
-        return v
+            sample_mask = self.Sample == i
+            E_sample = E[sample_mask]
+            CosThetaReco_sample = self.CosThetaReco[sample_mask]
+            weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
+
+            hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
+            v_list[i] = hist.values().reshape(-1)
+
+        return np.concatenate(v_list)
 
     def BinIt_Data_1D(self):  # 1D energy binning
-        v = np.array([])
+        for hist in self.Binner:
+            hist.reset()
+        v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
-            v = np.hstack(
-                (v, hist.fill(self.dEReco[self.dSample == i]).values().reshape(-1))
-            )
-        return v
+            sample_mask = self.dSample == i
+            E_sample = self.dEReco[sample_mask]
 
-    def BinIt_Data_2D(self):  # 2D energy and cos(angle) binning
-        v = np.array([])
-        for i, hist in enumerate(self.Binner):
-            v = np.hstack(
-                (
-                    v,
-                    hist.fill(
-                        self.dEReco[self.dSample == i],
-                        self.dCosThetaReco[self.dSample == i],
-                    )
-                    .values()
-                    .reshape(-1),
-                )
-            )
-        return v
+            hist.fill(E_sample)
+            v_list[i] = hist.values().reshape(-1)
+
+        return np.concatenate(v_list)
+
+    def BinIt_Data_2D(self, entries=None):  # 2D energy and cos(angle) binning
+        for hist in self.Binner:
+            hist.reset()
+        v_list = [None] * self.NumberOfSamples
+        # if np.any(entries):
+        if entries is None:
+            for i, hist in enumerate(self.Binner):
+                sample_mask = self.dSample == i
+                E_sample = self.dEReco[sample_mask]
+                CosThetaReco_sample = self.dCosThetaReco[sample_mask]
+                hist.fill(E_sample, CosThetaReco_sample)
+                v_list[i] = hist.values().reshape(-1)
+
+        else:
+            for i, hist in enumerate(self.Binner):
+                sample_mask = self.dSample == i
+                E_sample = self.dEReco[sample_mask]
+                CosThetaReco_sample = self.dCosThetaReco[sample_mask]
+                weight_sample = entries[self.dSample == i]
+                hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
+                v_list[i] = hist.values().reshape(-1)
+
+        return np.concatenate(v_list)
 
     # Contains all default weights of the analysis
-
     def StartPhysicsWeights(self):
         """Start physics weights from scratch, i.e. equal to 1"""
         self.PhysicsWeight = 1
@@ -220,11 +214,11 @@ class Experiment:
         self.NuisanceWeight = 1
 
     def UpdateNuisanceWeights(self, w):
-        self.NuisanceWeight = self.NuisanceWeight * w
+        self.NuisanceWeight *= w
 
     # Contains all non-changing weights of the analysis, i.e. fixed
     def UpdateNominalWeights(self, w):
-        self.NominalWeight = self.NominalWeight * w
+        self.NominalWeight *= w
 
     def SetExpectedWeight(self):
         self.ExpectedWeight = self.PhysicsWeight * self.NuisanceWeight

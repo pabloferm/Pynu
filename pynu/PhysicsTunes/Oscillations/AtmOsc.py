@@ -3,6 +3,7 @@ from itertools import repeat
 from .Oscillations import Oscillator
 import nuSQuIDS as nsq
 
+
 ####################
 # Atmospheric flux #
 ####################
@@ -14,9 +15,19 @@ class AtmosphericOscillations(Oscillator):
 
         self.E_nodes = 200
         self.Z_nodes = 40
-        self.energy_nodes = nsq.logspace(
-            experiment.Etrue_min, experiment.Etrue_max, self.E_nodes
-        )
+
+        if experiment.Etrue_min < 1.0:
+            self.energy_nodes = np.concatenate(
+                (
+                    np.geomspace(experiment.Etrue_min, 1.0, 150),
+                    np.geomspace(1.02, experiment.Etrue_max, 200),
+                )
+            )
+        else:
+            self.energy_nodes = nsq.logspace(
+                experiment.Etrue_min, experiment.Etrue_max, self.E_nodes
+            )
+        print(self.energy_nodes)
         self.cth_nodes = nsq.linspace(
             experiment.Z_edges[0], experiment.Z_edges[1], self.Z_nodes
         )
@@ -34,6 +45,9 @@ class AtmosphericOscillations(Oscillator):
         )
 
     def GetOscillations(self):
+        print(
+            f"At computation time oscillation parameters are, \ns12:{self.Osc.Get_MixingAngle(0, 1)}\ns13:{self.Osc.Get_MixingAngle(0, 2)}\ns23:{self.Osc.Get_MixingAngle(1, 2)}\ndm221:{self.Osc.Get_SquareMassDifference(1)}\ndm231:{self.Osc.Get_SquareMassDifference(2)}"
+        )
         self.Osc.Set_initial_state(self.InitialFlux, nsq.Basis.flavor)
         self.Osc.EvolveState()
         w = list(
@@ -41,7 +55,7 @@ class AtmosphericOscillations(Oscillator):
                 self.Osc.EvalFlavor,
                 self.NSQneuflavor,
                 self.CosZTrue,
-                self.ETrue * self.units.GeV,
+                self.ETrue * self.UNITS.GeV,
                 self.NSQneutype,
                 repeat(True),
             )

@@ -24,19 +24,19 @@ class SuperK_IV(Tune):
         logging.info(f"Computing {experiment.Detector} energy scale tune derivative.")
         return SuperK.diff_energy_scale(experiment, x)
 
-    def FCPC_separation(self, experiment, x):
-        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.FCPC_separation`."""
-        logging.info(f"Computing {experiment.Detector} FC PC separation tune.")
-        print(f"Computing {experiment.Detector} FC PC separation tune.")
-        return SuperK.FCPC_separation(experiment, x)
+    def fcpc_separation(self, experiment, x):
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.fcpc_separation`."""
+        logging.info(f"Computing {experiment.Detector} fc pc separation tune.")
+        print(f"Computing {experiment.Detector} fc pc separation tune.")
+        return SuperK.fcpc_separation(experiment, x)
 
-    def diff_FCPC_separation(self, experiment, x):
-        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_FCPC_separation`."""
+    def diff_fcpc_separation(self, experiment, x):
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_fcpc_separation`."""
         logging.info(
-            f"Computing {experiment.Detector} FC PC separation tune derivative."
+            f"Computing {experiment.Detector} fc pc separation tune derivative."
         )
-        print(f"Computing {experiment.Detector} FC PC separation tune derivative.")
-        return SuperK.diff_FCPC_separation(experiment, x)
+        print(f"Computing {experiment.Detector} fc pc separation tune derivative.")
+        return SuperK.diff_fcpc_separation(experiment, x)
 
     def fiducial_volume(self, experiment, x):
         """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.fiducial_volume_separation`."""
@@ -46,21 +46,21 @@ class SuperK_IV(Tune):
         """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_fiducial_volume_separation`."""
         return SuperK.diff_fiducial_volume(experiment, x)
 
-    def FC_reduction(self, experiment, x):
-        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.FC_reduction`."""
-        return SuperK.FC_reduction(experiment, x)
+    def fc_reduction(self, experiment, x):
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.fc_reduction`."""
+        return SuperK.fc_reduction(experiment, x)
 
-    def diff_FC_reduction(self, experiment, x):
-        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_FC_reduction`."""
-        return SuperK.diff_FC_reduction(experiment, x)
+    def diff_fc_reduction(self, experiment, x):
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_fc_reduction`."""
+        return SuperK.diff_fc_reduction(experiment, x)
 
-    def PC_reduction(self, experiment, x):
-        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.PC_reduction`."""
-        return SuperK.PC_reduction(experiment, x)
+    def pc_reduction(self, experiment, x):
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.pc_reduction`."""
+        return SuperK.pc_reduction(experiment, x)
 
-    def diff_PC_reduction(self, experiment, x):
-        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_PC_reduction`."""
-        return SuperK.diff_PC_reduction(experiment, x)
+    def diff_pc_reduction(self, experiment, x):
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_pc_reduction`."""
+        return SuperK.diff_pc_reduction(experiment, x)
 
     def subgev_2ring_pi0(self, experiment, x):
         """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.subgev_2ring_pi0`."""
