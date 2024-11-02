@@ -1,21 +1,15 @@
 import sys
-
-import time
-import fcntl
-
-import numpy as np
-from scipy.optimize import minimize
-
 import h5py
-
 import analysis_reader as ar  # contains parse class to read and setup the analysis
 import Experiments as Exp  # contains rd class to read and setup each experiment
 
-from PhysicsTunes.PhysicsTunes import (
-    PhysicsTunes as PT,
-)  # contains everything to modify your simulations
+# contains everything to modify your simulations to help figuring out what
+# you have measured
+from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
 import fitter as ft  # does all the fitting calculations
+
 from fitter.inference import mcmc
+
 
 class PyNuFit:
     """Top class containing everything"""
@@ -29,8 +23,7 @@ class PyNuFit:
         self.Analysis.get_analysis()
 
         """ Define dictionary for PhysicsTunes """
-
-        self.physics_tunes = {}
+        self.PhysicsTunes = {}
 
         """ Start the analysis """
         self.SetUpExperiments()
@@ -81,7 +74,7 @@ class PyNuFit:
         for det in self.Analysis.Experiments.keys():
             for src in self.Analysis.Experiments[det].keys():
                 details = self.Analysis.Experiments[det][src]
-                exp = f"{det}+{src}"
+                exp = det + "+" + src
                 experiment[exp] = Exp.Manager(det, src, details, self.Analysis.SCENARIO)
         self.Experiments = experiment
 
@@ -89,7 +82,7 @@ class PyNuFit:
         """Loop over physics tunes specified in analysis file and store each of them
         into a dictionary with keys 'detector+source' (e.g. HyperK+Atmospheric)"""
         for name, exp in self.Experiments.items():
-            self.physics_tunes[name] = PT(
+            self.PhysicsTunes[name] = PT(
                 exp, self.Analysis.SCENARIO, self.Analysis.Flavors, set_all=True
             )
 
@@ -157,7 +150,7 @@ class PyNuFit:
     # Tag can be either 'Nominal' or 'Variable'
     def ApplyOscillations(self, tag=None):
         for name, exp in self.Experiments.items():
-            w = self.physics_tunes[name].OscillationTunes.GetOscillations()
+            w = self.PhysicsTunes[name].OscillationTunes.GetOscillations()
             if tag == "Physics":
                 exp.UpdatePhysicsWeights(w)
             elif tag == "Nuisance":
@@ -203,18 +196,16 @@ class PyNuFit:
                         else:
                             value = vec[source][tune]
                         if tune_block == "Flux":
-                            w = self.physics_tunes[name].get_flux(tune, value)
+                            w = self.PhysicsTunes[name].GetFlux(tune, value)
                         elif tune_block == "XSection":
-                            w = self.physics_tunes[name].get_xsection(tune, value)
+                            w = self.PhysicsTunes[name].GetXSection(tune, value)
                         elif tune_block == "Detector":
-                            w = self.physics_tunes[name].get_detector(tune, value)
+                            w = self.PhysicsTunes[name].GetDetector(tune, value)
                         elif tune_block == "Osc":
-                            self.physics_tunes[name].OscillationTunes.UpdateParameter(
+                            self.PhysicsTunes[name].OscillationTunes.UpdateParameter(
                                 tune, value
                             )
-
-                        # if self.verbosity:
-                        #     print(f"{tune} -- {w}")
+                        # print(f"{tune} -- {w}")
 
                         if tune_block != "Osc":
                             if tag == "Fixed":
@@ -230,6 +221,7 @@ class PyNuFit:
         """Computes the derivative with respect the nuisance parameter nuis"""
         """ Returns a dict of nuis : experiment : partial of weight with respect to nuis over weight """
         dWoverW = {}
+
         for source, nuisance_list in self.Analysis.Nuisance.items():
             for name, exp in self.Experiments.items():
                 if source in exp.Definition.keys():
@@ -237,27 +229,27 @@ class PyNuFit:
                     for tune in self.Analysis.Nuisance[source]:
                         dWoverW[tune] = {name: 0}
                         idx = self.Analysis.NuisanceList.index(tune)
-                        if tune_block == "Detector":
-                            dWoverW[tune][name] = self.physics_tunes[name].get_detector(
-                                f"diff_{tune}", vector[idx]
-                            ) / self.physics_tunes[name].get_detector(tune, vector[idx])
-                        elif tune_block == "Flux":
-                            dWoverW[tune][name] = self.physics_tunes[name].get_flux(
-                                f"diff_{tune}", vector[idx]
-                            ) / self.physics_tunes[name].get_flux(tune, vector[idx])
+                        if tune_block == "Flux":
+                            dWoverW[tune][name] = self.PhysicsTunes[name].GetFlux(
+                                "diff_" + tune, vector[idx]
+                            ) / self.PhysicsTunes[name].GetFlux(tune, vector[idx])
+                        elif tune_block == "XSection":
+                            dWoverW[tune][name] = self.PhysicsTunes[name].GetXSection(
+                                "diff_" + tune, vector[idx]
+                            ) / self.PhysicsTunes[name].GetXSection(tune, vector[idx])
+                        elif tune_block == "Detector":
+                            dWoverW[tune][name] = self.PhysicsTunes[name].GetDetector(
+                                "diff_" + tune, vector[idx]
+                            ) / self.PhysicsTunes[name].GetDetector(tune, vector[idx])
                         elif tune_block == "Osc":
                             dWoverW[tune][name] = (
-                                self.physics_tunes[name].get_oscillation(
-                                    f"diff_{tune}", vector[idx]
+                                self.PhysicsTunes[name].GetOscillation(
+                                    "diff_" + tune, vector[idx]
                                 )
-                                / self.physics_tunes[
+                                / self.PhysicsTunes[
                                     name
-                                ].OscillationTunes.get_oscillation()
+                                ].OscillationTunes.GetOscillations()
                             )
-                        elif tune_block == "XSection":
-                            dWoverW[tune][name] = self.physics_tunes[name].get_xsection(
-                                f"diff_{tune}", vector[idx]
-                            ) / self.physics_tunes[name].get_xsection(tune, vector[idx])
         return dWoverW
 
     def set_likelihood(self, mode):
@@ -272,10 +264,7 @@ class PyNuFit:
             sys.exit("Mode not yet implemented")
 
     # 'SLSQP' 'GD' 'ADAM' 'MINUIT'
-    def FitModel(
-        self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=None
-    ):
-
+    def FitModel(self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B"):
         if not self.Analysis.do_point(point):
             print(f"Skipping point {point}.")
             return False
@@ -286,15 +275,18 @@ class PyNuFit:
 
         """ Binned log-Likelihood fit assuming data is Poisson-distributed """
         self.ComputeBinnedExpectation(self.point, physics=True)  # Nominal expectation
-
         """ Statistics only computation to start guiding the minimization """
-        X2_stats = self.LLH.stats_and_systematics(
-            self.Expectation, self.Analysis.NuisNominalList
-        )
+        X2_stats = self.LLH.stats_only(self.Expectation)
         print(f"Stats only, chi2 = {X2_stats}")
+        print(self.Analysis.FullPhysicsGrid[point])
+
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", X2_stats)
 
         if self.Analysis.wSyst:
+            if X2_stats > 5e2:
+                eps = 1e-4
+            else:
+                eps = None
 
             """Get Jacobian of expected events w.r.t. nuisance parameters"""
             self.ComputeBinnedDiffExpectation()
@@ -305,118 +297,104 @@ class PyNuFit:
             )
 
             """Combined chi^2 minimization"""
-            if method == "GD":
-                from .gradient_descent_minimizer import gradient_descent_minimizer
+            # if method == 'GD':
+            #     from .gradient_descent_minimizer import gradient_descent_minimizer
+            #     gradient_descent_minimizer(
+            #         self.model_tester_and_gradient,
+            #         AnalyticPrior,
+            #         # epsilon = eps,
+            #         bounds=AnalyticBounds)
 
-                gradient_descent_minimizer(
-                    self.model_tester_and_gradient,
-                    AnalyticPrior,
-                    # epsilon = eps,
-                    bounds=AnalyticBounds,
-                )
+            # elif method == 'ADAM':
+            #     from .adam_minimizer import adam_minimizer
+            #     adam_minimizer(
+            #         self.model_tester_and_gradient,
+            #         AnalyticPrior,
+            #         # precission = eps,
+            #         bounds=AnalyticBounds)
 
-            elif method == "ADAM":
-                from .adam_minimizer import adam_minimizer
+            # elif method == 'MINUIT':
+            #     import iminuit
+            #     res = iminuit.minimize(
+            #         self.model_tester,
+            #         AnalyticPrior,
+            #         method='migrad',
+            #         jac=self.model_tester_gradient,
+            #         bounds=AnalyticBounds,
+            #         tol=eps,
+            #         options={
+            #             'disp': self.verbosity})
 
-                adam_minimizer(
-                    self.model_tester_and_gradient,
-                    AnalyticPrior,
-                    # precission = eps,
-                    bounds=AnalyticBounds,
-                )
+            # elif method == 'TEST':
+            #     for i in range(2 * self.Analysis.NumberOfNuis):
+            #         x = np.asarray(AnalyticPrior) - (i - self.Analysis.NumberOfNuis) * \
+            #             np.asarray(self.Analysis.NuisSigmaList)
+            #         x2, dx2 = self.model_tester_and_gradient(x)
+            # else:
+            #     res = minimize(
+            #         self.model_tester_and_gradient,
+            #         AnalyticPrior,
+            #         method="L-BFGS-B",
+            #         jac=True,
+            #         bounds=AnalyticBounds,
+            #         tol=eps,
+            #         options={
+            #             'disp': self.verbosity})
 
-            elif method == "MINUIT":
-                import iminuit
-
-                res = iminuit.minimize(
-                    self.model_tester,
-                    AnalyticPrior,
-                    method="migrad",
-                    jac=self.model_tester_gradient,
-                    bounds=AnalyticBounds,
-                    tol=eps,
-                    options={"disp": self.verbosity},
-                )
-
-            elif method == "TEST":
-                for i in range(2 * self.Analysis.NumberOfNuis):
-                    x = np.asarray(AnalyticPrior) - (
-                        i - self.Analysis.NumberOfNuis
-                    ) * np.asarray(self.Analysis.NuisSigmaList)
-                    x2, dx2 = self.model_tester_and_gradient(x)
-
-            elif method == "BFGS":
-                res = minimize(
-                    self.model_tester_and_gradient,
-                    self.Analysis.NuisNominalList,
-                    # AnalyticPrior,
-                    # method="Newton-CG", # 5min 45s
-                    method="BFGS",  # 2min 38s
-                    # method="L-BFGS-B",  # 3min 11s
-                    jac=True,
-                    # bounds=AnalyticBounds,
-                    tol=eps,
-                    options={
-                        "disp": self.verbosity,
-                        "hess_inv0": self.fisher_information(
-                            self.Analysis.NuisNominalList
-                        ),
-                        "gtol": 1e-3,
-                    },
-                )
-                
-            elif method == "HMC":
-                """Hamiltonian MCMC"""
-                import numpy as np
-                riemann_mass = 1 / np.array(self.Analysis.NuisSigmaList) ** 2
-                print(riemann_mass)
-                riemann_mass = self.fisher_information(AnalyticPrior)
-                print(riemann_mass)
-                ranges = (np.array(list(zip(*AnalyticBounds)))[1] - np.array(list(zip(*AnalyticBounds)))[0])/2
-                sampler = mcmc.HMC(
-                    self.model_tester,
-                    self.model_tester_gradient,
-                    AnalyticPrior,
-                    range_of_initial_values=ranges,
-                    num_steps=20,
-                    random_steps="linear",
-                    riemann_mass=riemann_mass,
-                    epsilon=5e-2,
-                )
-                sampler.compute_trajectory(samples=200)
-
-                # sampler = mcmc.MCMC(
-                #     self.model_tester, AnalyticPrior)
-                # all_samples = sampler.metropolis_hastings()
-
-                """ Cython version of MCMC Metropolis-Hastings"""
-                # initial_values = np.abs(np.random.randn(len(AnalyticPrior)) + 1, dtype=np.float64)
-                # sigma = np.zeros(len(AnalyticPrior), dtype=np.float64) + 0.5
-                # num_samples = 500
-                # all_samples = np.asarray(run_metropolis_hastings(num_samples, self.model_tester, initial_values, sigma))
-
-                """SVGD"""
-                # x0 = np.random.uniform(0.5, 1.5, (50, len(AnalyticPrior)))
-                # all_samples = variational.SVGD().update(
-                #     x0, self.model_tester_gradient, n_iter=50)
-
-                # import pandas as pd
-                # df = pd.DataFrame(all_samples, columns=self.Analysis.NuisanceList)
-                # import seaborn as sns
-                # import matplotlib.pyplot as plt
-                # g = sns.PairGrid(df, corner=True, aspect=1.5)
-                # g.map_diag(sns.histplot, bins=20)
-                # g.map_offdiag(sns.kdeplot, levels=[0.68, 0.95, 0.997])
-                # # g.map_offdiag(sns.scatterplot)
-                # plt.show()
-
-            self.WriteToOutFile(
-                "Nuisance Parameters", self.Analysis.NuisanceList, res.x.tolist()
+            """Hamiltonian MCMC"""
+            import numpy as np
+            riemann_mass = 1 / np.array(self.Analysis.NuisSigmaList) ** 2
+            print(riemann_mass)
+            riemann_mass = self.fisher_information(AnalyticPrior)
+            print(riemann_mass)
+            ranges = (np.array(list(zip(*AnalyticBounds)))[1] - np.array(list(zip(*AnalyticBounds)))[0])/2
+            sampler = mcmc.HMC(
+                self.model_tester,
+                self.model_tester_gradient,
+                AnalyticPrior,
+                range_of_initial_values=ranges,
+                num_steps=20,
+                random_steps="linear",
+                riemann_mass=riemann_mass,
+                epsilon=5e-2,
             )
-            self.WriteToOutFile("Analysis", "Chi2 Systs.", res.fun)
+            sampler.compute_trajectory(samples=200)
 
-            return -0.5 * res.fun
-        return -0.5 * X2_stats
+            # sampler = mcmc.MCMC(
+            #     self.model_tester, AnalyticPrior)
+            # all_samples = sampler.metropolis_hastings()
+
+            """ Cython version of MCMC Metropolis-Hastings"""
+            # initial_values = np.abs(np.random.randn(len(AnalyticPrior)) + 1, dtype=np.float64)
+            # sigma = np.zeros(len(AnalyticPrior), dtype=np.float64) + 0.5
+            # num_samples = 500
+            # all_samples = np.asarray(run_metropolis_hastings(num_samples, self.model_tester, initial_values, sigma))
+
+            """SVGD"""
+            # x0 = np.random.uniform(0.5, 1.5, (50, len(AnalyticPrior)))
+            # all_samples = variational.SVGD().update(
+            #     x0, self.model_tester_gradient, n_iter=50)
+
+            # import pandas as pd
+            # df = pd.DataFrame(all_samples, columns=self.Analysis.NuisanceList)
+            # import seaborn as sns
+            # import matplotlib.pyplot as plt
+            # g = sns.PairGrid(df, corner=True, aspect=1.5)
+            # g.map_diag(sns.histplot, bins=20)
+            # g.map_offdiag(sns.kdeplot, levels=[0.68, 0.95, 0.997])
+            # # g.map_offdiag(sns.scatterplot)
+            # plt.show()
+
+            # self.WriteToOutFile(
+            #     'Nuisance Parameters',
+            #     self.Analysis.NuisanceList,
+            #     res.x.tolist())
+
+            # self.WriteToOutFile('Analysis', 'Chi2 Systs.', res.fun)
+
+            # return - 0.5 * res.fun
+
+        return -X2_stats
 
     def fisher_information(self, nuisance_vector):
         """Compute expected and its derivatives"""
@@ -428,16 +406,9 @@ class PyNuFit:
         """ The gradient of the above """
         I = self.LLH.approximate_fisher(self.Expectation, self.DiffExpectation)
 
-        return np.diag(I)
+        return I
 
     def model_tester_and_gradient(self, nuisance_vector):
-        if self.verbosity:
-            print(
-                f"Values of varying parameters:\n{self.Analysis.NuisanceList}\n{nuisance_vector}"
-            )
-            print(
-                "--------------------------------------------------------------------------"
-            )
         """Compute expected and its derivatives"""
         self.ComputeBinnedExpectation(
             self.point, nuisance_vector=nuisance_vector
@@ -462,7 +433,9 @@ class PyNuFit:
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
         """ Get -2 ln(H/H0) ~ χ2 """
-        return self.LLH.stats_and_systematics(self.Expectation, nuisance_vector)
+        Chi2 = self.LLH.stats_and_systematics(self.Expectation, nuisance_vector)
+
+        return Chi2
 
     def model_tester_gradient(self, nuisance_vector):
         """Compute expected and its derivatives"""
@@ -472,9 +445,11 @@ class PyNuFit:
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
         """ The gradient of the above """
-        return self.LLH.gradient(
+        D_Chi2 = self.LLH.gradient(
             self.Expectation, self.DiffExpectation, nuisance_vector
         )
+
+        return D_Chi2
 
     def SetOutFile(self, fname):
         self.outfile = fname
@@ -523,79 +498,10 @@ class PyNuFit:
                 )
 
     def WriteToOutFile(self, block, item, value):
-        while True:
-            try:
-                with open(self.outfile, "a") as f:
-                    fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    fcntl.flock(f, fcntl.LOCK_UN)
-                    break
-            except IOError:
-                time.sleep(1)
-
         with h5py.File(self.outfile, "r+") as hf:
-            print("Writing to output file.")
             try:
                 for par, val in zip(item, value):
                     source = self.Analysis.get_tune(par)
-                    hf[f"{block}/{source}/{par}"][self.point] = val
+                    hf[block + "/" + source + "/" + par][self.point] = val
             except BaseException:
-                hf[f"{block}/{item}"][self.point] = value
-
-
-# project to improve ApplyWeights
-"""
-def ApplyWeights(self, tag, vector=None):
-    # Define tag-based configuration
-    tag_config = {
-        "Fixed": (self.Analysis.Fixed, self.Analysis.FixedValue, None),
-        "Nominal": (self.Analysis.Nuisance, self.Analysis.NuisNominal, None),
-        "True": (self.Analysis.Physics, self.Analysis.PhysTrue, None),
-        "Physics": (self.Analysis.Physics, None, self.Analysis.PhysicsList),
-        "Nuisance": (self.Analysis.Nuisance, None, self.Analysis.NuisanceList),
-    }
-    
-    if tag not in tag_config:
-        sys.exit("Not a valid tag for applying weights.")
-
-    labels, vec, v_id = tag_config[tag]
-    w = 1  # Placeholder for weight calculation
-
-    # Helper function to get weight based on tune_block type
-    def get_weight(tune_block, name, tune, value):
-        if tune_block == "Flux":
-            return self.physics_tunes[name].GetFlux(tune, value)
-        elif tune_block == "XSection":
-            return self.physics_tunes[name].GetXSection(tune, value)
-        elif tune_block == "Detector":
-            return self.physics_tunes[name].GetDetector(tune, value)
-        elif tune_block == "Osc":
-            self.physics_tunes[name].OscillationTunes.UpdateParameter(tune, value)
-            return None
-        return 1
-
-    # Helper function to update weights
-    def update_weights(exp, tune_block, w):
-        if tune_block != "Osc":
-            if tag == "Fixed":
-                exp.UpdateBaseWeights(w)
-            elif tag in ["True", "Nominal"]:
-                exp.UpdateNominalWeights(w)
-            elif tag == "Physics":
-                exp.UpdatePhysicsWeights(w)
-            elif tag == "Nuisance":
-                exp.UpdateNuisanceWeights(w)
-
-    # Iterate over experiments and sources
-    for name, exp in self.Experiments.items():
-        for source in labels:
-            if source not in exp.Definition:
-                continue
-
-            tune_block = exp.Definition[source]
-            for tune in labels[source]:
-                value = vector[v_id.index(tune)] if vector else vec[source][tune]
-                w = get_weight(tune_block, name, tune, value)
-
-                if w is not None:
-                    update_weights(exp, tune_block, w)
-"""
+                hf[block + "/" + item][self.point] = value
