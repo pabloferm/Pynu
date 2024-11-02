@@ -956,3 +956,17 @@ class SuperK_Combined(Tune):
         um = np.zeros(experiment.NumberOfEvents)
         um[experiment.Sample == 17] = 1
         return um
+
+    def subgev_numulike_sk45_mc(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        sgm = np.ones(experiment.NumberOfEvents)
+        sgm[experiment.Sample == 27] = x
+        return sgm
+
+    def diff_subgev_numulike_sk45_mc(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        sgm = np.zeros(experiment.NumberOfEvents)
+        sgm[experiment.Sample == 27] = 1
+        return sgm

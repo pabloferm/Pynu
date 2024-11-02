@@ -51,8 +51,8 @@ class BinnedLogLikelihoodRatio:
         """
         X2: float = 0
         for O, E in zip(self.observation.values(), expectation.values()):
-            print(f"Obervation, {O}")
-            print(f"Expectation, {E}")
+            #print(f"Obervation, {O}")
+            #print(f"Expectation, {E}")
             if np.any(E) <= 0:
                 X2 = 9e9
                 # sys.exit("Negative number of events. Please check the physics tunes you are using (printing their value might help).")
@@ -73,8 +73,8 @@ class BinnedLogLikelihoodRatio:
         Returns:
             Float with the value of $\chi^2$ with nuisance.
         """
-        print(f"X2 stats now is, {self.stats_only(expectation)}")
-        print(f"X2 systs now is, {self.nuisance_penalty(nuisance)}")
+        #print(f"X2 stats now is, {self.stats_only(expectation)}")
+        #print(f"X2 systs now is, {self.nuisance_penalty(nuisance)}")
         return self.stats_only(expectation) + self.nuisance_penalty(nuisance)
 
     def gradient(self, expectation, diff_expectation, nuisance: List[float]) -> Any:

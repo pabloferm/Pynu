@@ -129,8 +129,6 @@ class SuperK(Experiment):
                     AtmInitialFlux[ic][ie][1][1] = _mid_flux.getFlux(
                         nuflux.NuMuBar, nu_energy, nu_cos_zenith
                     )  # numu bar
-                print(f"for energy is {nu_energy}")
-                print(f"flux is {AtmInitialFlux[ic][ie][0][0]}")
                 AtmInitialFlux[ic][ie][0][2] = 0.0  # nutau
                 AtmInitialFlux[ic][ie][1][2] = 0.0  # nutau bar
 
@@ -299,7 +297,6 @@ class SuperK_2023(SuperK):
 
     def MCVariables(self):
         d_itype = self.MC["itype"]
-        # condition = d_itype > -1
         self.EReco = self.MC["evis"]
         self.CosZReco = self.MC["recodirZ"]
         self.CosZTrue = self.MC["dirnuZ"]
