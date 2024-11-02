@@ -36,7 +36,7 @@ def main():
         args.hdf5_file, directory=args.directory, analysis_input_file=args.xml_file
     )
 
-    pynuplot.ResultPlotsMatrix()
+    pynuplot.ResultPlotsMatrix(interpolate=False)
 
     pynuplot.NuisancePlots()
 

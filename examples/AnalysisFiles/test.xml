@@ -1,8 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Analysis>
 
-<!--Anything common to a given neutrino source-->
+	<Method name="Binned grid-search and profiling">
+		<minimizer name="L-BFGS-B"> </minimizer>
+		<verbosity> 1 </verbosity>
+		<gradient> 1 </gradient>
+		<max_tolerance> 1e-4 </max_tolerance>
+		<min_tolerance> 1e-6 </min_tolerance>
+		<tolerance_threshold> 5e2 </tolerance_threshold>
 
+	</Method>
+
+	<Method name="Binned inference">
+		<sampler name="HMC"> </sampler>
+		<verbosity> 1 </verbosity>
+		<num_samples> 1e-4 </num_samples>
+		<burn_in> 1e-6 </burn_in>
+		<leapfrog_epsilon> 1e-6 </leapfrog_epsilon>
+		<leapfrog_steps> 1e-6 </leapfrog_steps>
+
+	</Method>
+
+<!--Anything common to a given neutrino source-->
 <!-- Atmospheric neutrinos -->
 	<NeutrinoSource name="Atmospheric">
 		<status> 1 </status>
@@ -31,7 +50,7 @@
 			<true> 1.0 </true>
 		</physics>
 	</NeutrinoSource>
-
+<!-- Accelerator neutrinos -->
 	<NeutrinoSource name="Accelerator">
 		<status> 0 </status>
         <nuisance name='normalization'>
@@ -80,7 +99,6 @@
 
 
 <!--Anything common to a given neutrino experiment-->
-
 <!-- IceCube Upgrade -->
 	<NeutrinoExperiment name="IceCube-Upgrade">
 		<status> 1 </status>
@@ -98,27 +116,63 @@
 			<DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
 				<status> 0 </status>
 			</DataFiles>
- 
 		</source>
-<!-- 		<nuisance name='IceAbsorption'>
+ 		<nuisance name='IceAbsorption'>
 			<status> 0 </status>
 			<sigma> 0.1 </sigma>
 			<nominal> 1.0 </nominal>
 		</nuisance>
- --><!-- 		<physics name='IceScattering'>
+ 		<physics name='IceScattering'>
 			<points> 10 </points>
 			<min> 0.85 </min>
 			<max> 1.15 </max>
 			<true> 1.0 </true>
 		</physics> -->
 	</NeutrinoExperiment>
+<!-- SuperK -->
+	<NeutrinoExperiment name="SuperK Pheno">
+		<status> 1 </status>
+		<target name="Water"> </target>
+		<source name='Atmospheric'>
+			<status> 1 </status>
+			<MCFiles name='/home/SuperK.hdf5'>
+				<status> 1 </status>
+			</MCFiles>
+			<exposure> 12 </exposure> <!-- years-->
+			<MCexposure> 279 </MCexposure> <!-- This is total exposure of all the specified MC files-->
+<!-- 	    <MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
+				<status> 1 </status>
+			</MCFiles> -->
+			<!-- <DataFiles name='../Simulation/HyperK/data/output/SK/combined.hdf5'>
+				<status> 0 </status>
+			</DataFiles> --> 
+		</source>
+		<nuisance name='SKEnergyScale'>
+			<status> 1 </status>
+			<sigma> 0.03 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 		<nuisance name='FCPCSeparation'>
+			<status> 1 </status>
+			<sigma> 0.06 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 		<nuisance name='FCReduction'>
+			<status> 1 </status>
+			<sigma> 0.003 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+ 		<nuisance name='FiducialVolume'>
+			<status> 1 </status>
+			<sigma> 0.02 </sigma>
+			<nominal> 1.0 </nominal>
+		</nuisance>
+	</NeutrinoExperiment>
 
 
 <!--Anything common to a SINGLE given neutrino physics scenario-->
-
 <!-- Pick one: 3-Osc, 3+N-Osc, LV, NSI -->
 <!-- Please, specify all non-zero parameters. If not specified, the missing parameters are assumed to be zero -->
-
 	<NeutrinoOscillations name="3-Osc"> 
 		<status> 1 </status>
 		<flavors> 3 </flavors>
