@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from pynu import PyNuFit
 
-plt.style.use(os.environ["PYNU"] + "/../utils/plot.mplstyle")
+plt.style.use(f"{os.environ['PYNU']}/../utils/plot.mplstyle")
 
 
 class Plot:
@@ -32,8 +32,10 @@ class Plot:
 
     def read_analysis_output(self, file):
         with h5py.File(file, "r") as hf:
+            cut = np.array(hf["Analysis/Chi2 Stats. Only"]) == 0
             self.X2_stats = np.array(hf["Analysis/Chi2 Stats. Only"])
             self.X2 = np.array(hf["Analysis/Chi2 Systs."])
+            self.X2[cut] = 999999
             self.minX2 = np.amin(self.X2)
             self.BestFit = self.X2 == self.minX2
             self.BestFitPoint = np.where(self.X2 == self.minX2)[0][0]
@@ -52,7 +54,7 @@ class Plot:
             for source in hf["Nuisance Parameters"]:
                 self.Nuisance[source] = {}
                 for item, dset in hf["Nuisance Parameters/" + source].items():
-                    self.Nuisance[source][item] = np.array(dset)
+                    self.Nuisance[source][item] = np.array(dset)[cut]
                     self.NuisanceFlat[source + "+" + item] = np.array(dset)
             self.NumberOfNuisancePars = len(self.NuisanceFlat)
 
@@ -110,7 +112,7 @@ class Plot:
                         spl = interp1d(x, y, kind="quadratic")
                         x_dense = np.linspace(np.amin(x), np.amax(x), 10 * x.size)
                         y_dense = spl(x_dense)
-                        y_dense -= np.amin(y_dense)
+                        ymin = np.amin(y_dense)
                         ax[i, j].plot(
                             x_dense,
                             y_dense,
@@ -119,7 +121,7 @@ class Plot:
                             linewidth=self.linewidths_1d[0],
                         )
                     else:
-                        y -= np.amin(y)
+                        ymin = np.amin(y)
                         ax[i, j].plot(
                             x,
                             y,
@@ -130,22 +132,27 @@ class Plot:
 
                     ax[i, j].set_ylabel(r"$\chi^2$", fontsize=12)
                     ax[i, j].set_xlabel(self.Format(item_col), fontsize=12)
-                    ax[i, j].set_ylim(0, 25)
+                    ax[i, j].set_ylim(ymin + 0, ymin + 25)
                     ax[i, j].tick_params(axis="both", labelsize=12)
                     axmin, axmax = ax[i, j].get_xlim()
                     for lv in self.levels_1d:
                         ax[i, j].axhline(
-                            y=lv, color="grey", linestyle="--", alpha=0.4, linewidth=0.7
+                            y=lv + ymin,
+                            color="grey",
+                            linestyle="--",
+                            alpha=0.4,
+                            linewidth=0.7,
                         )
                         # ax[i,j].text(0.15*axmin+0.85*axmax, lv, levels_txt[lv])
                         ax[i, j].text(
                             0.95 * axmin + 0.05 * axmax,
-                            lv,
+                            lv + ymin,
                             self.levels_txt_1d[lv],
                             fontsize=10,
                         )
 
                 # elif i>j: # Off-diagonal 2D plots
+                """
                 else:  # Off-diagonal 2D plots
                     x = np.unique(values_col)
                     y = np.unique(values_row)
@@ -179,6 +186,7 @@ class Plot:
                     ax[i, j].set_ylabel(self.Format(item_row), fontsize=12)
                     ax[i, j].tick_params(axis="both", labelsize=12)
                     # ax[i,j].legend()
+                    """
 
         # fig.subplots_adjust(hspace=0.5, wspace=0.5)
         fig.tight_layout()
@@ -433,6 +441,7 @@ class Plot:
 
     def check_zeroes(self):
         zeroes = np.where(self.X2 == 0)[0]
+        self.X2[self.X2 == 0] = 999999
         print(
             "Your analysis has multiple zeroes, please check if this is correct or there are some missing points."
         )

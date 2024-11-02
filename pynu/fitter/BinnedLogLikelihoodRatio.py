@@ -1,4 +1,5 @@
 import sys
+from typing import Dict, List, Any
 import numpy as np
 from .distributions import (
     diff_log_gaussian_ratio,
@@ -15,7 +16,9 @@ class BinnedLogLikelihoodRatio:
     Poisson statistics.
     """
 
-    def __init__(self, observation, nominal_nuisance, sigma_nuisance, dist_nuisance):
+    def __init__(
+        self, observation, nominal_nuisance, sigma_nuisance, dist_nuisance
+    ) -> None:
         r"""Initiates the class by storing the non-changing items of the $\chi^2$ calculation.
 
         Args:
@@ -34,7 +37,7 @@ class BinnedLogLikelihoodRatio:
         self.dist_nuisance = dist_nuisance
         self.number_of_nuisance = len(self.nominal_nuisance)
 
-    def stats_only(self, expectation):
+    def stats_only(self, expectation) -> float:
         r"""Returns the value of binned $\chi^2 = 2\sum_i \Big(
         E_i-O_i+O_i\ln\big(\frac{O_i}{E_i}\big)\Big)$, given the dictionary of binned expected number of events
         for each experiment of the analysis.
@@ -48,10 +51,15 @@ class BinnedLogLikelihoodRatio:
         """
         X2: float = 0
         for O, E in zip(self.observation.values(), expectation.values()):
-            X2 += 2 * np.sum(E - O + O * np.log(O / E))
-        return X2
+            #print(f"Obervation, {O}")
+            #print(f"Expectation, {E}")
+            if np.any(E) <= 0:
+                X2 = 9e9
+                # sys.exit("Negative number of events. Please check the physics tunes you are using (printing their value might help).")
+            X2 += np.sum(E - O + O * np.log(O / E))
+        return 2 * X2
 
-    def stats_and_systematics(self, expectation, nuisance):
+    def stats_and_systematics(self, expectation, nuisance: List[float]) -> float:
         r"""Returns the value of binned $\chi^2 = 2\sum_i \Big(
         E_i-O_i+O_i\ln\big(\frac{O_i}{E_i}\big)\Big) + 2\sum_j \ln\Big(\frac{P^{nuis}_j(x)}{P^{nuis}_j(x=\mu)}\Big)$,
         given the dictionary of binned expected number of events for each experiment of the analysis and taking
@@ -65,14 +73,11 @@ class BinnedLogLikelihoodRatio:
         Returns:
             Float with the value of $\chi^2$ with nuisance.
         """
-        X2: float
-        if set(nuisance) == set(self.nominal_nuisance):
-            X2 = self.stats_only(expectation)
-        else:
-            X2 = self.stats_only(expectation) + self.nuisance_penalty(nuisance)
-        return X2
+        #print(f"X2 stats now is, {self.stats_only(expectation)}")
+        #print(f"X2 systs now is, {self.nuisance_penalty(nuisance)}")
+        return self.stats_only(expectation) + self.nuisance_penalty(nuisance)
 
-    def gradient(self, expectation, diff_expectation, nuisance):
+    def gradient(self, expectation, diff_expectation, nuisance: List[float]) -> Any:
         r"""Returns the gradient of binned $\chi^2$ computed analytically, given the dictionary of binned
         expected number of events for each experiment of the analysis and its derivative with respect to every
         nuisance parameter.
@@ -118,7 +123,7 @@ class BinnedLogLikelihoodRatio:
 
         return nabla_X2
 
-    def nuisance_penalty(self, nuisance):
+    def nuisance_penalty(self, nuisance: List[float]) -> float:
         r"""Returns the penalty term associated to nuisance parameters for the $\chi^2$ computation.
 
         Args:
@@ -182,10 +187,17 @@ class BinnedLogLikelihoodRatio:
         # Missing non-normal distribution cases
         priors = mu + A / (B + 1 / sig**2)
 
-        delta = 2 * np.abs(priors - mu)
+        delta = np.minimum(2 * np.abs(priors - mu), sig)
         delta[delta == 0] = sig[delta == 0]
 
-        bounds = np.c_[priors, priors + delta]
+        bounds = np.c_[
+            priors - 3 * delta, priors + 3 * delta
+        ]  # there is no good reason for the factor 3, just being safe
+        # new no calculation, 3 sigma region
+        # delta_up = 3 * sig
+        # delta_lo = 3 * sig
+        # delta_lo[(mu > 0) & (delta_lo < 0)] = 0.1
+        # bounds = np.c_[priors - delta_lo, priors + delta_up]
         bounds = tuple(map(tuple, bounds))
 
         self.diff_expectation_nominal = diff_expectation
@@ -262,8 +274,6 @@ class BinnedLogLikelihoodRatio:
         r"""Assumes second derivative terms of weights w.r.t. parameters are negligible and Gaussian priors.
 
         $\nabla^2_k \pi(\theta) \approx \nsum \frac{O_i}{E_i^2} \left.\Bigg(\frac{\partial E_i}{\partial \theta_k}\Bigg)^2\right\vert_{\theta_k=\hat{\theta}_k} + \mathcal{I}_j(\theta_k)$
-
-        NOTE: To be done.
 
         Args:
             expectation (dict): Produced by `pynu.PyNuFit` and follows the structue (Experiment(str): binned events
