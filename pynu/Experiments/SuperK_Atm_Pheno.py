@@ -72,7 +72,7 @@ class SuperK(Experiment):
         _hi_flux = nuflux.makeFlux("honda2006")
 
         _low_fluka_flux = pd.read_csv(
-            f"{os.environ['PYNU']}/../data/Kamioka_SolAvg_FLUKA_noerr.dat", sep=", "
+            f"{os.environ['PYNU']}/../data/Kamioka_SolAvg_FLUKA_noerr.dat", sep=", ", engine="python",
         )
         _energy = _low_fluka_flux["E (GeV)"]
 
