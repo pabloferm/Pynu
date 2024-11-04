@@ -1,4 +1,5 @@
 import sys
+
 import time
 import fcntl
 
@@ -9,11 +10,12 @@ import h5py
 
 import analysis_reader as ar  # contains parse class to read and setup the analysis
 import Experiments as Exp  # contains rd class to read and setup each experiment
+
 from PhysicsTunes.PhysicsTunes import (
     PhysicsTunes as PT,
 )  # contains everything to modify your simulations
 import fitter as ft  # does all the fitting calculations
-
+from fitter.inference import mcmc
 
 class PyNuFit:
     """Top class containing everything"""
@@ -27,6 +29,7 @@ class PyNuFit:
         self.Analysis.get_analysis()
 
         """ Define dictionary for PhysicsTunes """
+
         self.physics_tunes = {}
 
         """ Start the analysis """
@@ -272,6 +275,7 @@ class PyNuFit:
     def FitModel(
         self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=None
     ):
+
         if not self.Analysis.do_point(point):
             print(f"Skipping point {point}.")
             return False
@@ -291,6 +295,7 @@ class PyNuFit:
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", X2_stats)
 
         if self.Analysis.wSyst:
+
             """Get Jacobian of expected events w.r.t. nuisance parameters"""
             self.ComputeBinnedDiffExpectation()
 
@@ -340,7 +345,7 @@ class PyNuFit:
                     ) * np.asarray(self.Analysis.NuisSigmaList)
                     x2, dx2 = self.model_tester_and_gradient(x)
 
-            else:
+            elif method == "BFGS":
                 res = minimize(
                     self.model_tester_and_gradient,
                     self.Analysis.NuisNominalList,
@@ -359,6 +364,51 @@ class PyNuFit:
                         "gtol": 1e-3,
                     },
                 )
+                
+            elif method == "HMC":
+                """Hamiltonian MCMC"""
+                import numpy as np
+                riemann_mass = 1 / np.array(self.Analysis.NuisSigmaList) ** 2
+                print(riemann_mass)
+                riemann_mass = self.fisher_information(AnalyticPrior)
+                print(riemann_mass)
+                ranges = (np.array(list(zip(*AnalyticBounds)))[1] - np.array(list(zip(*AnalyticBounds)))[0])/2
+                sampler = mcmc.HMC(
+                    self.model_tester,
+                    self.model_tester_gradient,
+                    AnalyticPrior,
+                    range_of_initial_values=ranges,
+                    num_steps=20,
+                    random_steps="linear",
+                    riemann_mass=riemann_mass,
+                    epsilon=5e-2,
+                )
+                sampler.compute_trajectory(samples=200)
+
+                # sampler = mcmc.MCMC(
+                #     self.model_tester, AnalyticPrior)
+                # all_samples = sampler.metropolis_hastings()
+
+                """ Cython version of MCMC Metropolis-Hastings"""
+                # initial_values = np.abs(np.random.randn(len(AnalyticPrior)) + 1, dtype=np.float64)
+                # sigma = np.zeros(len(AnalyticPrior), dtype=np.float64) + 0.5
+                # num_samples = 500
+                # all_samples = np.asarray(run_metropolis_hastings(num_samples, self.model_tester, initial_values, sigma))
+
+                """SVGD"""
+                # x0 = np.random.uniform(0.5, 1.5, (50, len(AnalyticPrior)))
+                # all_samples = variational.SVGD().update(
+                #     x0, self.model_tester_gradient, n_iter=50)
+
+                # import pandas as pd
+                # df = pd.DataFrame(all_samples, columns=self.Analysis.NuisanceList)
+                # import seaborn as sns
+                # import matplotlib.pyplot as plt
+                # g = sns.PairGrid(df, corner=True, aspect=1.5)
+                # g.map_diag(sns.histplot, bins=20)
+                # g.map_offdiag(sns.kdeplot, levels=[0.68, 0.95, 0.997])
+                # # g.map_offdiag(sns.scatterplot)
+                # plt.show()
 
             self.WriteToOutFile(
                 "Nuisance Parameters", self.Analysis.NuisanceList, res.x.tolist()
