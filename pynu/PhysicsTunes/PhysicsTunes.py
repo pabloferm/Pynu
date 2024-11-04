@@ -358,17 +358,3 @@ class Tune:
 
         """
         return x < unphys_low or x > unphys_up
-
-
-"""
-def _unphysical(condition):
-    def decorator(func):
-        def wrapper(param):
-            if condition(param):
-                return 0.0  # Alternate result
-            return func(param)  # Original result
-
-        return wrapper
-
-    return decorator
-"""

@@ -7,11 +7,18 @@ import sys
 sys.path.append("../")
 
 
-# General oscillator
-
-
 class Oscillator(Tune):
-    def __init__(self, scenario, neutrino_flavors, source=None):
+    r""" General class for handling computation of neutrinos oscillations."""
+    def __init__(self, scenario: str, neutrino_flavors: int, source = None) -> None:
+        r""" Initial method for setting the basic variables.
+
+        Args:
+            scenario (str): Description of the physics scenario to be accounted for in oscillations. Options are standard and NSI.
+            neutrino_falvors (int): Number of neutrinos considered (active and non-active).
+
+        Returns:
+            None.
+        """
         super().__init__()
 
         """ Support for SM and NSI scenarios """
@@ -27,8 +34,8 @@ class Oscillator(Tune):
         self.interactions = False
         self.REL_ERROR = 1e-4
         self.ABS_ERROR = 1e-4
-        self.E_nodes = 100
-        self.eps = 1e-2
+        self.E_nodes = 200
+        self.EPS = 1e-2
 
         self.ParameterLabels = None
         self.Parameters = {
@@ -41,15 +48,15 @@ class Oscillator(Tune):
             "Ordering": "normal",
         }
 
-    def SetParameterLabels(self, **kwpars):
+    def SetParameterLabels(self, **kwpars) -> None:
         if self.ParameterLabels is None:
             self.ParameterLabels = kwpars.items()
 
-    def UpdateParameter(self, name, value):
+    def UpdateParameter(self, name: str, value: float) -> None:
         self.Parameters[name] = value
         self.ApplyParameters()
 
-    def SetUpParameters(self, **kwpars):
+    def SetUpParameters(self, **kwpars) -> None:
         self.Parameters = kwpars
         self.ApplyParameters()
 
@@ -98,8 +105,8 @@ class Oscillator(Tune):
         return self.GetOscillations()
 
     def diff_Sin2Theta13(self, experiment, x):  # Numerical derivation
-        h0 = x * (1 + self.eps)
-        h1 = x * (1 - self.eps)
+        h0 = x * (1 + self.EPS)
+        h1 = x * (1 - self.EPS)
         w0 = self.Sin2Theta13(experiment, h0)
         w1 = self.Sin2Theta13(experiment, h1)
         dw = (w0 - w1) / (h0 - h1)
@@ -112,8 +119,8 @@ class Oscillator(Tune):
         return self.GetOscillations()
 
     def diff_Sin2Theta12(self, experiment, x):  # Numerical derivation
-        h0 = x * (1 + self.eps)
-        h1 = x * (1 - self.eps)
+        h0 = x * (1 + self.EPS)
+        h1 = x * (1 - self.EPS)
         w0 = self.Sin2Theta12(experiment, h0)
         w1 = self.Sin2Theta12(experiment, h1)
         dw = (w0 - w1) / (h0 - h1)
@@ -126,8 +133,8 @@ class Oscillator(Tune):
         return self.GetOscillations()
 
     def diff_Sin2Theta23(self, experiment, x):  # Numerical derivation
-        h0 = x * (1 + self.eps)
-        h1 = x * (1 - self.eps)
+        h0 = x * (1 + self.EPS)
+        h1 = x * (1 - self.EPS)
         w0 = self.Sin2Theta23(experiment, h0)
         w1 = self.Sin2Theta23(experiment, h1)
         dw = (w0 - w1) / (h0 - h1)
@@ -140,8 +147,8 @@ class Oscillator(Tune):
         return self.GetOscillations()
 
     def diff_dCP(self, experiment, x):  # Numerical derivation
-        h0 = x * (1 + self.eps)
-        h1 = x * (1 - self.eps)
+        h0 = x * (1 + self.EPS)
+        h1 = x * (1 - self.EPS)
         w0 = self.dCP(experiment, h0)
         w1 = self.dCP(experiment, h1)
         dw = (w0 - w1) / (h0 - h1)
@@ -154,8 +161,8 @@ class Oscillator(Tune):
         return self.GetOscillations()
 
     def diff_Dm221(self, experiment, x):  # Numerical derivation
-        h0 = x * (1 + self.eps)
-        h1 = x * (1 - self.eps)
+        h0 = x * (1 + self.EPS)
+        h1 = x * (1 - self.EPS)
         w0 = self.Dm221(experiment, h0)
         w1 = self.Dm221(experiment, h1)
         dw = (w0 - w1) / (h0 - h1)
@@ -168,8 +175,8 @@ class Oscillator(Tune):
         return self.GetOscillations()
 
     def diff_Dm231(self, experiment, x):  # Numerical derivation
-        h0 = x * (1 + self.eps)
-        h1 = x * (1 - self.eps)
+        h0 = x * (1 + self.EPS)
+        h1 = x * (1 - self.EPS)
         w0 = self.Dm231(experiment, h0)
         w1 = self.Dm231(experiment, h1)
         dw = (w0 - w1) / (h0 - h1)

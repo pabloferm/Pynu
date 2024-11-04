@@ -13,21 +13,12 @@ class AtmosphericOscillations(Oscillator):
     def __init__(self, scenario, neutrino_flavors, experiment):
         super().__init__(scenario, neutrino_flavors, source="Atmospheric")
 
-        self.E_nodes = 200
+        self.E_nodes = 300
         self.Z_nodes = 40
 
-        if experiment.Etrue_min < 1.0:
-            self.energy_nodes = np.concatenate(
-                (
-                    np.geomspace(experiment.Etrue_min, 1.0, 150),
-                    np.geomspace(1.02, experiment.Etrue_max, 200),
-                )
-            )
-        else:
-            self.energy_nodes = nsq.logspace(
+        self.energy_nodes = nsq.logspace(
                 experiment.Etrue_min, experiment.Etrue_max, self.E_nodes
             )
-        print(self.energy_nodes)
         self.cth_nodes = nsq.linspace(
             experiment.Z_edges[0], experiment.Z_edges[1], self.Z_nodes
         )
