@@ -218,7 +218,7 @@ class PhysicsTunes:
 class Tune:
     """Base class for the physics tunes of each block. It contains generic methods which are useful for every tune."""
 
-    def __init__(self, MAX_CACHE_SIZE_MB: float = 100) -> None:
+    def __init__(self, MAX_CACHE_SIZE_MB: float = 100, verbosity: bool = False) -> None:
         r"""Sets up the basic variables for caching results.
 
         Kwargs:
@@ -230,6 +230,7 @@ class Tune:
         self.cache = {}
         self.cache_size = 0
         self.MAX_CACHE_SIZE = MAX_CACHE_SIZE_MB * 1024 * 1024
+        self.VERBOSITY = verbosity
 
     def cache_method(func: str):
         r"""Sets up the basic variables for caching results.
@@ -332,9 +333,10 @@ class Tune:
 
         """
         try:
-            print(
-                f"Computing {tune} weights for {Experiment.SOURCE} at {Experiment.Detector}, with x = {x}"
-            )
+            if self.VERBOSITY:
+                print(
+                    f"Computing {tune} weights for {Experiment.SOURCE} at {Experiment.Detector}, with x = {x}"
+                )
             return self.__getattribute__(tune.strip())(Experiment, x)
         except BaseException:
             sys.exit(

@@ -273,7 +273,7 @@ class PyNuFit:
 
     # 'SLSQP' 'GD' 'ADAM' 'MINUIT'
     def FitModel(
-        self, point, mode="BinnedLogLikelihoodRatio", method="L-BFGS-B", eps=None
+        self, point, mode="BinnedLogLikelihoodRatio", method="BFGS", eps=None
     ):
 
         if not self.Analysis.do_point(point):
@@ -361,7 +361,7 @@ class PyNuFit:
                         "hess_inv0": self.fisher_information(
                             self.Analysis.NuisNominalList
                         ),
-                        "gtol": 1e-3,
+                        "gtol": 1e-4,
                     },
                 )
                 
@@ -384,6 +384,9 @@ class PyNuFit:
                     epsilon=5e-2,
                 )
                 sampler.compute_trajectory(samples=200)
+
+            else:
+                sys.exit(f"{method} is not a valid fitting method, please check PyNuFit.py")
 
                 # sampler = mcmc.MCMC(
                 #     self.model_tester, AnalyticPrior)
@@ -410,12 +413,13 @@ class PyNuFit:
                 # # g.map_offdiag(sns.scatterplot)
                 # plt.show()
 
-            self.WriteToOutFile(
-                "Nuisance Parameters", self.Analysis.NuisanceList, res.x.tolist()
-            )
-            self.WriteToOutFile("Analysis", "Chi2 Systs.", res.fun)
+            if res: # quick and dirty workaround until inference is fully supported
+                self.WriteToOutFile(
+                    "Nuisance Parameters", self.Analysis.NuisanceList, res.x.tolist()
+                )
+                self.WriteToOutFile("Analysis", "Chi2 Systs.", res.fun)
+                return -0.5 * res.fun
 
-            return -0.5 * res.fun
         return -0.5 * X2_stats
 
     def fisher_information(self, nuisance_vector):
