@@ -14,12 +14,12 @@ sys.path.append("../")
 class SuperK_Combined(Tune):
     def energy_scale(self, experiment, x):
         """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.energy_scale`."""
-        logging.info(f"Computing {experiment.Detector} energy scale tune.")
-        return SuperK.energy_scale(experiment, x)
+        for sample in experiment.Samples:
+            pass
+            
 
     def diff_energy_scale(self, experiment, x):
         """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_energy_scale`."""
-        logging.info(f"Computing {experiment.Detector} energy scale tune derivative.")
         return SuperK.diff_energy_scale(experiment, x)
 
     def fiducial_volume(self, experiment, x):
@@ -260,6 +260,32 @@ class SuperK_Combined(Tune):
         pi01r = np.zeros(experiment.NumberOfEvents)
         pi01r[experiment.Sample == 2] = 1
         return pi01r
+
+    def mre_nonubkg(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        w = np.ones(experiment.NumberOfEvents)
+        mge = (
+            (experiment.Sample == 10)
+            | (experiment.Sample == 11)
+            | (experiment.Sample == 12)
+            | (experiment.Sample == 13)
+        )
+        w[mge] = x
+        return w
+
+    def diff_mre_nonubkg(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        w = np.zeros(experiment.NumberOfEvents)
+        mge = (
+            (experiment.Sample == 10)
+            | (experiment.Sample == 11)
+            | (experiment.Sample == 12)
+            | (experiment.Sample == 13)
+        )
+        w[mge] = 1
+        return w
 
     def mge_nonubkg(self, experiment, x):
         if self._unphysical_value(x):

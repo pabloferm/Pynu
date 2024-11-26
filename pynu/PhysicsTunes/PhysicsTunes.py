@@ -340,7 +340,7 @@ class Tune:
             return self.__getattribute__(tune.strip())(Experiment, x)
         except BaseException:
             sys.exit(
-                f"{tune} not found. Please, check if it is defined, the name is correct and/or the implementation refers to existing variables of {exp.SOURCE} at {exp.Detector}"
+                f"{tune} not found. Please, check if it is defined, the name is correct and/or the implementation refers to existing variables of {Experiment.SOURCE} at {Experiment.Detector}"
             )
 
     def _unphysical_value(
