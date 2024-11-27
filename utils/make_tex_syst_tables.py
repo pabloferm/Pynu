@@ -1,8 +1,8 @@
 # Sample data: Lists for each column
-source_of_systematic = ['Syst1', 'Syst2', 'Syst3']
-nominal = [1.23, 4.56, 7.89]
+source_of_systematic = ['Normalization < 1 GeV', 'Normalization > 1 GeV', 'Zenith up-going', 'Zenith down-going', r'$\nu / \overbar{\nu}$', r'$e/\mu$','Spectral index']
+nominal = [1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0]
 prior = [0.12, 0.34, 0.56]
-fit_value = [1.11, 4.44, 7.77]
+fit_value = [1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0]
 
 # Open a file to write the LaTeX code
 latex_code = """

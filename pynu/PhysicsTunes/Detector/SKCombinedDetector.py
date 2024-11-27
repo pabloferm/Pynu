@@ -34,7 +34,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         return x
 
     def diff_fiducial_volume(self, experiment, x):
@@ -63,7 +63,7 @@ class SuperK_Combined(Tune):
         """
         pi02r = np.ones(experiment.NumberOfEvents)
         if self._unphysical_value(x):
-            pi02r[experiment.Sample == 6] = 0
+            pi02r[experiment.Sample == 6] = 1e-3
         else:
             pi02r[experiment.Sample == 6] = x
         return pi02r
@@ -107,7 +107,7 @@ class SuperK_Combined(Tune):
         wpc = np.sum(pc)
 
         if self._unphysical_value(x):
-            fcpc[fc] = 0
+            fcpc[fc] = 1e-3
             y = (wpc + wfc) / wpc
             fcpc[pc] = y
         else:
@@ -161,7 +161,7 @@ class SuperK_Combined(Tune):
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
         um = (experiment.Sample >= 16) & (experiment.Sample <= 18)
         if self._unphysical_value(x):
-            fc[np.logical_not((pc | um))] = 0
+            fc[np.logical_not((pc | um))] = 1e-3
         else:
             fc[np.logical_not((pc | um))] = x
 
@@ -203,7 +203,7 @@ class SuperK_Combined(Tune):
         w = np.ones(experiment.NumberOfEvents)
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
         if self._unphysical_value(x):
-            w[pc] = 0
+            w[pc] = 1e-3
         else:
             w[pc] = x
         return w
@@ -239,7 +239,7 @@ class SuperK_Combined(Tune):
         """
         pi01r = np.ones(experiment.NumberOfEvents)
         if self._unphysical_value(x):
-            pi01r[experiment.Sample == 2] = 0
+            pi01r[experiment.Sample == 2] = 1e-3
         else:
             pi01r[experiment.Sample == 2] = x
         return pi01r
@@ -263,7 +263,7 @@ class SuperK_Combined(Tune):
 
     def mre_nonubkg(self, experiment, x):
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         w = np.ones(experiment.NumberOfEvents)
         mge = (
             (experiment.Sample == 10)
@@ -289,7 +289,7 @@ class SuperK_Combined(Tune):
 
     def mge_nonubkg(self, experiment, x):
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         w = np.ones(experiment.NumberOfEvents)
         mge = (
             (experiment.Sample == 7)
@@ -326,7 +326,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         mr = np.ones(experiment.NumberOfEvents)
         n0 = np.sum(experiment.Sample == 10)
         n1 = np.sum(experiment.Sample == 11)
@@ -367,7 +367,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         e0 = 10
         e1 = 11
         e2 = 13
@@ -433,7 +433,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         e0 = 10
         e1 = 11
         o0 = 13
@@ -486,7 +486,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         pcs = 14
         pct = 15
         mr = np.ones(experiment.NumberOfEvents)
@@ -531,7 +531,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         r1 = 2
         r2 = 6
         mr = np.ones(experiment.NumberOfEvents)
@@ -576,7 +576,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         r1 = [0, 1, 7, 8, 19, 20, 21]
         r2 = [10, 11, 13, 24, 25, 26]
         mr = np.ones(experiment.NumberOfEvents)
@@ -633,7 +633,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         r1 = [3, 4, 5, 9, 22, 23, 27, 28]
         r2 = [12]
         mr = np.ones(experiment.NumberOfEvents)
@@ -690,7 +690,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         e = [0, 1, 7, 8, 19, 20, 21, 24, 25, 26]
         mu = [3, 4, 5, 9, 22, 23, 27, 28]
         mr = np.ones(experiment.NumberOfEvents)
@@ -747,7 +747,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         if np.abs(1 - x) < 1e-4:
             x = 1
         e = [10, 11, 13]
@@ -804,7 +804,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         nn = np.ones(experiment.NumberOfEvents)
         nn0 = (
             (experiment.Sample == 20)
@@ -869,7 +869,7 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         mue = np.ones(experiment.NumberOfEvents)
         n0 = np.sum(experiment.DecayE < 1)
         n1 = np.sum((experiment.DecayE >= 1) & (experiment.DecayE < 2))
@@ -917,7 +917,7 @@ class SuperK_Combined(Tune):
 
     def upmu_shower_separation(self, experiment, x):
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         um = np.ones(experiment.NumberOfEvents)
         n0 = np.sum(experiment.Sample == 18)
         n1 = np.sum(experiment.Sample == 17)
@@ -943,7 +943,7 @@ class SuperK_Combined(Tune):
 
     def upmu_stop_bkg(self, experiment, x):
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         um = np.ones(experiment.NumberOfEvents)
         um[experiment.Sample == 16] = x
         return um
@@ -957,7 +957,7 @@ class SuperK_Combined(Tune):
 
     def upmu_showering_bkg(self, experiment, x):
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         um = np.ones(experiment.NumberOfEvents)
         um[experiment.Sample == 18] = x
         return um
@@ -971,7 +971,7 @@ class SuperK_Combined(Tune):
 
     def upmu_nonshowering_bkg(self, experiment, x):
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         um = np.ones(experiment.NumberOfEvents)
         um[experiment.Sample == 17] = x
         return um
@@ -985,7 +985,7 @@ class SuperK_Combined(Tune):
 
     def subgev_numulike_sk45_mc(self, experiment, x):
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         sgm = np.ones(experiment.NumberOfEvents)
         sgm[experiment.Sample == 27] = x
         return sgm
