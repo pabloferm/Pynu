@@ -32,8 +32,8 @@ class Oscillator(Tune):
         self.NeutrinoFlavors = neutrino_flavors
         self.UNITS = nsq.Const()
         self.interactions = False
-        self.REL_ERROR = 1e-4
-        self.ABS_ERROR = 1e-4
+        self.REL_ERROR = 1e-8
+        self.ABS_ERROR = 1e-8
         self.E_nodes = 200
         self.EPS = 1e-2
 
@@ -66,13 +66,15 @@ class Oscillator(Tune):
                 s_theta = f"Sin2Theta{str(j + 1)}{str(i + 1)}"
                 if s_theta in self.Parameters:
                     theta = self.Parameters[s_theta]
+                    #print(s_theta, theta)
                     self.Osc.Set_MixingAngle(j, i, asin(sqrt(theta)))
             s_dm = f"Dm2{str(i + 1)}1"
             if s_dm in self.Parameters:
                 dm = self.Parameters[s_dm]
                 if "inverted" in self.Parameters["Ordering"] and s_dm == "Dm231":
                     dm = self.Parameters["Dm221"] - self.Parameters["Dm231"]
-            self.Osc.Set_SquareMassDifference(i, dm)
+                #print(s_dm, dm)
+                self.Osc.Set_SquareMassDifference(i, dm)
         if "dCP" in self.Parameters:
             self.Osc.Set_CPPhase(0, 2, self.Parameters["dCP"])
         if self.NeutrinoFlavors > 3 and "dCP2" in self.Parameters:

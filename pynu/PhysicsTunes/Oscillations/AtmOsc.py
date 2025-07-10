@@ -13,18 +13,19 @@ class AtmosphericOscillations(Oscillator):
     def __init__(self, scenario, neutrino_flavors, experiment):
         super().__init__(scenario, neutrino_flavors, source="Atmospheric")
 
-        self.E_nodes = 300
+        self.E_nodes = 200
         self.Z_nodes = 40
 
-        self.energy_nodes = nsq.logspace(
+        self.energy_nodes = np.geomspace(
                 experiment.Etrue_min, experiment.Etrue_max, self.E_nodes
             )
-        self.cth_nodes = nsq.linspace(
+        self.cth_nodes = np.linspace(
             experiment.Z_edges[0], experiment.Z_edges[1], self.Z_nodes
         )
 
         self.CosZTrue = experiment.CosZTrue
         self.ETrue = experiment.ETrue
+        self.CC = experiment.CC
 
         self.SetUpOscillator()
 
@@ -36,19 +37,23 @@ class AtmosphericOscillations(Oscillator):
         )
 
     def GetOscillations(self):
-        print(
-            f"At computation time oscillation parameters are, \ns12:{self.Osc.Get_MixingAngle(0, 1)}\ns13:{self.Osc.Get_MixingAngle(0, 2)}\ns23:{self.Osc.Get_MixingAngle(1, 2)}\ndm221:{self.Osc.Get_SquareMassDifference(1)}\ndm231:{self.Osc.Get_SquareMassDifference(2)}"
-        )
         self.Osc.Set_initial_state(self.InitialFlux, nsq.Basis.flavor)
         self.Osc.EvolveState()
-        w = list(
+        w = np.ones(self.ETrue.size)
+        dw = list(
             map(
-                self.Osc.EvalFlavor,
+                nsq.EvalFlavor,
+                repeat(self.Osc),
                 self.NSQneuflavor,
                 self.CosZTrue,
                 self.ETrue * self.UNITS.GeV,
                 self.NSQneutype,
-                repeat(True),
+                repeat(100.0),
+                repeat([True, True, True]),
+                # repeat(True),
             )
         )
+        dw = np.asarray(dw)
+        w[self.CC] = dw[self.CC]
+
         return np.asarray(w)

@@ -170,8 +170,8 @@ class SuperK(Experiment):
         mro_ebins = np.array([1.3, 2.5, 5.0, 10.0, 500.0])
         pcs_ebins = np.array([0.1, 10.0, 1.0e5])
         pct_ebins = np.array([0.1, 10.0, 50.0, 1.0e5])
-        z10bins = np.array([-1, -0.8, -0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-        z1bins = np.array([-1, 1.0])
+        z10bins = np.array([-1.0, -0.8, -0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        z1bins = np.array([-1.0, 1.0])
         self.EnergyBins = {
             0: sge_ebins,
             1: sge_ebins,
@@ -296,23 +296,29 @@ class SuperK_2023(SuperK):
         self.SetDefinition()
 
     def MCVariables(self):
-        d_itype = self.MC["itype"]
-        self.EReco = self.MC["evis"]
-        self.CosZReco = self.MC["recodirZ"]
-        self.CosZTrue = self.MC["dirnuZ"]
-        self.AziTrue = self.MC["azi"]
-        self.Mode = self.MC["mode"]
-        self.CC = np.abs(self.Mode) < 30
-        self.nuPDG = self.MC["ipnu"]
-        self.ETrue = self.MC["pnu"]
-        self.Weight = self.MC["inv_flux"]
-        self.Sample = self.MC["itype"]  # Sample of each event
-        self.DecayE = self.MC["muedk"]
+        sample_condition = (self.MC["itype"] > -1) & (self.MC["itype"] < 300)
+        #sample_condition = (sample_condition) & (self.MC["itype"] > -1) & (self.MC["w_no"]<1e9)
+        d_itype = self.MC["itype"]#[sample_condition]
+        self.EReco = self.MC["evis"]#[sample_condition]
+        self.CosZReco = self.MC["recodirZ"]#[sample_condition]
+        self.CosZTrue = self.MC["dirnuZ"]#[sample_condition]
+        #self.AziTrue = self.MC["azi"]#[sample_condition]
+        #self.Mode = self.MC["mode"]#[sample_condition]
+        #self.CC = np.abs(self.Mode) < 30
+        self.current = self.MC["current"].astype(str) #[sample_condition]
+        self.nuPDG = self.MC["ipnu"]#[sample_condition]
+        self.ETrue = self.MC["pnu"]#[sample_condition]
+        self.Weight = self.MC["inv_flux"]#[sample_condition]
+        self.WMC = self.MC["weight_genMC"]#[sample_condition] * self.MC["weight_tune"]#[sample_condition]
+        self.Sample = self.MC["itype"]#[sample_condition]  # Sample of each event
+        #self.DecayE = self.MC["muedk"]#[sample_condition]
+        self.Bin = self.MC["bin_number"]#[sample_condition]
+        self.wno = self.MC["w_no"]#[sample_condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis
-        self.NumberOfSamples = 1 + np.amax(self.Samples)
-        self.NumberOfSamples = self.NumberOfSamples.astype(int)
+        self.NumberOfSamples = self.Samples.size
+        #self.NumberOfSamples = self.NumberOfSamples.astype(int)
         self.Erec_max = max(self.EReco)
         self.Erec_min = min(self.EReco)
         self.Etrue_min = min(self.ETrue)
@@ -320,7 +326,13 @@ class SuperK_2023(SuperK):
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
-        self.BaseWeight = self.Weight * self.NORM
+        self.CC = np.full(self.NumberOfEvents, True)
+        self.CC[self.current != "CC"] = False
+
+        self.Weight[np.logical_not(self.CC)] = 1.0
+
+        self.BaseWeight = self.Weight * self.NORM #* self.WMC
+        #self.BaseWeight = np.ones(self.NumberOfEvents) * self.NORM #* self.WMC
 
         del self.MC
 
@@ -370,12 +382,27 @@ class SuperK_2023(SuperK):
         self.dSample = self.sample_index(self.Data["Sample"])  # Sample of each event
         self.dEntries = self.Data["entries"]
         self.dNumberOfEvents = np.sum(self.dEntries)
+        self.dBin = self.Data["Bin"]
 
         del self.Data
+
+    def BinMC(self, array, shift_E=1, bias_E=0):
+        self.CosThetaReco = self.CosZReco  # redundant
+        self.set_energy_bias(bias_E)
+        self.set_energy_scale(shift_E)
+        return self.BinIt_MC_2D(array)
+
 
     def BinData(self):
         self.dCosThetaReco = self.dCosZReco
         return self.BinIt_Data_2D(entries=self.dEntries)
+
+    def BinIt_Data_2D(self, entries=None):  # 2D energy and cos(angle) binning
+        dentries = np.zeros(930)
+        for s in range(930):
+            dentries[s] = np.sum(entries[self.dBin==s])
+        return dentries
+
 
     def Binning(self):
         sg_ebins = np.array(
@@ -385,6 +412,16 @@ class SuperK_2023(SuperK):
                 0.3981071705534973,
                 0.630957344480193,
                 1.0,
+                1.584893192461114,
+            ]
+        )
+        sg_1_ebins = np.array(
+            [
+                0.1,
+                0.15848931924611143,
+                0.25118864315095796,
+                0.3981071705534973,
+                0.630957344480193,
                 1.584893192461114,
             ]
         )
@@ -403,12 +440,12 @@ class SuperK_2023(SuperK):
         )
         upmut_ebins = np.array([0.1, 100000.0])
         z10bins = np.array(
-            [-1, -0.839, -0.644, -0.448, -0.224, 0.0, 0.224, 0.448, 0.644, 0.839, 1.0]
+            [-1.0, -0.839, -0.644, -0.448, -0.224, 0.0, 0.224, 0.448, 0.644, 0.839, 1.0]
         )
         z10bins_up = np.array(
-            [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0.0]
+            [-1.0, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0.0]
         )
-        z1bins = np.array([-1, 1.0])
+        z1bins = np.array([-1.0, 1.0])
 
         self.EnergyBins = {
             0: sg_ebins,
@@ -417,7 +454,7 @@ class SuperK_2023(SuperK):
             3: sg_ebins,
             4: sg_ebins,
             5: sg_ebins,
-            6: sg_ebins,
+            6: sg_1_ebins,
             7: mg_4_ebins,
             8: mg_4_ebins,
             9: mg_2_ebins,

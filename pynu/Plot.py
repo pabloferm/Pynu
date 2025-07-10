@@ -34,7 +34,8 @@ class Plot:
         with h5py.File(file, "r") as hf:
             cut = np.array(hf["Analysis/Chi2 Stats. Only"]) == 0
             self.X2_stats = np.array(hf["Analysis/Chi2 Stats. Only"])
-            self.X2 = np.array(hf["Analysis/Chi2 Systs."])
+            self.X2 = np.array(hf["Analysis/Chi2 Stats. Only"])
+            #self.X2 = np.array(hf["Analysis/Chi2 Systs."])
             self.X2[cut] = 999999
             self.minX2 = np.amin(self.X2)
             self.BestFit = self.X2 == self.minX2
@@ -48,7 +49,7 @@ class Plot:
                     self.Physics[source][item] = np.array(dset)
                     self.PhysicsFlat[source + "+" + item] = np.array(dset)
             self.NumberOfPhysicsPars = len(self.PhysicsFlat)
-
+            """
             self.Nuisance = {}
             self.NuisanceFlat = {}
             for source in hf["Nuisance Parameters"]:
@@ -57,7 +58,7 @@ class Plot:
                     self.Nuisance[source][item] = np.array(dset)[cut]
                     self.NuisanceFlat[source + "+" + item] = np.array(dset)
             self.NumberOfNuisancePars = len(self.NuisanceFlat)
-
+            """
             self.Fixed = {}
             for source in hf["Fixed Parameters"]:
                 self.Fixed[source] = {}

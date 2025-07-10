@@ -13,6 +13,8 @@ class Experiment:
         self.SOURCE = None
         self.SCENARIO = None
 
+        self.MIN_ENTRIES = 5 # 4 or 5 should be fine
+
         self.TotalMCexposure = dict_of_details["TotalMCexposure"]
         self.FitExposure = dict_of_details["Exposure"]
         self.FewEntries = None
@@ -98,6 +100,7 @@ class Experiment:
             for s in range(self.NumberOfSamples)
         ]
 
+    """ Weird behaviour for un bin in one of the variables. Implement fall-back. Dictionary? """
     def SetBinner_2D(self):  # 2D energy binning
         self.Binner = [
             bh.Histogram(
@@ -126,7 +129,7 @@ class Experiment:
 
         v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
-            sample_mask = self.Sample == i
+            sample_mask = self.Sample == self.Samples[i]
             E_sample = E[sample_mask]
             weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
 
@@ -147,11 +150,10 @@ class Experiment:
 
         v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
-            sample_mask = self.Sample == i
+            sample_mask = self.Sample == self.Samples[i]
             E_sample = E[sample_mask]
             CosThetaReco_sample = self.CosThetaReco[sample_mask]
             weight_sample = array[sample_mask] * self.BaseWeight[sample_mask]
-
             hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
             v_list[i] = hist.values().reshape(-1)
 
@@ -162,7 +164,7 @@ class Experiment:
             hist.reset()
         v_list = [None] * self.NumberOfSamples
         for i, hist in enumerate(self.Binner):
-            sample_mask = self.dSample == i
+            sample_mask = self.dSample == self.dSamples[i]
             E_sample = self.dEReco[sample_mask]
 
             hist.fill(E_sample)
@@ -177,7 +179,7 @@ class Experiment:
         # if np.any(entries):
         if entries is None:
             for i, hist in enumerate(self.Binner):
-                sample_mask = self.dSample == i
+                sample_mask = self.dSample == self.Samples[i]
                 E_sample = self.dEReco[sample_mask]
                 CosThetaReco_sample = self.dCosThetaReco[sample_mask]
                 hist.fill(E_sample, CosThetaReco_sample)
@@ -185,12 +187,15 @@ class Experiment:
 
         else:
             for i, hist in enumerate(self.Binner):
-                sample_mask = self.dSample == i
+                sample_mask = self.dSample == self.Samples[i]
                 E_sample = self.dEReco[sample_mask]
                 CosThetaReco_sample = self.dCosThetaReco[sample_mask]
-                weight_sample = entries[self.dSample == i]
+                weight_sample = entries[sample_mask]
                 hist.fill(E_sample, CosThetaReco_sample, weight=weight_sample)
                 v_list[i] = hist.values().reshape(-1)
+                #for v in v_list[i]:
+                #    print(v)
+
 
         return np.concatenate(v_list)
 
@@ -233,7 +238,7 @@ class Experiment:
         else:
             self.ObservedBinned = self.BinMC(self.NominalWeight)
 
-        self.FewEntries = self.ObservedBinned > 4
+        self.FewEntries = self.ObservedBinned > self.MIN_ENTRIES
         self.RemoveFewEntries("Observed")
 
     def GetObservedBinned(self):
