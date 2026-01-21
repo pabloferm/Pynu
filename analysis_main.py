@@ -47,6 +47,13 @@ def main():
         help="Analysis output file.",
     )
     parse.add_argument(
+        "--mode",
+        type=str,
+        default="BinnedLogLikelihoodRatio",
+        choices=["BinnedLogLikelihoodRatio", "BarlowBeestonLikelihood"],
+        help="Likelihood mode to use.",
+    )
+    parse.add_argument(
         "--multi",
         dest="multiproc",
         default=False,
@@ -142,9 +149,6 @@ def main():
 
     # Setup output file
     ############################
-    # if (args.cluster and (points[0] == 0 or not os.path.isfile(
-    # args.outfile))) or (not args.cluster) or
-    # (os.path.isfile(args.outfile)):
     if not os.path.isfile(args.outfile):
         print("Creating new analysis file.")
         pynufit.CreateOutFile(args.outfile)
@@ -185,9 +189,8 @@ def main():
                     processes = []
                 proc = multiprocessing.Process(
                     target=pynufit.FitModel,
-                    args=[
-                        p,
-                    ],
+                    args=[p],
+                    kwargs={"mode": args.mode},
                 )
                 proc.start()
                 processes.append(proc)
@@ -200,22 +203,9 @@ def main():
             print(
                 f"Processing point {p} of {pynufit.Analysis.NumberOfPhysPoints} points in the analysis."
             )
-            pynufit.FitModel(p)
+            pynufit.FitModel(p, mode=args.mode)
             print("=====================================================")
 
 
 if __name__ == "__main__":
-    # import cProfile
-    # from pstats import SortKey
-    # import pstats
-    # cProfile.run('main()', 'output.dat')
-
-    # with open('output_time.txt', 'w') as f:
-    #     p = pstats.Stats('output.dat', stream=f)
-    #     p.sort_stats('time').print_stats()
-
-    # with open('output_calls.txt', 'w') as f:
-    #     p = pstats.Stats('output.dat', stream=f)
-    #     p.sort_stats('calls').print_stats()
-
     main()

@@ -40,20 +40,21 @@ class AtmosphericOscillations(Oscillator):
         self.Osc.Set_initial_state(self.InitialFlux, nsq.Basis.flavor)
         self.Osc.EvolveState()
         w = np.ones(self.ETrue.size)
+        
+        # Use self.Osc.EvalFlavor as the method to map over events
         dw = list(
             map(
-                nsq.EvalFlavor,
-                repeat(self.Osc),
+                self.Osc.EvalFlavor,
                 self.NSQneuflavor,
-                self.CosZTrue,
-                self.ETrue * self.UNITS.GeV,
+                self.CosZTrue.astype(float).tolist(),
+                (self.ETrue * self.UNITS.GeV).astype(float).tolist(),
                 self.NSQneutype,
-                repeat(100.0),
-                repeat([True, True, True]),
-                # repeat(True),
+                repeat(True),
             )
         )
         dw = np.asarray(dw)
-        w[self.CC] = dw[self.CC]
+        
+        # Apply oscillation weights only to CC events
+        w = dw  # Apply oscillation weights to ALL events (CC and NC)
 
         return np.asarray(w)

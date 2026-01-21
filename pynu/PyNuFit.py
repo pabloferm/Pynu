@@ -66,6 +66,10 @@ class PyNuFit:
 
         self.SetExpectedWeights()
         self.SetBinnedExpectedEvents()
+        # Compute MC variance for BB likelihood
+        self.SetBinnedMCVariance()
+        # Get muon background for experiments that have it
+        self.SetMuonBackground()
 
     def ComputeBinnedDiffExpectation(self, nuisance_vector=None):
         if nuisance_vector is None:
@@ -116,6 +120,50 @@ class PyNuFit:
         for name, exp in self.Experiments.items():
             exp.SetExpectedBinned()
             self.Expectation[name] = exp.GetExpectedBinned()
+
+    def SetBinnedMCVariance(self):
+        """Compute binned MC variance for Barlow-Beeston likelihood."""
+        self.MCVariance = {}
+        for name, exp in self.Experiments.items():
+            # Check if experiment supports MC variance (e.g., ORCA)
+            if hasattr(exp, 'GetMCVariance'):
+                mc_var = exp.GetMCVariance(exp.ExpectedWeight)
+                # Apply FewEntries filter to match expectation shape
+                if hasattr(exp, 'FewEntries') and exp.FewEntries is not None:
+                    self.MCVariance[name] = mc_var[exp.FewEntries]
+                else:
+                    self.MCVariance[name] = mc_var
+            else:
+                # Default: use Poisson variance (weights squared)
+                # This is a fallback for experiments without explicit MC variance
+                binned_w2 = exp.BinMC(exp.ExpectedWeight**2)
+                if hasattr(exp, 'FewEntries') and exp.FewEntries is not None:
+                    self.MCVariance[name] = binned_w2[exp.FewEntries]
+                else:
+                    self.MCVariance[name] = binned_w2
+
+
+    def SetMuonBackground(self):
+        """Get muon background for experiments that have it (e.g., ORCA)."""
+        self.MuonBackground = {}
+        for name, exp in self.Experiments.items():
+            # Check if experiment has muon background (e.g., ORCA)
+            if hasattr(exp, 'GetMuonBackground'):
+                muon_counts, muon_var = exp.GetMuonBackground()
+                if muon_counts is not None:
+                    # Apply FewEntries filter to match expectation shape
+                    if hasattr(exp, 'FewEntries') and exp.FewEntries is not None:
+                        self.MuonBackground[name] = (
+                            muon_counts[exp.FewEntries],
+                            muon_var[exp.FewEntries]
+                        )
+                    else:
+                        self.MuonBackground[name] = (muon_counts, muon_var)
+                else:
+                    self.MuonBackground[name] = None
+            else:
+                # Experiment doesn't have muon background
+                self.MuonBackground[name] = None
 
     def SetBinnedDiffExpectedEvents(self, dW_W):
         dEdx = {}
@@ -263,6 +311,13 @@ class PyNuFit:
     def set_likelihood(self, mode):
         if mode == "BinnedLogLikelihoodRatio":
             self.LLH = ft.BinnedLogLikelihoodRatio(
+                self.Observation,
+                self.Analysis.NuisNominalList,
+                self.Analysis.NuisSigmaList,
+                self.Analysis.NuisDistributionList,
+            )
+        elif mode == "BarlowBeestonLikelihood":
+            self.LLH = ft.BarlowBeestonLikelihood(
                 self.Observation,
                 self.Analysis.NuisNominalList,
                 self.Analysis.NuisSigmaList,
@@ -418,9 +473,9 @@ class PyNuFit:
                     "Nuisance Parameters", self.Analysis.NuisanceList, res.x.tolist()
                 )
                 self.WriteToOutFile("Analysis", "Chi2 Systs.", res.fun)
-                return -0.5 * res.fun
+                return res.fun
 
-        return -0.5 * X2_stats
+        return X2_stats
 
     def fisher_information(self, nuisance_vector):
         """Compute expected and its derivatives"""
@@ -449,11 +504,18 @@ class PyNuFit:
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
         """ Get -2 ln(H/H0) ~ χ2 """
-        Chi2 = self.LLH.stats_and_systematics(self.Expectation, nuisance_vector)
+        # Pass MC variance and muon background if using Barlow-Beeston likelihood
+        mc_var = getattr(self, 'MCVariance', None)
+        muon_bkg = getattr(self, 'MuonBackground', None)
+        if hasattr(self.LLH, 'set_mc_variance') and mc_var is not None:
+            self.LLH.set_mc_variance(mc_var)
+        if hasattr(self.LLH, 'set_muon_background') and muon_bkg is not None:
+            self.LLH.set_muon_background(muon_bkg)
+        Chi2 = self.LLH.stats_and_systematics(self.Expectation, nuisance_vector, mc_var)
 
         """ The gradient of the above """
         D_Chi2 = self.LLH.gradient(
-            self.Expectation, self.DiffExpectation, nuisance_vector
+            self.Expectation, self.DiffExpectation, nuisance_vector, mc_var
         )
 
         return (Chi2, D_Chi2)
@@ -466,7 +528,8 @@ class PyNuFit:
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
         """ Get -2 ln(H/H0) ~ χ2 """
-        return self.LLH.stats_and_systematics(self.Expectation, nuisance_vector)
+        mc_var = getattr(self, 'MCVariance', None)
+        return self.LLH.stats_and_systematics(self.Expectation, nuisance_vector, mc_var)
 
     def model_tester_gradient(self, nuisance_vector):
         """Compute expected and its derivatives"""
@@ -476,8 +539,9 @@ class PyNuFit:
         self.ComputeBinnedDiffExpectation(nuisance_vector=nuisance_vector)
 
         """ The gradient of the above """
+        mc_var = getattr(self, 'MCVariance', None)
         return self.LLH.gradient(
-            self.Expectation, self.DiffExpectation, nuisance_vector
+            self.Expectation, self.DiffExpectation, nuisance_vector, mc_var
         )
 
     def SetOutFile(self, fname):

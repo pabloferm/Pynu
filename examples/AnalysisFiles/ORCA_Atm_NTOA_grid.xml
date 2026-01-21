@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ORCA Atmospheric Neutrino Analysis Configuration for Pynu
+Grid matched to NTOA framework: 20x20 = 400 points
+  - sin2theta23: 0.3 to 0.7 (20 points)
+  - dm31: 1.5e-3 to 3.0e-3 (20 points)
+Uses same MC file as NTOA for direct comparison.
+-->
+<Analysis>
+
+<!-- ======================================================================= -->
+<!-- Atmospheric Flux Systematics -->
+<!-- ======================================================================= -->
+<NeutrinoSource name="Atmospheric">
+    <status> 1 </status>
+    
+    <nuisance name='normalization_below1GeV'>
+        <status> 1 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='normalization_above1GeV'>
+        <status> 1 </status>
+        <sigma> 0.15 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='tilt'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='nunubar_ratio'>
+        <status> 1 </status>
+        <sigma> 0.02 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='flavor_ratio'>
+        <status> 1 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='zenith_up'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='zenith_down'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoSource>
+
+<!-- ======================================================================= -->
+<!-- Cross-Section Systematics (Water target) -->
+<!-- ======================================================================= -->
+<NeutrinoTarget name="Water">
+    <status> 1 </status>
+    
+    <nuisance name='XSecNuTau'>
+        <status> 0 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='NCoverCC'>
+        <status> 0 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoTarget>
+
+<!-- ======================================================================= -->
+<!-- ORCA Detector Configuration -->
+<!-- ======================================================================= -->
+<NeutrinoExperiment name="ORCA">
+    <status> 1 </status>
+    <target name="Water"> </target>
+    
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <!-- Use SAME MC file as NTOA for direct comparison -->
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_MC_dataverse_with_muons.parquet'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 1.0 </exposure>
+        <MCexposure> 100.0 </MCexposure>
+        <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_data_dataverse.parquet'>
+            <status> 0 </status>
+        </DataFiles>
+    </source>
+    
+    <!-- ORCA-specific detector systematics -->
+    <nuisance name='f_all'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='f_HPT'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='f_Shower'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='f_tauCC'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='f_NC'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='f_HE'>
+        <status> 1 </status>
+        <sigma> 0.5 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+    
+    <nuisance name='E_shift'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoExperiment>
+
+<!-- ======================================================================= -->
+<!-- Physics Scenario: Three-Flavor Oscillations - NTOA GRID -->
+<!-- ======================================================================= -->
+<NeutrinoOscillations name="3-Osc">
+    <status> 1 </status>
+    <flavors> 3 </flavors>
+    
+    <!-- Fixed parameters -->
+    <fixed name='Sin2Theta12'>
+        <status> 1 </status>
+        <value> 0.303 </value>
+    </fixed>
+    
+    <fixed name='Sin2Theta13'>
+        <status> 1 </status>
+        <value> 0.022 </value>
+    </fixed>
+    
+    <fixed name='Dm221'>
+        <status> 1 </status>
+        <value> 7.41e-5 </value>
+    </fixed>
+    
+    <fixed name='dCP'>
+        <status> 1 </status>
+        <value> 1.36 </value>
+    </fixed>
+    
+    <!-- Scan parameters - MATCHED TO NTOA: 20x20 = 400 points -->
+    <physics name='Sin2Theta23'>
+        <points> 20 </points>
+        <min> 0.3 </min>
+        <max> 0.7 </max>
+        <true> 0.572 </true>
+    </physics>
+    
+    <physics name='Dm231'>
+        <points> 20 </points>
+        <min> 1.5e-3 </min>
+        <max> 3.0e-3 </max>
+        <true> 2.511e-3 </true>
+    </physics>
+    
+    <physics name='Ordering'>
+        <points> 1 </points>
+        <min> normal </min>
+        <max> normal </max>
+        <true> normal </true>
+    </physics>
+</NeutrinoOscillations>
+
+</Analysis>

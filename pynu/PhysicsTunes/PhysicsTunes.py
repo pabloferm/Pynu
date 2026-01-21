@@ -161,11 +161,15 @@ class PhysicsTunes:
                 from .Detector.SKDetector import SuperK
 
                 self.DetectorTunes = SuperK()
-        elif "HyperK" in self.Detector:  # to be changed
+        elif "HyperK" in self.DETECTOR:  # to be changed
             if "NoNeutron" not in self.DETECTOR:
                 from .Detector.SKDetector import SuperK
 
                 self.DetectorTunes = SuperK()
+        elif self.DETECTOR == "ORCA":
+            from .Detector.ORCADetector import ORCADetector
+
+            self.DetectorTunes = ORCADetector()
         else:
             sys.exit(f"{self.DETECTOR} detector not found.")
 
