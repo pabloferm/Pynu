@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-ORCA Atmospheric Neutrino Standard Analysis Configuration
-DATA FITTING MODE (baseline, no muon_norm)
+IceCube DeepCore 9-year CPT Invariance Analysis Configuration
+Based on Phys. Rev. D 108, 012014 (2023)
 
-Standard (non-CPT) scan over (Dm231, Sin2Theta23) with real ORCA data.
-Dm231_bar = Dm231 at each grid point (CPT symmetric).
+Uses AtmOsc oscillations with Barlow-Beeston likelihood.
+Livetime: 2828 days = 7.74 years
+
+CPT scan: Dm231 and Dm231_bar are set programmatically by the row worker.
+The <physics name='Dm231'> block below is ignored by the row worker.
+
+Data paths should be updated to point to the reformatted parquet files.
 -->
 <Analysis>
 
@@ -65,7 +70,7 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
 </NeutrinoSource>
 
 <!-- ======================================================================= -->
-<!-- Cross-Section Systematics -->
+<!-- Cross-Section Systematics (Water/Ice target — same molecule H₂O) -->
 <!-- ======================================================================= -->
 <NeutrinoTarget name="Water">
     <status> 1 </status>
@@ -86,89 +91,75 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
 </NeutrinoTarget>
 
 <!-- ======================================================================= -->
-<!-- ORCA Detector Configuration -->
+<!-- IceCube DeepCore Detector Configuration -->
 <!-- ======================================================================= -->
-<NeutrinoExperiment name="ORCA">
+<NeutrinoExperiment name="IceCube-DeepCore">
     <status> 1 </status>
     <target name="Water"> </target>
 
     <source name='Atmospheric'>
         <status> 1 </status>
-        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_MC_dataverse_with_muons.parquet'>
+        <!-- MC file: reformatted IceCube parquet (neutrino + muon) -->
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/IceCube/IC_MC.parquet'>
             <status> 1 </status>
         </MCFiles>
-        <exposure> 1.0 </exposure>
+        <!-- Livetime: 2828 days = 7.74 years -->
+        <exposure> 7.74 </exposure>
         <MCexposure> 100.0 </MCexposure>
-        <!-- Data fitting mode -->
-        <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_data_dataverse.parquet'>
-            <status> 1 </status>
+        <!-- Data file: reformatted IceCube data parquet -->
+        <!-- Set status=1 for data fitting, status=0 for Asimov -->
+        <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/IceCube/IC_data.parquet'>
+            <status> 0 </status>
         </DataFiles>
     </source>
 
-    <nuisance name='f_all'>
+    <!-- IceCube detector systematics (hypersurface parameters) -->
+    <!-- These are no-ops at event level; the actual correction is applied
+         bin-by-bin via ICDeepCore_Atm.apply_hs_correction(). -->
+    <nuisance name='dom_eff'>
         <status> 1 </status>
-        <sigma> 0.2 </sigma>
+        <sigma> 0.10 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
 
-    <nuisance name='f_HPT'>
+    <nuisance name='hole_ice_p0'>
         <status> 1 </status>
-        <sigma> 0.2 </sigma>
+        <sigma> 0.10 </sigma>
+        <nominal> 0.10 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='hole_ice_p1'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> -0.05 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='bulk_ice_abs'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
 
-    <nuisance name='f_Shower'>
+    <nuisance name='bulk_ice_scatter'>
         <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_tauCC'>
-        <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_NC'>
-        <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_HE'>
-        <status> 1 </status>
-        <sigma> 0.5 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='E_shift'>
-        <status> 1 </status>
-        <sigma> 0.1 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='muon_norm'>
-        <status> 0 </status>
-        <sigma> 0.5 </sigma>
+        <sigma> 0.10 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
 </NeutrinoExperiment>
 
 <!-- ======================================================================= -->
-<!-- Physics Scenario: Standard 3-flavor Oscillations -->
+<!-- Physics Scenario: CPT Oscillations (Dm231 != Dm231_bar allowed) -->
 <!-- ======================================================================= -->
 <NeutrinoOscillations name="3-Osc-CPT">
     <status> 1 </status>
     <flavors> 3 </flavors>
 
+    <!-- Fixed parameters -->
     <fixed name='Sin2Theta12'>
         <status> 1 </status>
         <value> 0.303 </value>
@@ -194,6 +185,7 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
         <value> 1.36 </value>
     </fixed>
 
+    <!-- Dm231 scan range (overridden programmatically by the row worker) -->
     <physics name='Dm231'>
         <points> 2 </points>
         <min> 2.3e-3 </min>

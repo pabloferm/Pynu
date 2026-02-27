@@ -50,6 +50,7 @@ class BarlowBeestonLikelihood:
         # MC variance and muon background will be set dynamically
         self.mc_variance = None
         self.muon_background = None  # Dict: exp_name -> (binned_counts, binned_variance)
+        self.muon_norm_index = None  # Index of muon_norm in nuisance vector (None = not used)
 
     def set_mc_variance(self, mc_variance):
         """Set the MC variance dictionary."""
@@ -64,6 +65,18 @@ class BarlowBeestonLikelihood:
                              or None if experiment has no muons
         """
         self.muon_background = muon_background
+
+    def set_muon_norm_index(self, index):
+        """
+        Set the index of the muon_norm parameter in the nuisance vector.
+
+        When set, stats_and_systematics() will extract the muon scale factor
+        from nuisance[index] and apply it to the muon template.
+
+        Args:
+            index: Integer index into the nuisance vector, or None to disable.
+        """
+        self.muon_norm_index = index
 
     def _compute_beta(self, N_mod, mc_var, N_dat):
         """
@@ -99,7 +112,7 @@ class BarlowBeestonLikelihood:
 
         return beta, tau
 
-    def _get_total_model_and_variance(self, exp_name, E_nu, mc_var_nu):
+    def _get_total_model_and_variance(self, exp_name, E_nu, mc_var_nu, muon_scale=1.0):
         """
         Combine neutrino model with muon background if available.
 
@@ -107,11 +120,12 @@ class BarlowBeestonLikelihood:
             exp_name: Experiment name
             E_nu: Neutrino expectation (binned)
             mc_var_nu: Neutrino MC variance (binned)
+            muon_scale: Scale factor for muon template (default 1.0)
 
         Returns:
-            E_total: Total model (neutrino + muon)
+            E_total: Total model (neutrino + muon_scale * muon)
             mc_var_total: Total MC variance
-            has_muons: Whether muons were added
+            muon_counts: Raw muon counts (or None if no muons)
         """
         # Check if this experiment has muon background
         if (self.muon_background is not None and
@@ -122,20 +136,21 @@ class BarlowBeestonLikelihood:
 
             # Ensure shapes match
             if muon_counts is not None and len(muon_counts) == len(E_nu):
-                E_total = E_nu + muon_counts
-                mc_var_total = mc_var_nu + muon_var
-                return E_total, mc_var_total, True
+                E_total = E_nu + muon_scale * muon_counts
+                mc_var_total = mc_var_nu + muon_scale**2 * muon_var
+                return E_total, mc_var_total, muon_counts
 
         # No muons - return neutrino only
-        return E_nu, mc_var_nu, False
+        return E_nu, mc_var_nu, None
 
-    def stats_only(self, expectation, mc_variance=None) -> float:
+    def stats_only(self, expectation, mc_variance=None, muon_scale=1.0) -> float:
         """
         Compute Barlow-Beeston chi-squared (statistics only, no nuisance penalty).
 
         Args:
             expectation (dict): Experiment name -> binned expected events (neutrino only)
             mc_variance (dict): Experiment name -> binned MC variance (optional)
+            muon_scale (float): Scale factor for muon template (default 1.0)
 
         Returns:
             Chi-squared value
@@ -147,7 +162,9 @@ class BarlowBeestonLikelihood:
             X2 = 0.0
             for (exp_name, O), E_nu in zip(self.observation.items(), expectation.values()):
                 # Add muon background if available
-                E_total, _, _ = self._get_total_model_and_variance(exp_name, E_nu, np.zeros_like(E_nu))
+                E_total, _, _ = self._get_total_model_and_variance(
+                    exp_name, E_nu, np.zeros_like(E_nu), muon_scale
+                )
                 if np.any(E_total <= 0):
                     X2 = 9e9
                 X2 += np.sum(E_total - O + O * np.log(O / E_total))
@@ -158,8 +175,8 @@ class BarlowBeestonLikelihood:
             mc_var_nu = mc_variance.get(exp_name, np.zeros_like(E_nu))
 
             # Combine neutrino + muon if available
-            E_total, mc_var_total, has_muons = self._get_total_model_and_variance(
-                exp_name, E_nu, mc_var_nu
+            E_total, mc_var_total, _ = self._get_total_model_and_variance(
+                exp_name, E_nu, mc_var_nu, muon_scale
             )
 
             # Compute optimal beta using total model
@@ -192,7 +209,10 @@ class BarlowBeestonLikelihood:
         Returns:
             Chi-squared value including nuisance penalties
         """
-        return self.stats_only(expectation, mc_variance) + self.nuisance_penalty(nuisance)
+        muon_scale = 1.0
+        if self.muon_norm_index is not None:
+            muon_scale = nuisance[self.muon_norm_index]
+        return self.stats_only(expectation, mc_variance, muon_scale) + self.nuisance_penalty(nuisance)
 
     def gradient(self, expectation, diff_expectation, nuisance: List[float], mc_variance=None) -> np.ndarray:
         """
@@ -200,8 +220,7 @@ class BarlowBeestonLikelihood:
 
         Uses first-order approximation: ignores d(beta)/d(nuisance) terms.
 
-        Note: For experiments with muons, the gradient only accounts for neutrino
-        systematic effects. Muon-specific systematics would need separate handling.
+        For muon_norm: dE_total/d(muon_scale) = muon_counts (not the event-level dEdx).
 
         Args:
             expectation (dict): Experiment name -> binned expected events
@@ -214,6 +233,10 @@ class BarlowBeestonLikelihood:
         """
         if mc_variance is None:
             mc_variance = self.mc_variance
+
+        muon_scale = 1.0
+        if self.muon_norm_index is not None:
+            muon_scale = nuisance[self.muon_norm_index]
 
         nabla_X2 = np.zeros(self.number_of_nuisance)
 
@@ -239,8 +262,15 @@ class BarlowBeestonLikelihood:
                     self.observation.items(), expectation.values(), dE.values()
                 ):
                     # Add muon background for total model
-                    E_total, _, _ = self._get_total_model_and_variance(exp_name, E_nu, np.zeros_like(E_nu))
-                    nabla_X2[i] += 2 * np.sum((1 - O / E_total) * dEdx)
+                    E_total, _, muon_counts = self._get_total_model_and_variance(
+                        exp_name, E_nu, np.zeros_like(E_nu), muon_scale
+                    )
+
+                    if i == self.muon_norm_index and muon_counts is not None:
+                        # muon_norm gradient: dE_total/d(muon_scale) = muon_counts
+                        nabla_X2[i] += 2 * np.sum((1 - O / E_total) * muon_counts)
+                    else:
+                        nabla_X2[i] += 2 * np.sum((1 - O / E_total) * dEdx)
             return nabla_X2
 
         for i, (dE, mu, sig, dist, nuis) in enumerate(
@@ -267,8 +297,8 @@ class BarlowBeestonLikelihood:
                 mc_var_nu = mc_variance.get(exp_name, np.zeros_like(E_nu))
 
                 # Combine neutrino + muon
-                E_total, mc_var_total, has_muons = self._get_total_model_and_variance(
-                    exp_name, E_nu, mc_var_nu
+                E_total, mc_var_total, muon_counts = self._get_total_model_and_variance(
+                    exp_name, E_nu, mc_var_nu, muon_scale
                 )
 
                 # Compute beta for total model
@@ -276,9 +306,12 @@ class BarlowBeestonLikelihood:
 
                 beta_E = np.maximum(beta * E_total, 1e-9)
 
-                # First-order gradient: 2 * sum[(1 - O/(beta*E)) * beta * dE/d(syst)]
-                # Note: dEdx is for neutrino only, muon derivative is 0 for neutrino systematics
-                nabla_X2[i] += 2 * np.sum((1 - O / beta_E) * beta * dEdx)
+                if i == self.muon_norm_index and muon_counts is not None:
+                    # muon_norm gradient: dE_total/d(muon_scale) = muon_counts
+                    nabla_X2[i] += 2 * np.sum((1 - O / beta_E) * beta * muon_counts)
+                else:
+                    # First-order gradient: 2 * sum[(1 - O/(beta*E)) * beta * dE/d(syst)]
+                    nabla_X2[i] += 2 * np.sum((1 - O / beta_E) * beta * dEdx)
 
         return nabla_X2
 
@@ -328,14 +361,19 @@ class BarlowBeestonLikelihood:
             ):
                 # Get total model with muons
                 mc_var_nu = mc_variance.get(exp_name, np.zeros_like(E_nu)) if mc_variance else np.zeros_like(E_nu)
-                E_total, mc_var_total, _ = self._get_total_model_and_variance(exp_name, E_nu, mc_var_nu)
+                E_total, mc_var_total, muon_counts = self._get_total_model_and_variance(exp_name, E_nu, mc_var_nu)
 
                 # Effective variance includes MC uncertainty
                 variance = O + mc_var_total
                 safe_variance = np.where(variance > 0, variance, 1)
 
-                A[i] += np.sum((O / E_total - 1) * dEdx)
-                B[i] += np.sum(dEdx**2 / safe_variance)
+                if i == self.muon_norm_index and muon_counts is not None:
+                    # For muon_norm, derivative is muon_counts
+                    A[i] += np.sum((O / E_total - 1) * muon_counts)
+                    B[i] += np.sum(muon_counts**2 / safe_variance)
+                else:
+                    A[i] += np.sum((O / E_total - 1) * dEdx)
+                    B[i] += np.sum(dEdx**2 / safe_variance)
 
         priors = mu + A / (B + 1 / sig**2)
 
@@ -374,13 +412,16 @@ class BarlowBeestonLikelihood:
             ):
                 # Get total model with muons
                 mc_var_nu = mc_variance.get(exp_name, np.zeros_like(E_nu)) if mc_variance else np.zeros_like(E_nu)
-                E_total, mc_var_total, _ = self._get_total_model_and_variance(exp_name, E_nu, mc_var_nu)
+                E_total, mc_var_total, muon_counts = self._get_total_model_and_variance(exp_name, E_nu, mc_var_nu)
 
                 # Effective variance includes MC uncertainty
                 variance = O + mc_var_total
                 safe_variance = np.where(variance > 0, variance, 1)
 
-                I_stats[i] += np.sum(dEdx**2 / safe_variance)
+                if i == self.muon_norm_index and muon_counts is not None:
+                    I_stats[i] += np.sum(muon_counts**2 / safe_variance)
+                else:
+                    I_stats[i] += np.sum(dEdx**2 / safe_variance)
 
         I_prior = np.zeros(self.number_of_nuisance)
         for i, sig in enumerate(self.sigma_nuisance):

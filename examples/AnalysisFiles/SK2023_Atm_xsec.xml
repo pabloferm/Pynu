@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Super-Kamiokande 2023 Analysis - with Cross-Section Systematics
+
+Based on SK2023_Atm.xml. Only CC/NC-level xsec params enabled because
+the SK h5 file lacks a mode/interaction_type field.
+
+Enabled: XSecNuTau, NCoverCC, AxialMass, NCHad
+Cannot enable: DIS, CCQE, CCQENuBarNu, CCQEMuE, CC1Pi*, CohPi (need Mode)
+-->
+<Analysis>
+
+<!-- Atmospheric Flux Systematics -->
+<NeutrinoSource name="Atmospheric">
+    <status> 1 </status>
+
+    <nuisance name='normalization_below1GeV'>
+        <status> 1 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='normalization_above1GeV'>
+        <status> 1 </status>
+        <sigma> 0.15 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='tilt'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='nunubar_ratio'>
+        <status> 1 </status>
+        <sigma> 0.02 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='flavor_ratio'>
+        <status> 1 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='zenith_up'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='zenith_down'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoSource>
+
+<!-- Cross-Section Systematics — CC/NC-level only (no Mode) -->
+<NeutrinoTarget name="Water">
+    <status> 1 </status>
+
+    <nuisance name='XSecNuTau'>
+        <status> 1 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='NCoverCC'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='AxialMass'>
+        <status> 1 </status>
+        <sigma> 0.03 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='NCHad'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoTarget>
+
+<!-- Super-Kamiokande 2023 Detector Configuration -->
+<NeutrinoExperiment name="SuperK Pheno 2023">
+    <status> 1 </status>
+    <target name="Water"> </target>
+
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/SuperK_fullMC_6_4_x50_inv_flux_tune1.h5'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 1.0 </exposure>
+        <MCexposure> 50.0 </MCexposure>
+        <DataFiles name='none'>
+            <status> 0 </status>
+        </DataFiles>
+    </source>
+
+    <!-- Detector systematics: ALL DISABLED -->
+    <!-- decay_e_tagging MUST remain disabled (SuperK_2023 doesn't set DecayE) -->
+
+    <nuisance name='fiducial_volume'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='energy_scale'>
+        <status> 0 </status>
+        <sigma> 0.03 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='fcpc_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='fc_reduction'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='pc_reduction'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='singlering_pid'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='multiring_pid'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='subgev_1ring_pi0'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='subgev_2ring_pi0'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='pi0_ring_separation'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='e_ring_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='mu_ring_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='multiring_nunubar_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='multiring_emu_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='multiring_eother_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='pc_stopthru_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='neutron_tagging'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='decay_e_tagging'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='upmu_shower_separation'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='upmu_stop_bkg'>
+        <status> 0 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='upmu_showering_bkg'>
+        <status> 0 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='upmu_nonshowering_bkg'>
+        <status> 0 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='subgev_numulike_sk45_mc'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='mre_nonubkg'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='mge_nonubkg'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+</NeutrinoExperiment>
+
+<!-- Physics: Standard 3-flavor Oscillations -->
+<NeutrinoOscillations name="3-Osc">
+    <status> 1 </status>
+    <flavors> 3 </flavors>
+
+    <fixed name='Sin2Theta12'>
+        <status> 1 </status>
+        <value> 0.303 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta13'>
+        <status> 1 </status>
+        <value> 0.022 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta23'>
+        <status> 1 </status>
+        <value> 0.572 </value>
+    </fixed>
+
+    <fixed name='Dm221'>
+        <status> 1 </status>
+        <value> 7.41e-5 </value>
+    </fixed>
+
+    <fixed name='dCP'>
+        <status> 1 </status>
+        <value> 1.36 </value>
+    </fixed>
+
+    <physics name='Dm231'>
+        <points> 2 </points>
+        <min> 2.3e-3 </min>
+        <max> 2.7e-3 </max>
+        <true> 2.511e-3 </true>
+    </physics>
+
+    <physics name='Ordering'>
+        <points> 1 </points>
+        <min> normal </min>
+        <max> normal </max>
+        <true> normal </true>
+    </physics>
+</NeutrinoOscillations>
+
+</Analysis>

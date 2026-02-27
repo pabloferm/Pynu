@@ -8,7 +8,13 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from pynu import PyNuFit
 
-plt.style.use(f"{os.environ['PYNU']}/../utils/plot.mplstyle")
+# Try to load custom style file if available
+try:
+    style_path = f"{os.environ.get('PYNU', '.')}/../utils/plot.mplstyle"
+    if os.path.exists(style_path):
+        plt.style.use(style_path)
+except Exception:
+    pass  # Use default matplotlib style
 
 
 class Plot:

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-ORCA Atmospheric Neutrino Standard Analysis Configuration
-DATA FITTING MODE (baseline, no muon_norm)
+ORCA Atmospheric Neutrino CPT Analysis Configuration
+DATA FITTING MODE — Uses real ORCA data as observation
 
-Standard (non-CPT) scan over (Dm231, Sin2Theta23) with real ORCA data.
-Dm231_bar = Dm231 at each grid point (CPT symmetric).
+Uses real AtmOsc oscillations with Barlow-Beeston likelihood.
+
+The Dm231 and Dm231_bar parameters are set externally by run_orca_cpt_datafit_row_worker.py
+This config sets up the experiment, systematics, and fixed oscillation parameters.
 -->
 <Analysis>
 
@@ -65,7 +67,7 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
 </NeutrinoSource>
 
 <!-- ======================================================================= -->
-<!-- Cross-Section Systematics -->
+<!-- Cross-Section Systematics (Water target) -->
 <!-- ======================================================================= -->
 <NeutrinoTarget name="Water">
     <status> 1 </status>
@@ -94,17 +96,19 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
 
     <source name='Atmospheric'>
         <status> 1 </status>
+        <!-- Use ORCA MC file -->
         <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_MC_dataverse_with_muons.parquet'>
             <status> 1 </status>
         </MCFiles>
         <exposure> 1.0 </exposure>
         <MCexposure> 100.0 </MCexposure>
-        <!-- Data fitting mode -->
+        <!-- Data fitting mode: use real data as observation -->
         <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_data_dataverse.parquet'>
             <status> 1 </status>
         </DataFiles>
     </source>
 
+    <!-- ORCA-specific detector systematics -->
     <nuisance name='f_all'>
         <status> 1 </status>
         <sigma> 0.2 </sigma>
@@ -153,22 +157,17 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
-
-    <nuisance name='muon_norm'>
-        <status> 0 </status>
-        <sigma> 0.5 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
 </NeutrinoExperiment>
 
 <!-- ======================================================================= -->
-<!-- Physics Scenario: Standard 3-flavor Oscillations -->
+<!-- Physics Scenario: CPT Oscillations -->
+<!-- Dm231 and Dm231_bar are set externally by the CPT analysis script -->
 <!-- ======================================================================= -->
 <NeutrinoOscillations name="3-Osc-CPT">
     <status> 1 </status>
     <flavors> 3 </flavors>
 
+    <!-- Fixed parameters -->
     <fixed name='Sin2Theta12'>
         <status> 1 </status>
         <value> 0.303 </value>
@@ -194,6 +193,8 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
         <value> 1.36 </value>
     </fixed>
 
+    <!-- Dm231 grid - we need at least 2 points to be treated as physics -->
+    <!-- The actual CPT scan in the row worker overrides these values -->
     <physics name='Dm231'>
         <points> 2 </points>
         <min> 2.3e-3 </min>

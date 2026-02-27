@@ -328,6 +328,8 @@ class SuperK_2023(SuperK):
 
         self.CC = np.full(self.NumberOfEvents, True)
         self.CC[self.current != "CC"] = False
+        # No mode/interaction_type in this h5 — set zeros for safety
+        self.Mode = np.zeros(self.NumberOfEvents, dtype=int)
 
         self.Weight[np.logical_not(self.CC)] = 1.0
 

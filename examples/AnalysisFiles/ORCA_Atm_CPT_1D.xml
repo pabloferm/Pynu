@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    ORCA Atmospheric Neutrino CPT Invariance Study - 1D Profile Scan Configuration
+
+    This configuration implements a 1D profile likelihood scan over Dm231_bar
+    (antineutrino mass splitting) with marginalization over nuisance parameters.
+
+    Key approach:
+    - Generate Asimov data at CPT-symmetric true point
+    - Scan only Dm231_bar as the physics parameter of interest
+    - Marginalize (minimize chi2) over nuisance parameters at each scan point
+
+    Grid scan: 61 points in Dm231_bar
+    Marginalization: Sin2Theta23, Dm232 (affects both nu and nubar)
+    True values: CPT symmetric (Dm231 = Dm231_bar = 2.511e-3 eV^2)
+
+    Expected output:
+    - 1D Delta chi2 profile in Dm231_bar
+    - Best-fit nuisance values at each scan point
+    - Confidence intervals at 1sigma, 2sigma, 3sigma
+    - CPT asymmetry limit: upper bound on |Dm231 - Dm231_bar|
+-->
+
+<Analysis>
+    <!-- Experiment Configuration -->
+    <Experiment name="ORCA">
+        <status> 1 </status>
+        <DataFile> /path/to/orca/mc/data.h5 </DataFile>
+        <Livetime> 3.0 </Livetime>  <!-- years -->
+    </Experiment>
+
+    <!-- Neutrino Oscillation Physics for 1D CPT Profile Scan -->
+    <NeutrinoOscillations name="3-Osc-CPT-Profile">
+        <status> 1 </status>
+        <flavors> 3 </flavors>
+
+        <!-- Fixed parameters (NuFit 5.2 central values) -->
+        <fixed name='Sin2Theta12'>
+            <value> 0.303 </value>
+            <description> Solar mixing angle sin^2(theta_12) </description>
+        </fixed>
+
+        <fixed name='Sin2Theta13'>
+            <value> 0.022 </value>
+            <description> Reactor mixing angle sin^2(theta_13) </description>
+        </fixed>
+
+        <fixed name='Dm221'>
+            <value> 7.41e-5 </value>
+            <description> Solar mass-squared difference (eV^2) </description>
+        </fixed>
+
+        <fixed name='dCP'>
+            <value> 1.36 </value>
+            <description> CP-violating phase (radians) </description>
+        </fixed>
+
+        <fixed name='Ordering'>
+            <value> normal </value>
+            <description> Mass ordering: normal or inverted </description>
+        </fixed>
+
+        <fixed name='Dm231'>
+            <value> 2.511e-3 </value>
+            <description>
+                Neutrino mass-squared difference Dm^2_31 (eV^2).
+                Fixed at true value for CPT profile scan.
+            </description>
+        </fixed>
+
+        <!-- Scan parameter (CPT test): antineutrino mass splitting -->
+        <physics name='Dm231_bar'>
+            <points> 61 </points>
+            <min> 2.2e-3 </min>
+            <max> 2.8e-3 </max>
+            <true> 2.511e-3 </true>
+            <description>
+                Antineutrino mass-squared difference Dm_bar^2_31 (eV^2).
+                This is the parameter of interest for CPT invariance test.
+                Scanned with marginalization over nuisance parameters.
+            </description>
+        </physics>
+
+        <!-- Marginalization parameters -->
+        <marginalize name='Sin2Theta23'>
+            <min> 0.4 </min>
+            <max> 0.7 </max>
+            <true> 0.572 </true>
+            <description>
+                Atmospheric mixing angle sin^2(theta_23).
+                Marginalized at each Dm231_bar scan point.
+            </description>
+        </marginalize>
+
+        <marginalize name='Dm232'>
+            <min> 2.2e-3 </min>
+            <max> 2.7e-3 </max>
+            <true> 2.437e-3 </true>
+            <description>
+                Mass-squared difference Dm^2_32 (eV^2).
+                Note: Dm32 = Dm31 - Dm21, so true value = 2.511e-3 - 7.41e-5 = 2.437e-3
+                This affects both nu and nubar oscillations equally (Dm31 = Dm32 + Dm21).
+                Marginalized at each Dm231_bar scan point.
+            </description>
+        </marginalize>
+    </NeutrinoOscillations>
+
+    <!-- Likelihood Configuration -->
+    <Likelihood name="BarlowBeeston">
+        <status> 1 </status>
+        <type> BarlowBeeston </type>
+        <description>
+            Barlow-Beeston likelihood with MC statistical uncertainties.
+            Uses weight_variance from MC for bin-by-bin fluctuations.
+        </description>
+    </Likelihood>
+
+    <!-- Binning Configuration -->
+    <Binning name="ORCA_CPT_binning">
+        <energy>
+            <min> 1.0 </min>
+            <max> 100.0 </max>
+            <bins> 20 </bins>
+            <scale> log </scale>
+        </energy>
+        <coszenith>
+            <min> -1.0 </min>
+            <max> 0.0 </max>
+            <bins> 20 </bins>
+            <scale> linear </scale>
+        </coszenith>
+    </Binning>
+
+    <!-- Output Configuration -->
+    <Output>
+        <directory> ./results/cpt_profile </directory>
+        <filename_prefix> orca_cpt_profile </filename_prefix>
+        <save_chi2_profile> true </save_chi2_profile>
+        <save_best_fit_nuisance> true </save_best_fit_nuisance>
+        <confidence_levels> 1.0 4.0 9.0 </confidence_levels>
+        <description>
+            Confidence levels correspond to Delta chi^2 for 1 DOF:
+            1.0 = 1 sigma (68.3% CL)
+            4.0 = 2 sigma (95.5% CL)
+            9.0 = 3 sigma (99.7% CL)
+        </description>
+    </Output>
+</Analysis>

@@ -1,36 +1,65 @@
-import sys
+"""
+PyNuFit - Python Neutrino Fitting Framework
 
+Main fitting module that handles XML configuration parsing and
+orchestrates the oscillation parameter grid scan.
+
+Extended to support CPT invariance testing with separate Dm231 and Dm231_bar parameters.
+Supports 1D and 2D profile likelihood scans with marginalization over nuisance parameters.
+"""
+
+import sys
 import time
 import fcntl
+import os
+from datetime import datetime
 
 import numpy as np
 from scipy.optimize import minimize
 
 import h5py
 
-import analysis_reader as ar  # contains parse class to read and setup the analysis
-import Experiments as Exp  # contains rd class to read and setup each experiment
+from .analysis_reader import ParseXML
+from . import Experiments as Exp
 
-from PhysicsTunes.PhysicsTunes import (
-    PhysicsTunes as PT,
-)  # contains everything to modify your simulations
-import fitter as ft  # does all the fitting calculations
-from fitter.inference import mcmc
+from .PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
+from . import fitter as ft
+from .fitter.inference import mcmc
+
 
 class PyNuFit:
-    """Top class containing everything"""
+    """
+    Top class containing everything for neutrino oscillation fitting.
+
+    Extended with CPT analysis capabilities including profile likelihood scans.
+    """
+
+    # Standard oscillation parameters
+    STANDARD_PARAMS = [
+        "Sin2Theta12", "Sin2Theta13", "Sin2Theta23",
+        "Dm221", "Dm231", "Dm232", "dCP", "Ordering"
+    ]
+
+    # CPT-extended parameters
+    CPT_PARAMS = ["Dm231_bar"]
+
+    # All recognized physics parameters
+    ALL_PARAMS = STANDARD_PARAMS + CPT_PARAMS
 
     def __init__(self, analysis_file, path=None, verbosity=False):
         self.verbosity = verbosity
         self.path = path
 
         """ Set up basic analysis variables and structure to build full analysis """
-        self.Analysis = ar.ParseXML(analysis_file, check=self.verbosity)
+        self.Analysis = ParseXML(analysis_file, check=self.verbosity)
         self.Analysis.get_analysis()
 
         """ Define dictionary for PhysicsTunes """
-
         self.physics_tunes = {}
+
+        """ CPT-specific: marginalization parameters """
+        self.marginalize_params = {}
+        self._parse_marginalization_config(analysis_file)
 
         """ Start the analysis """
         self.SetUpExperiments()
@@ -38,6 +67,28 @@ class PyNuFit:
 
         """ Compute Observation """
         self.ComputeBinnedObservation()
+
+    def _parse_marginalization_config(self, analysis_file):
+        """Parse marginalization parameters from XML config for profile scans."""
+        import xml.etree.ElementTree as ET
+        try:
+            tree = ET.parse(analysis_file)
+            root = tree.getroot()
+
+            # Look for marginalize elements in NeutrinoOscillations section
+            osc_config = root.find(".//NeutrinoOscillations")
+            if osc_config is not None:
+                for marginalize in osc_config.findall("marginalize"):
+                    param_name = marginalize.get("name")
+                    if param_name in self.ALL_PARAMS:
+                        self.marginalize_params[param_name] = {
+                            "min": float(marginalize.find("min").text),
+                            "max": float(marginalize.find("max").text),
+                            "true": float(marginalize.find("true").text)
+                        }
+        except Exception as e:
+            if self.verbosity:
+                print(f"Note: Could not parse marginalization config: {e}")
 
     def ComputeBinnedObservation(self):
         self.ApplyFixedWeights()
@@ -323,6 +374,10 @@ class PyNuFit:
                 self.Analysis.NuisSigmaList,
                 self.Analysis.NuisDistributionList,
             )
+            # Auto-detect muon_norm in nuisance list and wire it up
+            if 'muon_norm' in self.Analysis.NuisanceList:
+                idx = self.Analysis.NuisanceList.index('muon_norm')
+                self.LLH.set_muon_norm_index(idx)
         else:
             sys.exit("Mode not yet implemented")
 
@@ -419,7 +474,7 @@ class PyNuFit:
                         "gtol": 1e-4,
                     },
                 )
-                
+
             elif method == "HMC":
                 """Hamiltonian MCMC"""
                 import numpy as np
@@ -543,6 +598,331 @@ class PyNuFit:
         return self.LLH.gradient(
             self.Expectation, self.DiffExpectation, nuisance_vector, mc_var
         )
+
+    # =========================================================================
+    # CPT Profile Likelihood Methods
+    # =========================================================================
+
+    def run_profile_scan(self, scan_param, scan_values, marginalize_over=None,
+                         mode="BarlowBeestonLikelihood", verbose=True):
+        """
+        Run 1D profile likelihood scan with marginalization over nuisance parameters.
+
+        At each scan point, minimizes chi² over the specified marginalization parameters.
+
+        Args:
+            scan_param: Name of oscillation parameter to scan (e.g., "Dm231")
+            scan_values: Array of values to scan over
+            marginalize_over: Dict of {param_name: (min, max)} for marginalization.
+                            If None, uses self.marginalize_params from config.
+            mode: Likelihood mode ("BarlowBeestonLikelihood" or "BinnedLogLikelihoodRatio")
+            verbose: If True, print progress
+
+        Returns:
+            dict: Results including chi2_profile, scan_values, best_fit_nuisance, etc.
+        """
+        # Setup likelihood
+        self.set_likelihood(mode)
+
+        # Determine marginalization parameters
+        if marginalize_over is None:
+            marginalize_over = {
+                name: (cfg["min"], cfg["max"])
+                for name, cfg in self.marginalize_params.items()
+            }
+
+        n_scan = len(scan_values)
+        chi2_profile = np.zeros(n_scan)
+        best_fit_nuisance = []
+
+        # Get the first experiment's oscillation tunes for direct parameter access
+        exp_name = list(self.physics_tunes.keys())[0]
+        osc_tunes = self.physics_tunes[exp_name].OscillationTunes
+
+        if verbose:
+            print(f"Running profile scan over {scan_param}")
+            print(f"  Scan range: [{scan_values[0]:.4e}, {scan_values[-1]:.4e}]")
+            print(f"  Scan points: {n_scan}")
+            print(f"  Marginalization parameters: {list(marginalize_over.keys())}")
+
+        for i, scan_val in enumerate(scan_values):
+            # Set scan parameter for all experiments
+            for name, pt in self.physics_tunes.items():
+                pt.OscillationTunes.UpdateParameter(scan_param, scan_val)
+
+            if len(marginalize_over) == 0:
+                # No marginalization - just evaluate with nominal nuisance
+                self.ComputeBinnedExpectation(0, physics=False)
+                mc_var = getattr(self, 'MCVariance', None)
+                chi2_profile[i] = self.LLH.stats_and_systematics(
+                    self.Expectation, self.Analysis.NuisNominalList, mc_var
+                )
+                best_fit_nuisance.append({})
+            else:
+                # Define objective for marginalization
+                margin_names = list(marginalize_over.keys())
+                margin_bounds = list(marginalize_over.values())
+
+                def objective(margin_vals):
+                    # Set marginalization parameters
+                    for j, param_name in enumerate(margin_names):
+                        for name, pt in self.physics_tunes.items():
+                            pt.OscillationTunes.UpdateParameter(param_name, margin_vals[j])
+
+                    # Recompute expectation
+                    self.ComputeBinnedExpectation(0, physics=False)
+                    mc_var = getattr(self, 'MCVariance', None)
+                    return self.LLH.stats_and_systematics(
+                        self.Expectation, self.Analysis.NuisNominalList, mc_var
+                    )
+
+                # Initial guess
+                x0 = []
+                for param_name, bounds in marginalize_over.items():
+                    if param_name in self.marginalize_params:
+                        x0.append(self.marginalize_params[param_name]["true"])
+                    else:
+                        x0.append((bounds[0] + bounds[1]) / 2)
+                x0 = np.array(x0)
+
+                # Minimize
+                result = minimize(
+                    objective, x0, method='L-BFGS-B', bounds=margin_bounds,
+                    options={'ftol': 1e-6, 'gtol': 1e-5, 'maxiter': 100}
+                )
+
+                chi2_profile[i] = result.fun
+                best_fit_nuisance.append(dict(zip(margin_names, result.x)))
+
+            if verbose and ((i + 1) % 10 == 0 or i == n_scan - 1):
+                print(f"  Progress: {i+1}/{n_scan} ({100*(i+1)/n_scan:.1f}%)")
+
+        # Calculate Delta chi2
+        min_chi2 = np.min(chi2_profile)
+        delta_chi2 = chi2_profile - min_chi2
+        best_idx = np.argmin(chi2_profile)
+
+        return {
+            "scan_param": scan_param,
+            "scan_values": scan_values,
+            "chi2_profile": chi2_profile,
+            "delta_chi2": delta_chi2,
+            "min_chi2": min_chi2,
+            "best_fit_scan": scan_values[best_idx],
+            "best_fit_nuisance": best_fit_nuisance,
+            "best_fit_nuisance_at_min": best_fit_nuisance[best_idx],
+            "marginalize_params": marginalize_over
+        }
+
+    def run_2d_profile_scan(self, scan_params_2d, grid1, grid2, marginalize_over=None,
+                              mode="BarlowBeestonLikelihood", verbose=True):
+        """
+        Run 2D profile likelihood scan with marginalization.
+
+        Scans a 2D grid over two parameters while minimizing chi² over remaining
+        marginalization parameters at each grid point.
+
+        Args:
+            scan_params_2d: Tuple of (param1_name, param2_name) to scan
+            grid1: Array of values for first parameter
+            grid2: Array of values for second parameter
+            marginalize_over: Dict of {param_name: (min, max)} for marginalization
+            mode: Likelihood mode
+            verbose: If True, print progress
+
+        Returns:
+            dict: Results including chi2_grid, param_values, best_fit, etc.
+        """
+        # Setup likelihood
+        self.set_likelihood(mode)
+
+        # Determine marginalization parameters
+        if marginalize_over is None:
+            marginalize_over = {
+                name: (cfg["min"], cfg["max"])
+                for name, cfg in self.marginalize_params.items()
+                if name not in scan_params_2d
+            }
+
+        n1, n2 = len(grid1), len(grid2)
+        total_points = n1 * n2
+        chi2_grid = np.zeros((n1, n2))
+        best_fit_nuisance = [[{} for _ in range(n2)] for _ in range(n1)]
+
+        margin_names = list(marginalize_over.keys())
+        margin_bounds = list(marginalize_over.values())
+
+        # Initial guess
+        x0 = []
+        for param_name, bounds in marginalize_over.items():
+            if param_name in self.marginalize_params:
+                x0.append(self.marginalize_params[param_name]["true"])
+            else:
+                x0.append((bounds[0] + bounds[1]) / 2)
+        x0 = np.array(x0) if len(x0) > 0 else None
+
+        if verbose:
+            print(f"Running 2D profile scan over ({scan_params_2d[0]}, {scan_params_2d[1]})")
+            print(f"  Grid shape: ({n1}, {n2}) = {total_points} points")
+            print(f"  Marginalization parameters: {margin_names}")
+
+        done = 0
+        for i, val1 in enumerate(grid1):
+            for j, val2 in enumerate(grid2):
+                # Set 2D scan parameters
+                for name, pt in self.physics_tunes.items():
+                    pt.OscillationTunes.UpdateParameter(scan_params_2d[0], val1)
+                    pt.OscillationTunes.UpdateParameter(scan_params_2d[1], val2)
+
+                if len(margin_names) == 0:
+                    # No marginalization
+                    self.ComputeBinnedExpectation(0, physics=False)
+                    mc_var = getattr(self, 'MCVariance', None)
+                    chi2_grid[i, j] = self.LLH.stats_and_systematics(
+                        self.Expectation, self.Analysis.NuisNominalList, mc_var
+                    )
+                else:
+                    def objective(margin_vals):
+                        for k, param_name in enumerate(margin_names):
+                            for name, pt in self.physics_tunes.items():
+                                pt.OscillationTunes.UpdateParameter(param_name, margin_vals[k])
+                        self.ComputeBinnedExpectation(0, physics=False)
+                        mc_var = getattr(self, 'MCVariance', None)
+                        return self.LLH.stats_and_systematics(
+                            self.Expectation, self.Analysis.NuisNominalList, mc_var
+                        )
+
+                    result = minimize(
+                        objective, x0, method='L-BFGS-B', bounds=margin_bounds,
+                        options={'ftol': 1e-6, 'gtol': 1e-5, 'maxiter': 100}
+                    )
+
+                    chi2_grid[i, j] = result.fun
+                    best_fit_nuisance[i][j] = dict(zip(margin_names, result.x))
+                    x0 = result.x.copy()  # Warm start
+
+                done += 1
+                if verbose and (done % max(1, total_points // 20) == 0 or done == total_points):
+                    print(f"  Progress: {done}/{total_points} ({100*done/total_points:.1f}%)")
+
+        # Find best fit
+        min_chi2 = np.nanmin(chi2_grid)
+        delta_chi2 = chi2_grid - min_chi2
+        best_idx = np.unravel_index(np.nanargmin(chi2_grid), chi2_grid.shape)
+
+        return {
+            "scan_params": scan_params_2d,
+            "param_values": {scan_params_2d[0]: grid1, scan_params_2d[1]: grid2},
+            "chi2_grid": chi2_grid,
+            "delta_chi2": delta_chi2,
+            "min_chi2": float(min_chi2),
+            "best_fit": {
+                scan_params_2d[0]: float(grid1[best_idx[0]]),
+                scan_params_2d[1]: float(grid2[best_idx[1]])
+            },
+            "best_fit_nuisance": best_fit_nuisance,
+            "best_fit_nuisance_at_min": best_fit_nuisance[best_idx[0]][best_idx[1]],
+            "marginalize_params": marginalize_over
+        }
+
+    def find_confidence_intervals(self, results, levels=None):
+        """
+        Find confidence intervals from profile likelihood results.
+
+        Args:
+            results: Results dict from run_profile_scan
+            levels: Dict of {name: delta_chi2_threshold} (default: 1σ, 2σ, 3σ for 1 DOF)
+
+        Returns:
+            dict: Confidence intervals for each level
+        """
+        if levels is None:
+            levels = {"1sigma": 1.0, "2sigma": 4.0, "3sigma": 9.0}
+
+        scan_values = results["scan_values"]
+        delta_chi2 = results["delta_chi2"]
+        best_fit = results["best_fit_scan"]
+
+        intervals = {}
+        for name, threshold in levels.items():
+            within = delta_chi2 <= threshold
+            if np.any(within):
+                vals_within = scan_values[within]
+                intervals[name] = {
+                    "lower": float(np.min(vals_within)),
+                    "upper": float(np.max(vals_within)),
+                    "best_fit": float(best_fit),
+                    "delta_chi2_threshold": threshold
+                }
+            else:
+                intervals[name] = None
+
+        return intervals
+
+    def save_profile_results(self, results, output_dir, prefix="cpt_profile"):
+        """Save profile likelihood scan results to files."""
+        import json
+        os.makedirs(output_dir, exist_ok=True)
+
+        np.save(os.path.join(output_dir, f"{prefix}_chi2.npy"), results["chi2_profile"])
+        np.save(os.path.join(output_dir, f"{prefix}_delta_chi2.npy"), results["delta_chi2"])
+        np.save(os.path.join(output_dir, f"{prefix}_{results['scan_param']}.npy"),
+                results["scan_values"])
+
+        intervals = self.find_confidence_intervals(results)
+
+        metadata = {
+            "timestamp": datetime.now().isoformat(),
+            "scan_param": results["scan_param"],
+            "scan_range": [float(results["scan_values"][0]),
+                          float(results["scan_values"][-1])],
+            "n_scan_points": len(results["scan_values"]),
+            "marginalize_params": {k: list(v) for k, v in results["marginalize_params"].items()},
+            "min_chi2": float(results["min_chi2"]),
+            "best_fit_scan": float(results["best_fit_scan"]),
+            "best_fit_nuisance": {k: float(v) for k, v in
+                                  results["best_fit_nuisance_at_min"].items()},
+            "confidence_intervals": intervals
+        }
+
+        with open(os.path.join(output_dir, f"{prefix}_metadata.json"), 'w') as f:
+            json.dump(metadata, f, indent=2)
+
+        print(f"Profile results saved to {output_dir}")
+
+    def save_2d_profile_results(self, results, output_dir, prefix="cpt_2d_profile"):
+        """Save 2D profile likelihood scan results to files."""
+        import json
+        os.makedirs(output_dir, exist_ok=True)
+
+        scan_params = results["scan_params"]
+
+        np.save(os.path.join(output_dir, f"{prefix}_chi2.npy"), results["chi2_grid"])
+        np.save(os.path.join(output_dir, f"{prefix}_delta_chi2.npy"), results["delta_chi2"])
+
+        for param in scan_params:
+            np.save(os.path.join(output_dir, f"{prefix}_{param}.npy"),
+                    results["param_values"][param])
+
+        metadata = {
+            "timestamp": datetime.now().isoformat(),
+            "scan_params": scan_params,
+            "grid_shape": list(results["chi2_grid"].shape),
+            "marginalize_params": {k: list(v) for k, v in results["marginalize_params"].items()},
+            "min_chi2": results["min_chi2"],
+            "best_fit": results["best_fit"],
+            "best_fit_nuisance": {k: float(v) for k, v in
+                                 results["best_fit_nuisance_at_min"].items()}
+        }
+
+        with open(os.path.join(output_dir, f"{prefix}_metadata.json"), 'w') as f:
+            json.dump(metadata, f, indent=2)
+
+        print(f"2D profile results saved to {output_dir}")
+
+    # =========================================================================
+    # Output File Management
+    # =========================================================================
 
     def SetOutFile(self, fname):
         self.outfile = fname

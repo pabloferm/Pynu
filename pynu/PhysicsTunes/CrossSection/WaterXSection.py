@@ -1,4 +1,4 @@
-from PhysicsTunes import Tune  # , _unphysical
+from ..PhysicsTunes import Tune  # , _unphysical
 import numpy as np
 
 import sys

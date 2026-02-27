@@ -74,6 +74,14 @@ def Manager(detector, source, dict_of_details, scenario):
         elif source not in ["Accelerator", "LBL", "T2K"]:
             sys.exit("Source not found for " + detector + "!!")
 
+    elif detector == "ICUpgrade":
+        if source == "Atmospheric":
+            from .ICUpgrade_Atm import ICUpgrade
+
+            return ICUpgrade(dict_of_details, scenario)
+        else:
+            sys.exit("No valid source for " + detector)
+
     elif detector in ["ICUp", "IceCube-Upgrade"]:
         if source == "Atmospheric":
             from .IceCube import ICUp_Atm
@@ -103,6 +111,14 @@ def Manager(detector, source, dict_of_details, scenario):
             from .Orca import Orca
 
             return Orca(dict_of_details, scenario)
+        else:
+            sys.exit("No valid source for " + detector)
+
+    elif detector in ["IceCube-DeepCore", "ICDeepCore"]:
+        if source == "Atmospheric":
+            from .ICDeepCore import ICDeepCore
+
+            return ICDeepCore(dict_of_details, scenario)
         else:
             sys.exit("No valid source for " + detector)
 

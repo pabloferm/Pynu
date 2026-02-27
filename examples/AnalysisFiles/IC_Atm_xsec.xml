@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-ORCA Atmospheric Neutrino Standard Analysis Configuration
-DATA FITTING MODE (baseline, no muon_norm)
+IceCube DeepCore 9-year Analysis - with Cross-Section Systematics
 
-Standard (non-CPT) scan over (Dm231, Sin2Theta23) with real ORCA data.
-Dm231_bar = Dm231 at each grid point (CPT symmetric).
+Based on IC_Atm.xml. Enables xsec params.
+Mode-dependent params require interaction_type or type column in parquet.
+Run check_mc_columns.py to verify availability.
 -->
 <Analysis>
 
-<!-- ======================================================================= -->
 <!-- Atmospheric Flux Systematics -->
-<!-- ======================================================================= -->
 <NeutrinoSource name="Atmospheric">
     <status> 1 </status>
 
@@ -64,92 +62,132 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
     </nuisance>
 </NeutrinoSource>
 
-<!-- ======================================================================= -->
 <!-- Cross-Section Systematics -->
-<!-- ======================================================================= -->
 <NeutrinoTarget name="Water">
     <status> 1 </status>
 
+    <!-- CC/NC-level params (always work) -->
     <nuisance name='XSecNuTau'>
-        <status> 0 </status>
+        <status> 1 </status>
         <sigma> 0.25 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
 
     <nuisance name='NCoverCC'>
-        <status> 0 </status>
+        <status> 1 </status>
         <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='AxialMass'>
+        <status> 1 </status>
+        <sigma> 0.03 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='NCHad'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <!-- Mode-dependent params (need interaction_type in parquet — regenerated) -->
+    <nuisance name='DIS'>
+        <status> 1 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQE'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQENuBarNu'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQEMuE'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CC1PiProduction'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CohPiProduction'>
+        <status> 1 </status>
+        <sigma> 0.3 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
 </NeutrinoTarget>
 
-<!-- ======================================================================= -->
-<!-- ORCA Detector Configuration -->
-<!-- ======================================================================= -->
-<NeutrinoExperiment name="ORCA">
+<!-- IceCube DeepCore Detector Configuration -->
+<NeutrinoExperiment name="IceCube-DeepCore">
     <status> 1 </status>
     <target name="Water"> </target>
 
     <source name='Atmospheric'>
         <status> 1 </status>
-        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_MC_dataverse_with_muons.parquet'>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/IceCube/IC_MC.parquet'>
             <status> 1 </status>
         </MCFiles>
-        <exposure> 1.0 </exposure>
+        <exposure> 7.74 </exposure>
         <MCexposure> 100.0 </MCexposure>
-        <!-- Data fitting mode -->
-        <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_data_dataverse.parquet'>
-            <status> 1 </status>
+        <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/IceCube/IC_data.parquet'>
+            <status> 0 </status>
         </DataFiles>
     </source>
 
-    <nuisance name='f_all'>
+    <!-- IceCube detector systematics (hypersurface) -->
+    <nuisance name='dom_eff'>
         <status> 1 </status>
-        <sigma> 0.2 </sigma>
+        <sigma> 0.10 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
 
-    <nuisance name='f_HPT'>
+    <nuisance name='hole_ice_p0'>
         <status> 1 </status>
-        <sigma> 0.2 </sigma>
+        <sigma> 0.10 </sigma>
+        <nominal> 0.10 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='hole_ice_p1'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> -0.05 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='bulk_ice_abs'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
 
-    <nuisance name='f_Shower'>
+    <nuisance name='bulk_ice_scatter'>
         <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_tauCC'>
-        <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_NC'>
-        <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_HE'>
-        <status> 1 </status>
-        <sigma> 0.5 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='E_shift'>
-        <status> 1 </status>
-        <sigma> 0.1 </sigma>
+        <sigma> 0.10 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
@@ -162,9 +200,7 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
     </nuisance>
 </NeutrinoExperiment>
 
-<!-- ======================================================================= -->
-<!-- Physics Scenario: Standard 3-flavor Oscillations -->
-<!-- ======================================================================= -->
+<!-- Physics: Standard 3-flavor Oscillations (CPT) -->
 <NeutrinoOscillations name="3-Osc-CPT">
     <status> 1 </status>
     <flavors> 3 </flavors>

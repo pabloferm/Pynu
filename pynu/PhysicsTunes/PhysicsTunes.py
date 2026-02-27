@@ -130,7 +130,11 @@ class PhysicsTunes:
         Returns:
             None.
         """
-        if self.DETECTOR == "IceCube-Upgrade":
+        if self.DETECTOR == "ICUpgrade":
+            from .Detector.ICUpgradeDetector import ICUpgradeDetector
+
+            self.DetectorTunes = ICUpgradeDetector()
+        elif self.DETECTOR == "IceCube-Upgrade":
             from .Detector.ICUpDetector import ICUpgrade
 
             self.DetectorTunes = ICUpgrade()
@@ -170,6 +174,10 @@ class PhysicsTunes:
             from .Detector.ORCADetector import ORCADetector
 
             self.DetectorTunes = ORCADetector()
+        elif self.DETECTOR == "IceCube-DeepCore":
+            from .Detector.ICDeepCoreDetector import ICDeepCoreDetector
+
+            self.DetectorTunes = ICDeepCoreDetector()
         else:
             sys.exit(f"{self.DETECTOR} detector not found.")
 

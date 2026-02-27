@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    ORCA Atmospheric Neutrino CPT Invariance Study Configuration
+
+    This configuration enables testing CPT invariance by measuring separate
+    mass-squared differences for neutrinos (Dm231) and antineutrinos (Dm231_bar).
+
+    Key assumption: Perfect nu/nubar reconstruction - events classified by true PDG code.
+
+    Grid scan: 21 x 21 = 441 points in (Dm231, Dm231_bar) plane
+    True values: Dm231 = Dm231_bar = 2.511e-3 eV^2 (CPT symmetric)
+
+    Expected output:
+    - 2D chi-squared map in (Dm231, Dm231_bar) plane
+    - Sensitivity contours at 1sigma, 2sigma, 3sigma
+    - CPT asymmetry constraint: upper limit on |Dm231 - Dm231_bar|
+-->
+
+<Analysis>
+    <!-- Experiment Configuration -->
+    <Experiment name="ORCA">
+        <status> 1 </status>
+        <DataFile> /path/to/orca/mc/data.h5 </DataFile>
+        <Livetime> 3.0 </Livetime>  <!-- years -->
+    </Experiment>
+
+    <!-- Neutrino Oscillation Physics for CPT Study -->
+    <NeutrinoOscillations name="3-Osc-CPT">
+        <status> 1 </status>
+        <flavors> 3 </flavors>
+
+        <!-- Fixed parameters (NuFit 5.2 central values) -->
+        <fixed name='Sin2Theta12'>
+            <value> 0.303 </value>
+            <description> Solar mixing angle sin^2(theta_12) </description>
+        </fixed>
+
+        <fixed name='Sin2Theta13'>
+            <value> 0.022 </value>
+            <description> Reactor mixing angle sin^2(theta_13) </description>
+        </fixed>
+
+        <fixed name='Sin2Theta23'>
+            <value> 0.572 </value>
+            <description> Atmospheric mixing angle sin^2(theta_23) </description>
+        </fixed>
+
+        <fixed name='Dm221'>
+            <value> 7.41e-5 </value>
+            <description> Solar mass-squared difference (eV^2) </description>
+        </fixed>
+
+        <fixed name='dCP'>
+            <value> 1.36 </value>
+            <description> CP-violating phase (radians) </description>
+        </fixed>
+
+        <fixed name='Ordering'>
+            <value> normal </value>
+            <description> Mass ordering: normal or inverted </description>
+        </fixed>
+
+        <!-- CPT scan parameters -->
+        <physics name='Dm231'>
+            <points> 21 </points>
+            <min> 2.2e-3 </min>
+            <max> 2.8e-3 </max>
+            <true> 2.511e-3 </true>
+            <description>
+                Neutrino mass-squared difference Dm^2_31 (eV^2).
+                Scanned independently from Dm231_bar for CPT test.
+            </description>
+        </physics>
+
+        <physics name='Dm231_bar'>
+            <points> 21 </points>
+            <min> 2.2e-3 </min>
+            <max> 2.8e-3 </max>
+            <true> 2.511e-3 </true>
+            <description>
+                Antineutrino mass-squared difference Dm_bar^2_31 (eV^2).
+                CPT symmetric true value matches Dm231.
+            </description>
+        </physics>
+    </NeutrinoOscillations>
+
+    <!-- Likelihood Configuration -->
+    <Likelihood name="BarlowBeeston">
+        <status> 1 </status>
+        <type> BarlowBeeston </type>
+        <description>
+            Barlow-Beeston likelihood with MC statistical uncertainties.
+            Uses weight_variance from MC for bin-by-bin fluctuations.
+        </description>
+    </Likelihood>
+
+    <!-- Binning Configuration -->
+    <Binning name="ORCA_CPT_binning">
+        <energy>
+            <min> 1.0 </min>
+            <max> 100.0 </max>
+            <bins> 20 </bins>
+            <scale> log </scale>
+        </energy>
+        <coszenith>
+            <min> -1.0 </min>
+            <max> 0.0 </max>
+            <bins> 20 </bins>
+            <scale> linear </scale>
+        </coszenith>
+    </Binning>
+
+    <!-- Output Configuration -->
+    <Output>
+        <directory> ./results/cpt_grid </directory>
+        <filename_prefix> orca_cpt </filename_prefix>
+        <save_chi2_map> true </save_chi2_map>
+        <save_best_fit> true </save_best_fit>
+        <contour_levels> 2.30 4.61 9.21 </contour_levels>
+        <description>
+            Contour levels correspond to:
+            2.30 = 1 sigma (68.3% CL) for 2 DOF
+            4.61 = 2 sigma (90% CL) for 2 DOF
+            9.21 = 3 sigma (99% CL) for 2 DOF
+        </description>
+    </Output>
+</Analysis>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 ORCA Atmospheric Neutrino Standard Analysis Configuration
-DATA FITTING MODE (baseline, no muon_norm)
+DATA FITTING MODE with muon_norm enabled
 
 Standard (non-CPT) scan over (Dm231, Sin2Theta23) with real ORCA data.
 Dm231_bar = Dm231 at each grid point (CPT symmetric).
@@ -155,7 +155,7 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
     </nuisance>
 
     <nuisance name='muon_norm'>
-        <status> 0 </status>
+        <status> 1 </status>
         <sigma> 0.5 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>

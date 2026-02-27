@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-ORCA Atmospheric Neutrino Standard Analysis Configuration
-DATA FITTING MODE (baseline, no muon_norm)
-
-Standard (non-CPT) scan over (Dm231, Sin2Theta23) with real ORCA data.
-Dm231_bar = Dm231 at each grid point (CPT symmetric).
+ORCA Atmospheric Neutrino CPT Analysis Configuration - 10x EXPOSURE
+Same as ORCA_Atm_CPT_real.xml but with exposure = 10.0 years.
 -->
 <Analysis>
 
@@ -65,7 +62,7 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
 </NeutrinoSource>
 
 <!-- ======================================================================= -->
-<!-- Cross-Section Systematics -->
+<!-- Cross-Section Systematics (Water target) -->
 <!-- ======================================================================= -->
 <NeutrinoTarget name="Water">
     <status> 1 </status>
@@ -94,17 +91,19 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
 
     <source name='Atmospheric'>
         <status> 1 </status>
+        <!-- Use ORCA MC file -->
         <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_MC_dataverse_with_muons.parquet'>
             <status> 1 </status>
         </MCFiles>
-        <exposure> 1.0 </exposure>
+        <exposure> 10.0 </exposure>
         <MCexposure> 100.0 </MCexposure>
-        <!-- Data fitting mode -->
+        <!-- Asimov mode: use MC as observation -->
         <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_data_dataverse.parquet'>
-            <status> 1 </status>
+            <status> 0 </status>
         </DataFiles>
     </source>
 
+    <!-- ORCA-specific detector systematics -->
     <nuisance name='f_all'>
         <status> 1 </status>
         <sigma> 0.2 </sigma>
@@ -153,22 +152,16 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
-
-    <nuisance name='muon_norm'>
-        <status> 0 </status>
-        <sigma> 0.5 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
 </NeutrinoExperiment>
 
 <!-- ======================================================================= -->
-<!-- Physics Scenario: Standard 3-flavor Oscillations -->
+<!-- Physics Scenario: CPT Oscillations -->
 <!-- ======================================================================= -->
 <NeutrinoOscillations name="3-Osc-CPT">
     <status> 1 </status>
     <flavors> 3 </flavors>
 
+    <!-- Fixed parameters -->
     <fixed name='Sin2Theta12'>
         <status> 1 </status>
         <value> 0.303 </value>

@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-ORCA Atmospheric Neutrino Standard Analysis Configuration
-DATA FITTING MODE (baseline, no muon_norm)
+ORCA Atmospheric Neutrino Analysis - with Cross-Section Systematics
 
-Standard (non-CPT) scan over (Dm231, Sin2Theta23) with real ORCA data.
-Dm231_bar = Dm231 at each grid point (CPT symmetric).
+Based on ORCA_Atm_CPT_real.xml. Enables xsec params.
+Mode-dependent params are included but REQUIRE interaction_type in parquet.
+If interaction_type is NOT in the ORCA parquet, the Mode-dependent params
+will have zero effect (Mode=0 for all events, so only DIS would fire on NC).
+
+Run check_mc_columns.py first to confirm interaction_type availability.
 -->
 <Analysis>
 
-<!-- ======================================================================= -->
 <!-- Atmospheric Flux Systematics -->
-<!-- ======================================================================= -->
 <NeutrinoSource name="Atmospheric">
     <status> 1 </status>
 
@@ -64,30 +65,56 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
     </nuisance>
 </NeutrinoSource>
 
-<!-- ======================================================================= -->
 <!-- Cross-Section Systematics -->
-<!-- ======================================================================= -->
 <NeutrinoTarget name="Water">
     <status> 1 </status>
 
+    <!-- CC/NC-level params (always work) -->
     <nuisance name='XSecNuTau'>
-        <status> 0 </status>
+        <status> 1 </status>
         <sigma> 0.25 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
 
     <nuisance name='NCoverCC'>
-        <status> 0 </status>
+        <status> 1 </status>
         <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='AxialMass'>
+        <status> 1 </status>
+        <sigma> 0.03 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='NCHad'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <!-- Mode-dependent params DISABLED — ORCA parquet lacks interaction_type -->
+    <nuisance name='DIS'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQE'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
         <nominal> 1.0 </nominal>
         <distribution> normal </distribution>
     </nuisance>
 </NeutrinoTarget>
 
-<!-- ======================================================================= -->
 <!-- ORCA Detector Configuration -->
-<!-- ======================================================================= -->
 <NeutrinoExperiment name="ORCA">
     <status> 1 </status>
     <target name="Water"> </target>
@@ -99,12 +126,12 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
         </MCFiles>
         <exposure> 1.0 </exposure>
         <MCexposure> 100.0 </MCexposure>
-        <!-- Data fitting mode -->
         <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_data_dataverse.parquet'>
-            <status> 1 </status>
+            <status> 0 </status>
         </DataFiles>
     </source>
 
+    <!-- ORCA detector systematics -->
     <nuisance name='f_all'>
         <status> 1 </status>
         <sigma> 0.2 </sigma>
@@ -162,9 +189,7 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
     </nuisance>
 </NeutrinoExperiment>
 
-<!-- ======================================================================= -->
-<!-- Physics Scenario: Standard 3-flavor Oscillations -->
-<!-- ======================================================================= -->
+<!-- Physics: Standard 3-flavor Oscillations (CPT) -->
 <NeutrinoOscillations name="3-Osc-CPT">
     <status> 1 </status>
     <flavors> 3 </flavors>

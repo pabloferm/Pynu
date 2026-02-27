@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-ORCA Atmospheric Neutrino Standard Analysis Configuration
-DATA FITTING MODE (baseline, no muon_norm)
+IceCube Upgrade Atmospheric Neutrino CPT Analysis Configuration
+Based on IceCubeUpgradeNeutrinoMCDataRelease-2 public MC
 
-Standard (non-CPT) scan over (Dm231, Sin2Theta23) with real ORCA data.
-Dm231_bar = Dm231 at each grid point (CPT symmetric).
+Uses 3-Osc-CPT oscillations (separate Dm231 and Dm231_bar) with Barlow-Beeston likelihood.
+Exposure: 10 years (long-term ICUp projection)
+No muon background, no detector systematics (not in data release).
 -->
 <Analysis>
 
@@ -65,7 +66,7 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
 </NeutrinoSource>
 
 <!-- ======================================================================= -->
-<!-- Cross-Section Systematics -->
+<!-- Cross-Section Systematics (Water/Ice target) -->
 <!-- ======================================================================= -->
 <NeutrinoTarget name="Water">
     <status> 1 </status>
@@ -86,89 +87,40 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
 </NeutrinoTarget>
 
 <!-- ======================================================================= -->
-<!-- ORCA Detector Configuration -->
+<!-- IceCube Upgrade Detector Configuration -->
 <!-- ======================================================================= -->
-<NeutrinoExperiment name="ORCA">
+<NeutrinoExperiment name="ICUpgrade">
     <status> 1 </status>
     <target name="Water"> </target>
 
     <source name='Atmospheric'>
         <status> 1 </status>
-        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_MC_dataverse_with_muons.parquet'>
+        <!-- MC file: ICUp data release neutrino MC -->
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/IceCubeUpgradeNeutrinoMCDataRelease-2/events/neutrino_mc.csv'>
             <status> 1 </status>
         </MCFiles>
-        <exposure> 1.0 </exposure>
-        <MCexposure> 100.0 </MCexposure>
-        <!-- Data fitting mode -->
-        <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_data_dataverse.parquet'>
-            <status> 1 </status>
+        <!-- Exposure: 10 years (long-term ICUp projection) -->
+        <exposure> 10.0 </exposure>
+        <!-- MCexposure: 1.0 (weights already normalized per-unit) -->
+        <MCexposure> 1.0 </MCexposure>
+        <!-- No data file (MC-only release) -->
+        <DataFiles name='none'>
+            <status> 0 </status>
         </DataFiles>
     </source>
 
-    <nuisance name='f_all'>
-        <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
+    <!-- No detector nuisance params (no ice gradient data in release) -->
 
-    <nuisance name='f_HPT'>
-        <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_Shower'>
-        <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_tauCC'>
-        <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_NC'>
-        <status> 1 </status>
-        <sigma> 0.2 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='f_HE'>
-        <status> 1 </status>
-        <sigma> 0.5 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='E_shift'>
-        <status> 1 </status>
-        <sigma> 0.1 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
-
-    <nuisance name='muon_norm'>
-        <status> 0 </status>
-        <sigma> 0.5 </sigma>
-        <nominal> 1.0 </nominal>
-        <distribution> normal </distribution>
-    </nuisance>
 </NeutrinoExperiment>
 
 <!-- ======================================================================= -->
-<!-- Physics Scenario: Standard 3-flavor Oscillations -->
+<!-- Physics Scenario: 3-flavor CPT Oscillations (separate nu/nubar Dm231) -->
 <!-- ======================================================================= -->
 <NeutrinoOscillations name="3-Osc-CPT">
     <status> 1 </status>
     <flavors> 3 </flavors>
 
+    <!-- Fixed parameters -->
     <fixed name='Sin2Theta12'>
         <status> 1 </status>
         <value> 0.303 </value>
@@ -194,6 +146,7 @@ Dm231_bar = Dm231 at each grid point (CPT symmetric).
         <value> 1.36 </value>
     </fixed>
 
+    <!-- Dm231 scan range -->
     <physics name='Dm231'>
         <points> 2 </points>
         <min> 2.3e-3 </min>

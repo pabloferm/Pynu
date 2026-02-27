@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    ORCA Atmospheric Neutrino CPT Invariance Study - 4-Parameter Configuration
+
+    This configuration implements a 4-parameter fit for CPT invariance testing:
+    - Dm231: neutrino mass-squared difference
+    - Dm231_bar: antineutrino mass-squared difference
+    - Sin2Theta23: atmospheric mixing angle (same for nu and nubar)
+    - Sin2Theta13: reactor mixing angle (same for nu and nubar)
+
+    No systematic parameters are included.
+
+    True values (CPT symmetric):
+    - Dm231 = Dm231_bar = 2.511e-3 eV^2
+    - Sin2Theta23 = 0.572
+    - Sin2Theta13 = 0.022
+
+    Grid scan: 11 x 11 x 11 x 11 = 14,641 points
+    (Use fewer points for initial tests)
+
+    Expected output:
+    - 4D chi-squared hypersurface
+    - Profile likelihood for CPT asymmetry |Dm231 - Dm231_bar|
+    - Confidence regions in (Dm231, Dm231_bar) plane (marginalized over theta23, theta13)
+-->
+
+<Analysis>
+    <!-- Experiment Configuration -->
+    <Experiment name="ORCA">
+        <status> 1 </status>
+        <DataFile> /path/to/orca/mc/data.h5 </DataFile>
+        <Livetime> 3.0 </Livetime>  <!-- years -->
+    </Experiment>
+
+    <!-- Neutrino Oscillation Physics for 4-Parameter CPT Study -->
+    <NeutrinoOscillations name="3-Osc-CPT-4param">
+        <status> 1 </status>
+        <flavors> 3 </flavors>
+
+        <!-- Fixed parameters (NuFit 5.2 central values) -->
+        <fixed name='Sin2Theta12'>
+            <value> 0.303 </value>
+            <description> Solar mixing angle sin^2(theta_12) </description>
+        </fixed>
+
+        <fixed name='Dm221'>
+            <value> 7.41e-5 </value>
+            <description> Solar mass-squared difference (eV^2) </description>
+        </fixed>
+
+        <fixed name='dCP'>
+            <value> 1.36 </value>
+            <description> CP-violating phase (radians) </description>
+        </fixed>
+
+        <fixed name='Ordering'>
+            <value> normal </value>
+            <description> Mass ordering: normal or inverted </description>
+        </fixed>
+
+        <!-- Physics scan parameters -->
+
+        <!-- Neutrino mass splitting -->
+        <physics name='Dm231'>
+            <points> 11 </points>
+            <min> 2.3e-3 </min>
+            <max> 2.7e-3 </max>
+            <true> 2.511e-3 </true>
+            <description>
+                Neutrino mass-squared difference Dm^2_31 (eV^2).
+                Scanned independently from Dm231_bar for CPT test.
+            </description>
+        </physics>
+
+        <!-- Antineutrino mass splitting -->
+        <physics name='Dm231_bar'>
+            <points> 11 </points>
+            <min> 2.3e-3 </min>
+            <max> 2.7e-3 </max>
+            <true> 2.511e-3 </true>
+            <description>
+                Antineutrino mass-squared difference Dm_bar^2_31 (eV^2).
+                CPT symmetric true value matches Dm231.
+            </description>
+        </physics>
+
+        <!-- Atmospheric mixing angle (shared for nu and nubar) -->
+        <physics name='Sin2Theta23'>
+            <points> 11 </points>
+            <min> 0.4 </min>
+            <max> 0.65 </max>
+            <true> 0.572 </true>
+            <description>
+                Atmospheric mixing angle sin^2(theta_23).
+                Same for neutrinos and antineutrinos (CPT invariant).
+            </description>
+        </physics>
+
+        <!-- Reactor mixing angle (shared for nu and nubar) -->
+        <physics name='Sin2Theta13'>
+            <points> 11 </points>
+            <min> 0.018 </min>
+            <max> 0.026 </max>
+            <true> 0.022 </true>
+            <description>
+                Reactor mixing angle sin^2(theta_13).
+                Same for neutrinos and antineutrinos (CPT invariant).
+                Constrained by reactor experiments (Daya Bay, RENO, Double Chooz).
+            </description>
+        </physics>
+    </NeutrinoOscillations>
+
+    <!-- Likelihood Configuration -->
+    <Likelihood name="BarlowBeeston">
+        <status> 1 </status>
+        <type> BarlowBeeston </type>
+        <description>
+            Barlow-Beeston likelihood with MC statistical uncertainties.
+            Uses weight_variance from MC for bin-by-bin fluctuations.
+        </description>
+    </Likelihood>
+
+    <!-- Binning Configuration -->
+    <Binning name="ORCA_CPT_binning">
+        <energy>
+            <min> 1.0 </min>
+            <max> 100.0 </max>
+            <bins> 20 </bins>
+            <scale> log </scale>
+        </energy>
+        <coszenith>
+            <min> -1.0 </min>
+            <max> 0.0 </max>
+            <bins> 20 </bins>
+            <scale> linear </scale>
+        </coszenith>
+    </Binning>
+
+    <!-- Output Configuration -->
+    <Output>
+        <directory> ./results/cpt_4param </directory>
+        <filename_prefix> orca_cpt_4param </filename_prefix>
+        <save_chi2_map> true </save_chi2_map>
+        <save_best_fit> true </save_best_fit>
+        <save_profiles> true </save_profiles>
+        <contour_levels> 4.72 9.72 16.25 </contour_levels>
+        <description>
+            Contour levels for 4 DOF (chi-squared distribution):
+            4.72 = 1 sigma (68.3% CL)
+            9.72 = 2 sigma (95.5% CL)
+            16.25 = 3 sigma (99.7% CL)
+
+            For 2D projections (marginalizing over 2 params):
+            2.30 = 1 sigma for 2 DOF
+            4.61 = 90% CL for 2 DOF
+            6.18 = 2 sigma for 2 DOF
+        </description>
+    </Output>
+</Analysis>

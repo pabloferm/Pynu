@@ -11,7 +11,7 @@ Each systematic has two methods:
 """
 
 import numpy as np
-from PhysicsTunes import Tune
+from ..PhysicsTunes import Tune
 
 import sys
 sys.path.append("../")
@@ -197,6 +197,17 @@ class ORCADetector(Tune):
         """
         # Return zeros - the derivative effect is handled in the fitter
         # when computing binned derivatives
+        return np.zeros(experiment.NumberOfEvents)
+
+    def muon_norm(self, experiment, x):
+        """
+        Muon normalization — no-op at event level.
+        The actual muon scaling is applied bin-by-bin in BarlowBeestonLikelihood.
+        """
+        return np.ones(experiment.NumberOfEvents)
+
+    def diff_muon_norm(self, experiment, x):
+        """Derivative of muon_norm — zero at event level."""
         return np.zeros(experiment.NumberOfEvents)
 
 

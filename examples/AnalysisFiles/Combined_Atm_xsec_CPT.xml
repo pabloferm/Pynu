@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Combined 4-Experiment Atmospheric Neutrino CPT Analysis with Xsec Systematics
+
+Experiments: ORCA (1yr), IC DeepCore (7.74yr), ICUpgrade (10yr), SuperK 2023 (1yr)
+
+Nuisance parameters: 29 total
+  - 7 flux (shared across all experiments)
+  - 10 xsec (shared; Mode-dependent params are no-ops for ORCA/SK where Mode=0)
+  - 7 ORCA detector systematics
+  - 5 IC DeepCore hypersurface detector systematics
+
+Note: IC DeepCore requires explicit load_hypersurfaces() call in the row worker.
+      SuperK requires PYNU env var set for FLUKA flux initialization.
+-->
+<Analysis>
+
+<!-- ======================================================================= -->
+<!-- Atmospheric Flux Systematics (shared across all experiments) -->
+<!-- ======================================================================= -->
+<NeutrinoSource name="Atmospheric">
+    <status> 1 </status>
+
+    <nuisance name='normalization_below1GeV'>
+        <status> 1 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='normalization_above1GeV'>
+        <status> 1 </status>
+        <sigma> 0.15 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='tilt'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='nunubar_ratio'>
+        <status> 1 </status>
+        <sigma> 0.02 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='flavor_ratio'>
+        <status> 1 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='zenith_up'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='zenith_down'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoSource>
+
+<!-- ======================================================================= -->
+<!-- Cross-Section Systematics (shared; Mode-dependent no-ops for ORCA/SK) -->
+<!-- ======================================================================= -->
+<NeutrinoTarget name="Water">
+    <status> 1 </status>
+
+    <!-- CC/NC-level params (work for all experiments) -->
+    <nuisance name='XSecNuTau'>
+        <status> 1 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='NCoverCC'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='AxialMass'>
+        <status> 1 </status>
+        <sigma> 0.03 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='NCHad'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <!-- Mode-dependent params (active for IC DeepCore & ICUpgrade; no-op for ORCA & SK) -->
+    <nuisance name='DIS'>
+        <status> 1 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQE'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQENuBarNu'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQEMuE'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CC1PiProduction'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CohPiProduction'>
+        <status> 1 </status>
+        <sigma> 0.3 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoTarget>
+
+<!-- ======================================================================= -->
+<!-- Experiment 1: ORCA (1 year) -->
+<!-- ======================================================================= -->
+<NeutrinoExperiment name="ORCA">
+    <status> 1 </status>
+    <target name="Water"> </target>
+
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_MC_dataverse_with_muons.parquet'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 1.0 </exposure>
+        <MCexposure> 100.0 </MCexposure>
+        <DataFiles name='none'>
+            <status> 0 </status>
+        </DataFiles>
+    </source>
+
+    <!-- ORCA detector systematics (7 params) -->
+    <nuisance name='f_all'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_HPT'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_Shower'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_tauCC'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_NC'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_HE'>
+        <status> 1 </status>
+        <sigma> 0.5 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='E_shift'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='muon_norm'>
+        <status> 0 </status>
+        <sigma> 0.5 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoExperiment>
+
+<!-- ======================================================================= -->
+<!-- Experiment 2: IceCube DeepCore 9-year -->
+<!-- ======================================================================= -->
+<NeutrinoExperiment name="IceCube-DeepCore">
+    <status> 1 </status>
+    <target name="Water"> </target>
+
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/IceCube/IC_MC.parquet'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 7.74 </exposure>
+        <MCexposure> 100.0 </MCexposure>
+        <DataFiles name='none'>
+            <status> 0 </status>
+        </DataFiles>
+    </source>
+
+    <!-- IceCube hypersurface detector systematics (5 params) -->
+    <nuisance name='dom_eff'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='hole_ice_p0'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> 0.10 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='hole_ice_p1'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> -0.05 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='bulk_ice_abs'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='bulk_ice_scatter'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='muon_norm'>
+        <status> 0 </status>
+        <sigma> 0.5 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoExperiment>
+
+<!-- ======================================================================= -->
+<!-- Experiment 3: IceCube Upgrade (10 years) -->
+<!-- ======================================================================= -->
+<NeutrinoExperiment name="ICUpgrade">
+    <status> 1 </status>
+    <target name="Water"> </target>
+
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/IceCubeUpgradeNeutrinoMCDataRelease-2/events/neutrino_mc.csv'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 10.0 </exposure>
+        <MCexposure> 1.0 </MCexposure>
+        <DataFiles name='none'>
+            <status> 0 </status>
+        </DataFiles>
+    </source>
+</NeutrinoExperiment>
+
+<!-- ======================================================================= -->
+<!-- Experiment 4: Super-Kamiokande 2023 -->
+<!-- ======================================================================= -->
+<NeutrinoExperiment name="SuperK Pheno 2023">
+    <status> 1 </status>
+    <target name="Water"> </target>
+
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/SuperK_fullMC_6_4_x50_inv_flux_tune1.h5'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 1.0 </exposure>
+        <MCexposure> 50.0 </MCexposure>
+        <DataFiles name='none'>
+            <status> 0 </status>
+        </DataFiles>
+    </source>
+
+    <!-- SK detector systematics: ALL DISABLED -->
+    <!-- decay_e_tagging MUST remain disabled (SuperK_2023 doesn't set DecayE) -->
+
+    <nuisance name='fiducial_volume'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='energy_scale'>
+        <status> 0 </status>
+        <sigma> 0.03 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='fcpc_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='fc_reduction'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='pc_reduction'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='singlering_pid'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='multiring_pid'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='subgev_1ring_pi0'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='subgev_2ring_pi0'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='pi0_ring_separation'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='e_ring_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='mu_ring_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='multiring_nunubar_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='multiring_emu_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='multiring_eother_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='pc_stopthru_separation'>
+        <status> 0 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='neutron_tagging'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='decay_e_tagging'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='upmu_shower_separation'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='upmu_stop_bkg'>
+        <status> 0 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='upmu_showering_bkg'>
+        <status> 0 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='upmu_nonshowering_bkg'>
+        <status> 0 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='subgev_numulike_sk45_mc'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='mre_nonubkg'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='mge_nonubkg'>
+        <status> 0 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+</NeutrinoExperiment>
+
+<!-- ======================================================================= -->
+<!-- Physics: CPT 3-flavor Oscillations -->
+<!-- ======================================================================= -->
+<NeutrinoOscillations name="3-Osc-CPT">
+    <status> 1 </status>
+    <flavors> 3 </flavors>
+
+    <fixed name='Sin2Theta12'>
+        <status> 1 </status>
+        <value> 0.303 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta13'>
+        <status> 1 </status>
+        <value> 0.022 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta23'>
+        <status> 1 </status>
+        <value> 0.572 </value>
+    </fixed>
+
+    <fixed name='Dm221'>
+        <status> 1 </status>
+        <value> 7.41e-5 </value>
+    </fixed>
+
+    <fixed name='dCP'>
+        <status> 1 </status>
+        <value> 1.36 </value>
+    </fixed>
+
+    <physics name='Dm231'>
+        <points> 2 </points>
+        <min> 2.0e-3 </min>
+        <max> 3.0e-3 </max>
+        <true> 2.511e-3 </true>
+    </physics>
+
+    <physics name='Dm231_bar'>
+        <points> 2 </points>
+        <min> 2.0e-3 </min>
+        <max> 3.0e-3 </max>
+        <true> 2.511e-3 </true>
+    </physics>
+
+    <physics name='Ordering'>
+        <points> 1 </points>
+        <min> normal </min>
+        <max> normal </max>
+        <true> normal </true>
+    </physics>
+</NeutrinoOscillations>
+
+</Analysis>

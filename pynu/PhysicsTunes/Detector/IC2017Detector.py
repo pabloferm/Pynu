@@ -1,4 +1,4 @@
-from PhysicsTunes import Tune
+from ..PhysicsTunes import Tune
 
 import sys
 
