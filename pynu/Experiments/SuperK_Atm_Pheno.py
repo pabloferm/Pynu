@@ -331,9 +331,18 @@ class SuperK_2023(SuperK):
         # No mode/interaction_type in this h5 — set zeros for safety
         self.Mode = np.zeros(self.NumberOfEvents, dtype=int)
 
-        self.Weight[np.logical_not(self.CC)] = 1.0
+        # NC weight fix: use w_no for NC events instead of inv_flux.
+        # inv_flux is the raw inverse generation flux — it only gives physical
+        # results when multiplied by nuSQuIDS oscillation probabilities, which
+        # for NC events don't correctly reproduce the flavor-sum=1 identity.
+        # w_no is the pre-computed weight at NO best-fit (=1.0 for all NC events).
+        # Using w_no for NC events gives NC rates matching the SK data release.
+        self.Weight[~self.CC] = self.wno[~self.CC]
 
-        self.BaseWeight = self.Weight * self.NORM #* self.WMC
+        # MC statistical variance (for Barlow-Beeston)
+        self.WeightVariance = self.Weight**2
+
+        self.BaseWeight = self.Weight * self.NORM * self.WMC
         #self.BaseWeight = np.ones(self.NumberOfEvents) * self.NORM #* self.WMC
 
         del self.MC
@@ -388,12 +397,45 @@ class SuperK_2023(SuperK):
 
         del self.Data
 
+    def UpdatePhysicsWeights(self, w):
+        """Override: keep NC events at PhysicsWeight=1.
+
+        NC interactions are flavor-blind, so the total oscillation probability
+        summed over all final flavors is identically 1. However, nuSQuIDS
+        returns per-flavor probabilities that don't sum to exactly 1 for NC
+        events in this MC. Force NC PhysicsWeight=1 to ensure correct NC rates.
+        """
+        super().UpdatePhysicsWeights(w)
+        if hasattr(self, 'CC') and hasattr(self.PhysicsWeight, '__len__'):
+            self.PhysicsWeight[~self.CC] = 1.0
+
     def BinMC(self, array, shift_E=1, bias_E=0):
         self.CosThetaReco = self.CosZReco  # redundant
         self.set_energy_bias(bias_E)
         self.set_energy_scale(shift_E)
         return self.BinIt_MC_2D(array)
 
+    def GetMCVariance(self, array):
+        """Compute MC statistical variance for Barlow-Beeston."""
+        safe_weight_sq = np.where(self.Weight != 0, self.Weight**2, 1.0)
+        relative_var = np.where(self.Weight != 0, self.WeightVariance / safe_weight_sq, 0.0)
+        var_weights = (array * self.Weight * self.NORM)**2 * relative_var
+
+        variance_binned = []
+        for m in self.Samples:
+            mask = self.Sample == m
+            E_sample = self.EReco[mask]
+            cz_sample = self.CosZReco[mask]
+            w_sample = var_weights[mask]
+
+            hist, _, _ = np.histogram2d(
+                E_sample, cz_sample,
+                bins=[self.EnergyBins[m], self.CTBins[m]],
+                weights=w_sample
+            )
+            variance_binned.append(hist.flatten())
+
+        return np.concatenate(variance_binned)
 
     def BinData(self):
         self.dCosThetaReco = self.dCosZReco
@@ -511,3 +553,79 @@ class SuperK_2023(SuperK):
             27: z10bins,
             28: z10bins,
         }
+
+
+class SuperK_2023_NoUpMu(SuperK_2023):
+    """SuperK_2023 with upward-going muon samples (16, 17, 18) excluded.
+
+    Up-mu samples have different morphology (upward-going high-energy muons
+    measured via Cherenkov light in the rock below the detector) that can
+    cause fitting issues. This variant excludes them for cleaner fits.
+    """
+
+    UPMU_SAMPLES = {16, 17, 18}
+
+    def __init__(self, dict_of_details, scenario):
+        super().__init__(dict_of_details, scenario)
+        self.Detector = "SuperK_pheno_2023_noupmu"
+        self.SetDefinition()
+
+    def MCVariables(self):
+        super().MCVariables()
+        # Filter out up-mu events
+        keep = ~np.isin(self.Sample, list(self.UPMU_SAMPLES))
+        for attr in ['EReco', 'CosZReco', 'CosZTrue', 'current', 'nuPDG',
+                      'ETrue', 'Weight', 'WMC', 'Sample', 'Bin', 'wno',
+                      'CC', 'Mode', 'WeightVariance', 'BaseWeight']:
+            setattr(self, attr, getattr(self, attr)[keep])
+
+        self.NumberOfEvents = self.Sample.size
+        self.Samples = np.unique(self.Sample)
+        self.NumberOfSamples = self.Samples.size
+
+    def SetBinner_2D(self):
+        """Use actual sample IDs as keys (handles non-contiguous sample indices)."""
+        import boost_histogram as bh
+        self.Binner = [
+            bh.Histogram(
+                bh.axis.Variable(self.EnergyBins[s]),
+                bh.axis.Variable(self.CTBins[s])
+            )
+            for s in self.Samples
+        ]
+
+    def DataVariables(self):
+        super().DataVariables()
+        # Filter out up-mu data entries
+        keep = ~np.isin(self.dSample, list(self.UPMU_SAMPLES))
+        self.dEReco = self.dEReco[keep]
+        self.dCosZReco = self.dCosZReco[keep]
+        self.dSample = self.dSample[keep]
+        self.dEntries = self.dEntries[keep]
+        self.dBin = self.dBin[keep]
+        self.dNumberOfEvents = np.sum(self.dEntries)
+
+    def _upmu_bin_indices(self):
+        """Compute bin indices (in the full 930-bin scheme) belonging to up-mu samples."""
+        upmu_indices = []
+        offset = 0
+        for s in range(29):  # all original 29 samples
+            n_e = len(self.EnergyBins[s]) - 1
+            n_cz = len(self.CTBins[s]) - 1
+            n_bins = n_e * n_cz
+            if s in self.UPMU_SAMPLES:
+                upmu_indices.extend(range(offset, offset + n_bins))
+            offset += n_bins
+        return set(upmu_indices)
+
+    def BinIt_Data_2D(self, entries=None):
+        """Bin data excluding up-mu bins."""
+        # Build full 930-bin array
+        dentries = np.zeros(930)
+        for s in range(930):
+            dentries[s] = np.sum(entries[self.dBin == s])
+        # Remove up-mu bins
+        upmu_bins = sorted(self._upmu_bin_indices())
+        keep_mask = np.ones(930, dtype=bool)
+        keep_mask[list(upmu_bins)] = False
+        return dentries[keep_mask]

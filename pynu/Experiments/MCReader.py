@@ -22,9 +22,14 @@ def Manager(detector, source, dict_of_details, scenario):
 
                     return SuperK_Gdtag(dict_of_details, scenario)
                 elif "2023" in detector:
-                    from .SuperK_Atm_Pheno import SuperK_2023
+                    if "noupmu" in detector.lower():
+                        from .SuperK_Atm_Pheno import SuperK_2023_NoUpMu
 
-                    return SuperK_2023(dict_of_details, scenario)
+                        return SuperK_2023_NoUpMu(dict_of_details, scenario)
+                    else:
+                        from .SuperK_Atm_Pheno import SuperK_2023
+
+                        return SuperK_2023(dict_of_details, scenario)
                 else:
                     from .SuperK_Atm_Pheno import SuperK
 
@@ -103,6 +108,22 @@ def Manager(detector, source, dict_of_details, scenario):
             from .IC2017 import IC2017
 
             return IC2017(dict_of_details, scenario)
+        else:
+            sys.exit("No valid source for " + detector)
+
+    elif detector == "ORCAFull":
+        if source == "Atmospheric":
+            from .ORCAFull_Atm import ORCAFull
+
+            return ORCAFull(dict_of_details, scenario)
+        else:
+            sys.exit("No valid source for " + detector)
+
+    elif detector == "ORCAFullEvtMC":
+        if source == "Atmospheric":
+            from .ORCAFullEvtMC_Atm import ORCAFullEvtMC
+
+            return ORCAFullEvtMC(dict_of_details, scenario)
         else:
             sys.exit("No valid source for " + detector)
 
