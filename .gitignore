@@ -138,3 +138,6 @@ dmypy.json
 *.root
 *.csv
 *.hdf5
+
+# Parquet MC files (regenerated via utils/data_prep)
+*.parquet

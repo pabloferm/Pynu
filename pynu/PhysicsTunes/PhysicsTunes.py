@@ -174,6 +174,14 @@ class PhysicsTunes:
             from .Detector.ORCADetector import ORCADetector
 
             self.DetectorTunes = ORCADetector()
+        elif self.DETECTOR == "ORCAFull":
+            from .Detector.ORCAFullDetector import ORCAFullDetector
+
+            self.DetectorTunes = ORCAFullDetector()
+        elif self.DETECTOR == "ORCAFullEvtMC":
+            from .Detector.ORCAFullDetector import ORCAFullDetector
+
+            self.DetectorTunes = ORCAFullDetector()
         elif self.DETECTOR == "IceCube-DeepCore":
             from .Detector.ICDeepCoreDetector import ICDeepCoreDetector
 

@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Combined ORCA + IceCube DeepCore CPT Analysis with Xsec Systematics
+DATA FITTING MODE with muon_norm enabled for both experiments
+
+Nuisance: 31 total
+- 7 flux (shared), 10 xsec (shared; Mode-dependent no-ops for ORCA std)
+- 7 ORCA detector + 1 ORCA muon_norm
+- 5 IC DeepCore HS + 1 IC muon_norm
+-->
+<Analysis>
+
+<!-- ======================================================================= -->
+<!-- Atmospheric Flux Systematics (shared across experiments) -->
+<!-- ======================================================================= -->
+<NeutrinoSource name="Atmospheric">
+    <status> 1 </status>
+
+    <nuisance name='normalization_below1GeV'>
+        <status> 1 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='normalization_above1GeV'>
+        <status> 1 </status>
+        <sigma> 0.15 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='tilt'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='nunubar_ratio'>
+        <status> 1 </status>
+        <sigma> 0.02 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='flavor_ratio'>
+        <status> 1 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='zenith_up'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='zenith_down'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoSource>
+
+<!-- ======================================================================= -->
+<!-- Cross-Section Systematics (shared; Mode-dependent no-ops for ORCA std) -->
+<!-- ======================================================================= -->
+<NeutrinoTarget name="Water">
+    <status> 1 </status>
+
+    <nuisance name='XSecNuTau'>
+        <status> 1 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='NCoverCC'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='AxialMass'>
+        <status> 1 </status>
+        <sigma> 0.03 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='NCHad'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='DIS'>
+        <status> 1 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQE'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQENuBarNu'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CCQEMuE'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CC1PiProduction'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='CohPiProduction'>
+        <status> 1 </status>
+        <sigma> 0.3 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoTarget>
+
+<!-- ======================================================================= -->
+<!-- ORCA Detector Configuration (data fitting mode) -->
+<!-- ======================================================================= -->
+<NeutrinoExperiment name="ORCA">
+    <status> 1 </status>
+    <target name="Water"> </target>
+
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_MC_dataverse_with_muons.parquet'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 1.0 </exposure>
+        <MCexposure> 100.0 </MCexposure>
+        <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCA/ORCA_data_dataverse.parquet'>
+            <status> 1 </status>
+        </DataFiles>
+    </source>
+
+    <!-- ORCA-specific detector systematics -->
+    <nuisance name='f_all'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_HPT'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_Shower'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_tauCC'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_NC'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='f_HE'>
+        <status> 1 </status>
+        <sigma> 0.5 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='E_shift'>
+        <status> 1 </status>
+        <sigma> 0.1 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='muon_norm'>
+        <status> 1 </status>
+        <sigma> 0.5 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoExperiment>
+
+<!-- ======================================================================= -->
+<!-- IceCube DeepCore Detector Configuration (data fitting mode) -->
+<!-- ======================================================================= -->
+<NeutrinoExperiment name="IceCube-DeepCore">
+    <status> 1 </status>
+    <target name="Water"> </target>
+
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/IceCube/IC_MC.parquet'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 7.74 </exposure>
+        <MCexposure> 100.0 </MCexposure>
+        <DataFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/IceCube/IC_data.parquet'>
+            <status> 1 </status>
+        </DataFiles>
+    </source>
+
+    <!-- IceCube detector systematics (hypersurface parameters) -->
+    <nuisance name='dom_eff'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='hole_ice_p0'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> 0.10 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='hole_ice_p1'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> -0.05 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='bulk_ice_abs'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='bulk_ice_scatter'>
+        <status> 1 </status>
+        <sigma> 0.10 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='muon_norm'>
+        <status> 1 </status>
+        <sigma> 0.5 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoExperiment>
+
+<!-- ======================================================================= -->
+<!-- Physics Scenario: CPT Oscillations -->
+<!-- ======================================================================= -->
+<NeutrinoOscillations name="3-Osc-CPT">
+    <status> 1 </status>
+    <flavors> 3 </flavors>
+
+    <!-- Fixed parameters -->
+    <fixed name='Sin2Theta12'>
+        <status> 1 </status>
+        <value> 0.303 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta13'>
+        <status> 1 </status>
+        <value> 0.022 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta23'>
+        <status> 1 </status>
+        <value> 0.572 </value>
+    </fixed>
+
+    <fixed name='Dm221'>
+        <status> 1 </status>
+        <value> 7.41e-5 </value>
+    </fixed>
+
+    <fixed name='dCP'>
+        <status> 1 </status>
+        <value> 1.36 </value>
+    </fixed>
+
+    <!-- Dm231 grid - overridden by row worker -->
+    <physics name='Dm231'>
+        <points> 2 </points>
+        <min> 2.3e-3 </min>
+        <max> 2.7e-3 </max>
+        <true> 2.511e-3 </true>
+    </physics>
+
+    <physics name='Ordering'>
+        <points> 1 </points>
+        <min> normal </min>
+        <max> normal </max>
+        <true> normal </true>
+    </physics>
+</NeutrinoOscillations>
+
+</Analysis>

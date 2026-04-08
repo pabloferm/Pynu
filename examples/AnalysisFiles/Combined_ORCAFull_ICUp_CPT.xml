@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Combined ORCA-Full + IceCube Upgrade CPT Sensitivity Analysis
+ORCA-Full: event-by-event MC (5x_with_interm.csv), 3yr exposure
+ICUpgrade: public MC data release v01_00, 10yr exposure
+Shared flux systematics, no detector systematics, no muon background.
+Dm231 and Dm231_bar set externally by CPT analysis script.
+-->
+<Analysis>
+
+<!-- ======================================================================= -->
+<!-- Atmospheric Flux Systematics (shared across both experiments) -->
+<!-- ======================================================================= -->
+<NeutrinoSource name="Atmospheric">
+    <status> 1 </status>
+
+    <nuisance name='normalization_below1GeV'>
+        <status> 1 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='normalization_above1GeV'>
+        <status> 1 </status>
+        <sigma> 0.15 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='tilt'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='nunubar_ratio'>
+        <status> 1 </status>
+        <sigma> 0.02 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='flavor_ratio'>
+        <status> 1 </status>
+        <sigma> 0.05 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='zenith_up'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='zenith_down'>
+        <status> 1 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 0.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoSource>
+
+<!-- ======================================================================= -->
+<!-- Cross-Section Systematics (Water/Ice target) -->
+<!-- ======================================================================= -->
+<NeutrinoTarget name="Water">
+    <status> 1 </status>
+
+    <nuisance name='XSecNuTau'>
+        <status> 0 </status>
+        <sigma> 0.25 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+
+    <nuisance name='NCoverCC'>
+        <status> 0 </status>
+        <sigma> 0.2 </sigma>
+        <nominal> 1.0 </nominal>
+        <distribution> normal </distribution>
+    </nuisance>
+</NeutrinoTarget>
+
+<!-- ======================================================================= -->
+<!-- ORCA-Full Event MC Detector Configuration -->
+<!-- ======================================================================= -->
+<NeutrinoExperiment name="ORCAFullEvtMC">
+    <status> 1 </status>
+    <target name="Water"> </target>
+
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/Pynu/data/ORCAFullEvtMC/ORCA_full_evtmc.csv'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 3.0 </exposure>
+        <MCexposure> 5.0 </MCexposure>
+        <DataFiles name='dummy'>
+            <status> 0 </status>
+        </DataFiles>
+    </source>
+</NeutrinoExperiment>
+
+<!-- ======================================================================= -->
+<!-- IceCube Upgrade Detector Configuration -->
+<!-- ======================================================================= -->
+<NeutrinoExperiment name="ICUpgrade">
+    <status> 1 </status>
+    <target name="Water"> </target>
+
+    <source name='Atmospheric'>
+        <status> 1 </status>
+        <MCFiles name='/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/IceCubeUpgradeNeutrinoMCDataRelease-2/events/neutrino_mc.csv'>
+            <status> 1 </status>
+        </MCFiles>
+        <exposure> 10.0 </exposure>
+        <MCexposure> 1.0 </MCexposure>
+        <DataFiles name='none'>
+            <status> 0 </status>
+        </DataFiles>
+    </source>
+</NeutrinoExperiment>
+
+<!-- ======================================================================= -->
+<!-- Physics Scenario: 3-flavor CPT Oscillations (separate nu/nubar Dm231) -->
+<!-- ======================================================================= -->
+<NeutrinoOscillations name="3-Osc-CPT">
+    <status> 1 </status>
+    <flavors> 3 </flavors>
+
+    <fixed name='Sin2Theta12'>
+        <status> 1 </status>
+        <value> 0.303 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta13'>
+        <status> 1 </status>
+        <value> 0.022 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta23'>
+        <status> 1 </status>
+        <value> 0.572 </value>
+    </fixed>
+
+    <fixed name='Dm221'>
+        <status> 1 </status>
+        <value> 7.41e-5 </value>
+    </fixed>
+
+    <fixed name='dCP'>
+        <status> 1 </status>
+        <value> 1.36 </value>
+    </fixed>
+
+    <physics name='Dm231'>
+        <points> 2 </points>
+        <min> 2.3e-3 </min>
+        <max> 2.7e-3 </max>
+        <true> 2.511e-3 </true>
+    </physics>
+
+    <physics name='Ordering'>
+        <points> 1 </points>
+        <min> normal </min>
+        <max> normal </max>
+        <true> normal </true>
+    </physics>
+</NeutrinoOscillations>
+
+</Analysis>
