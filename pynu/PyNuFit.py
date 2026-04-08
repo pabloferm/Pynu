@@ -544,6 +544,22 @@ class PyNuFit:
 
         return np.diag(I)
 
+    def _llh_chi2(self, expectation, nuisance, mc_var=None):
+        """Call LLH.stats_and_systematics, passing mc_var only if the LLH supports it.
+
+        Barlow-Beeston accepts an optional ``mc_variance`` argument; the standard
+        binned/unbinned LLR classes do not. This wrapper hides that asymmetry.
+        """
+        if mc_var is not None and hasattr(self.LLH, 'set_mc_variance'):
+            return self.LLH.stats_and_systematics(expectation, nuisance, mc_var)
+        return self.LLH.stats_and_systematics(expectation, nuisance)
+
+    def _llh_grad(self, expectation, diff_expectation, nuisance, mc_var=None):
+        """Call LLH.gradient, passing mc_var only if the LLH supports it."""
+        if mc_var is not None and hasattr(self.LLH, 'set_mc_variance'):
+            return self.LLH.gradient(expectation, diff_expectation, nuisance, mc_var)
+        return self.LLH.gradient(expectation, diff_expectation, nuisance)
+
     def model_tester_and_gradient(self, nuisance_vector):
         if self.verbosity:
             print(
@@ -566,10 +582,10 @@ class PyNuFit:
             self.LLH.set_mc_variance(mc_var)
         if hasattr(self.LLH, 'set_muon_background') and muon_bkg is not None:
             self.LLH.set_muon_background(muon_bkg)
-        Chi2 = self.LLH.stats_and_systematics(self.Expectation, nuisance_vector, mc_var)
+        Chi2 = self._llh_chi2(self.Expectation, nuisance_vector, mc_var)
 
         """ The gradient of the above """
-        D_Chi2 = self.LLH.gradient(
+        D_Chi2 = self._llh_grad(
             self.Expectation, self.DiffExpectation, nuisance_vector, mc_var
         )
 
@@ -584,7 +600,7 @@ class PyNuFit:
 
         """ Get -2 ln(H/H0) ~ χ2 """
         mc_var = getattr(self, 'MCVariance', None)
-        return self.LLH.stats_and_systematics(self.Expectation, nuisance_vector, mc_var)
+        return self._llh_chi2(self.Expectation, nuisance_vector, mc_var)
 
     def model_tester_gradient(self, nuisance_vector):
         """Compute expected and its derivatives"""
@@ -595,7 +611,7 @@ class PyNuFit:
 
         """ The gradient of the above """
         mc_var = getattr(self, 'MCVariance', None)
-        return self.LLH.gradient(
+        return self._llh_grad(
             self.Expectation, self.DiffExpectation, nuisance_vector, mc_var
         )
 
@@ -654,7 +670,7 @@ class PyNuFit:
                 # No marginalization - just evaluate with nominal nuisance
                 self.ComputeBinnedExpectation(0, physics=False)
                 mc_var = getattr(self, 'MCVariance', None)
-                chi2_profile[i] = self.LLH.stats_and_systematics(
+                chi2_profile[i] = self._llh_chi2(
                     self.Expectation, self.Analysis.NuisNominalList, mc_var
                 )
                 best_fit_nuisance.append({})
@@ -672,7 +688,7 @@ class PyNuFit:
                     # Recompute expectation
                     self.ComputeBinnedExpectation(0, physics=False)
                     mc_var = getattr(self, 'MCVariance', None)
-                    return self.LLH.stats_and_systematics(
+                    return self._llh_chi2(
                         self.Expectation, self.Analysis.NuisNominalList, mc_var
                     )
 
@@ -778,7 +794,7 @@ class PyNuFit:
                     # No marginalization
                     self.ComputeBinnedExpectation(0, physics=False)
                     mc_var = getattr(self, 'MCVariance', None)
-                    chi2_grid[i, j] = self.LLH.stats_and_systematics(
+                    chi2_grid[i, j] = self._llh_chi2(
                         self.Expectation, self.Analysis.NuisNominalList, mc_var
                     )
                 else:
@@ -788,7 +804,7 @@ class PyNuFit:
                                 pt.OscillationTunes.UpdateParameter(param_name, margin_vals[k])
                         self.ComputeBinnedExpectation(0, physics=False)
                         mc_var = getattr(self, 'MCVariance', None)
-                        return self.LLH.stats_and_systematics(
+                        return self._llh_chi2(
                             self.Expectation, self.Analysis.NuisNominalList, mc_var
                         )
 
