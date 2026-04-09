@@ -19,8 +19,8 @@ from datetime import datetime
 from scipy.optimize import minimize
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
-PYNU_DIR = os.path.join(BASE_DIR, 'Pynu')
+PYNU_DIR = os.path.join(SCRIPT_DIR, "..", "..")
+PYNU_DIR = os.path.abspath(PYNU_DIR)
 
 if PYNU_DIR not in sys.path:
     sys.path.insert(0, PYNU_DIR)
