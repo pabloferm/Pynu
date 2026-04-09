@@ -141,3 +141,9 @@ dmypy.json
 
 # Parquet MC files (regenerated via utils/data_prep)
 *.parquet
+
+# Exceptions: small/medium data files needed to run analyses
+!data/IceCube/hs_*.csv
+!data/IceCube/IC_data.parquet
+!data/IceCube/IC_MC.parquet
+!data/ORCAFull/ORCA_full_MC.parquet
