@@ -54,7 +54,7 @@ class BinnedLogLikelihoodRatio:
             #for oo, ee in zip(O, E):
             #    print(f"{oo}, {ee}")
             if np.any(E) <= 0:
-                X2 = 9e9
+                return 9e9
                 # sys.exit("Negative number of events. Please check the physics tunes you are using (printing their value might help).")
             X2 += np.sum(E - O + O * np.log(O / E))
         return 2 * X2
