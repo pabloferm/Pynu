@@ -12,6 +12,33 @@ sys.path.append("../")
 
 
 class SuperK_Combined(Tune):
+    def _rate_weight(self, experiment):
+        """Physics-weighted, pre-detector-nuisance per-event expected rate.
+
+        BaseWeight*PhysicsWeight. Weighted-rate basis for rate-conserving migration
+        ratios r (Newtrinos/PE `get_double_factor` convention) in place of raw event
+        counts. Independent of the detector nuisance vector, so the paired diff_*
+        derivatives (which treat r as constant) remain exact.
+        """
+        return experiment.BaseWeight * experiment.PhysicsWeight
+
+    def _migration_ratio(self, experiment, donor, acceptor):
+        """Weighted-rate ratio r = rate(donor samples) / rate(acceptor samples).
+
+        `donor`/`acceptor` may be a scalar sample id or a list of ids.
+        """
+        import numpy as np
+        W = self._rate_weight(experiment)
+        n0 = np.sum(W[np.isin(experiment.Sample, np.atleast_1d(donor))])
+        n1 = np.sum(W[np.isin(experiment.Sample, np.atleast_1d(acceptor))])
+        return n0 / n1
+
+    def _mask_ratio(self, experiment, mask0, mask1):
+        """Weighted-rate ratio r from boolean event masks (used by neutron_tagging)."""
+        import numpy as np
+        W = self._rate_weight(experiment)
+        return np.sum(W[mask0]) / np.sum(W[mask1])
+
     def energy_scale(self, experiment, x):
         """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.energy_scale`."""
         for sample in experiment.Samples:
@@ -328,9 +355,7 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 1e-3
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == 10)
-        n1 = np.sum(experiment.Sample == 11)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, 10, 11)
         mr[experiment.Sample == 10] = x
         mr[experiment.Sample == 11] = 1 + r * (1 - x)
         return mr
@@ -349,9 +374,7 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 0
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == 10)
-        n1 = np.sum(experiment.Sample == 11)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, 10, 11)
         mr[experiment.Sample == 10] = 1
         mr[experiment.Sample == 11] = -r
         return mr
@@ -373,13 +396,7 @@ class SuperK_Combined(Tune):
         e2 = 13
         mu = 12
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = (
-            np.sum(experiment.Sample == e0)
-            + np.sum(experiment.Sample == e1)
-            + np.sum(experiment.Sample == e2)
-        )
-        n1 = np.sum(experiment.Sample == mu)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, [e0, e1, e2], mu)
         mr[experiment.Sample == e0] = x
         mr[experiment.Sample == e1] = x
         mr[experiment.Sample == e2] = x
@@ -406,13 +423,7 @@ class SuperK_Combined(Tune):
         e2 = 13
         mu = 12
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = (
-            np.sum(experiment.Sample == e0)
-            + np.sum(experiment.Sample == e1)
-            + np.sum(experiment.Sample == e2)
-        )
-        n1 = np.sum(experiment.Sample == mu)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, [e0, e1, e2], mu)
         mr[experiment.Sample == e0] = 1
         mr[experiment.Sample == e1] = 1
         mr[experiment.Sample == e2] = 1
@@ -438,11 +449,7 @@ class SuperK_Combined(Tune):
         e1 = 11
         o0 = 13
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == e0) + np.sum(
-            experiment.Sample == e1
-        )
-        n1 = np.sum(experiment.Sample == o0)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, [e0, e1], o0)
         mr[experiment.Sample == e0] = x
         mr[experiment.Sample == e1] = x
         mr[experiment.Sample == o0] = 1 + r * (1 - x)
@@ -465,11 +472,7 @@ class SuperK_Combined(Tune):
         e1 = 11
         o0 = 13
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == e0) + np.sum(
-            experiment.Sample == e1
-        )
-        n1 = np.sum(experiment.Sample == o0)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, [e0, e1], o0)
         mr[experiment.Sample == e0] = 1
         mr[experiment.Sample == e1] = 1
         mr[experiment.Sample == o0] = -r
@@ -490,9 +493,7 @@ class SuperK_Combined(Tune):
         pcs = 14
         pct = 15
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == pcs)
-        n1 = np.sum(experiment.Sample == pct)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, pcs, pct)
         mr[experiment.Sample == pcs] = x
         mr[experiment.Sample == pct] = 1 + r * (1 - x)
         return mr
@@ -513,9 +514,7 @@ class SuperK_Combined(Tune):
         pcs = 14
         pct = 15
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == pcs)
-        n1 = np.sum(experiment.Sample == pct)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, pcs, pct)
         mr[experiment.Sample == pcs] = 1
         mr[experiment.Sample == pct] = -r
         return mr
@@ -535,9 +534,7 @@ class SuperK_Combined(Tune):
         r1 = 2
         r2 = 6
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == r1)
-        n1 = np.sum(experiment.Sample == r2)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, r1, r2)
         mr[experiment.Sample == r1] = x
         mr[experiment.Sample == r2] = 1 + r * (1 - x)
         return mr
@@ -558,9 +555,7 @@ class SuperK_Combined(Tune):
         r1 = 2
         r2 = 6
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == r1)
-        n1 = np.sum(experiment.Sample == r2)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, r1, r2)
         mr[experiment.Sample == r1] = 1
         mr[experiment.Sample == r2] = -r
         return mr
@@ -580,13 +575,7 @@ class SuperK_Combined(Tune):
         r1 = [0, 1, 7, 8, 19, 20, 21]
         r2 = [10, 11, 13, 24, 25, 26]
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = sum(
-            np.sum(experiment.Sample == sample) for sample in r1
-        )
-        n1 = sum(
-            np.sum(experiment.Sample == sample) for sample in r2
-        )
-        r = n0 / n1
+        r = self._migration_ratio(experiment, r1, r2)
         for sample in r1:
             mr[experiment.Sample == sample] = x
         for sample in r2:
@@ -609,13 +598,7 @@ class SuperK_Combined(Tune):
         r1 = [0, 1, 7, 8, 19, 20, 21]
         r2 = [10, 11, 13, 24, 25, 26]
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = sum(
-            np.sum(experiment.Sample == sample) for sample in r1
-        )
-        n1 = sum(
-            np.sum(experiment.Sample == sample) for sample in r2
-        )
-        r = n0 / n1
+        r = self._migration_ratio(experiment, r1, r2)
         for sample in r1:
             mr[experiment.Sample == sample] = 1
         for sample in r2:
@@ -637,13 +620,7 @@ class SuperK_Combined(Tune):
         r1 = [3, 4, 5, 9, 22, 23, 27, 28]
         r2 = [12]
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = sum(
-            np.sum(experiment.Sample == sample) for sample in r1
-        )
-        n1 = sum(
-            np.sum(experiment.Sample == sample) for sample in r2
-        )
-        r = n0 / n1
+        r = self._migration_ratio(experiment, r1, r2)
         for sample in r1:
             mr[experiment.Sample == sample] = x
         for sample in r2:
@@ -666,13 +643,7 @@ class SuperK_Combined(Tune):
         r1 = [3, 4, 5, 9, 22, 23, 27, 28]
         r2 = [12]
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = sum(
-            np.sum(experiment.Sample == sample) for sample in r1
-        )
-        n1 = sum(
-            np.sum(experiment.Sample == sample) for sample in r2
-        )
-        r = n0 / n1
+        r = self._migration_ratio(experiment, r1, r2)
         for sample in r1:
             mr[experiment.Sample == sample] = 1
         for sample in r2:
@@ -694,11 +665,7 @@ class SuperK_Combined(Tune):
         e = [0, 1, 7, 8, 19, 20, 21, 24, 25, 26]
         mu = [3, 4, 5, 9, 22, 23, 27, 28]
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = sum(np.sum(experiment.Sample == sample) for sample in e)
-        n1 = sum(
-            np.sum(experiment.Sample == sample) for sample in mu
-        )
-        r = n0 / n1
+        r = self._migration_ratio(experiment, e, mu)
         for sample in e:
             mr[experiment.Sample == sample] = x
         for sample in mu:
@@ -725,9 +692,7 @@ class SuperK_Combined(Tune):
         e = [0, 1, 7, 8, 19, 20, 21, 24, 25, 26]
         mu = [3, 4, 5, 9, 22, 23, 27, 28]
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = sum(np.sum(experiment.Sample == sample) for sample in e)
-        n1 = sum(np.sum(experiment.Sample == sample) for sample in mu)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, e, mu)
         for sample in e:
             mr[experiment.Sample == sample] = 1
         for sample in mu:
@@ -753,9 +718,7 @@ class SuperK_Combined(Tune):
         e = [10, 11, 13]
         mu = [12]
         mr = np.ones(experiment.NumberOfEvents)
-        n0 = sum(np.sum(experiment.Sample == sample) for sample in e)
-        n1 = sum(np.sum(experiment.Sample == sample) for sample in mu)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, e, mu)
         for sample in e:
             mr[experiment.Sample == sample] = x
         for sample in mu:
@@ -782,9 +745,7 @@ class SuperK_Combined(Tune):
         e = [10, 11, 13]
         mu = [12]
         mr = np.zeros(experiment.NumberOfEvents)
-        n0 = sum(np.sum(experiment.Sample == sample) for sample in e)
-        n1 = sum(np.sum(experiment.Sample == sample) for sample in mu)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, e, mu)
         for sample in e:
             mr[experiment.Sample == sample] = 1
         for sample in mu:
@@ -818,9 +779,7 @@ class SuperK_Combined(Tune):
             | (experiment.Sample == 23)
             | (experiment.Sample == 28)
         )
-        n0 = np.sum(nn0)
-        n1 = np.sum(nn1)
-        r = n0 / n1
+        r = self._mask_ratio(experiment, nn0, nn1)
         nn[nn0] = x
         nn[nn1] = 1 + r * (1 - x)
         return nn
@@ -851,9 +810,7 @@ class SuperK_Combined(Tune):
             | (experiment.Sample == 23)
             | (experiment.Sample == 28)
         )
-        n0 = np.sum(nn0)
-        n1 = np.sum(nn1)
-        r = n0 / n1
+        r = self._mask_ratio(experiment, nn0, nn1)
         nn[nn0] = 1
         nn[nn1] = -r
         return nn
@@ -871,9 +828,10 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 1e-3
         mue = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.DecayE < 1)
-        n1 = np.sum((experiment.DecayE >= 1) & (experiment.DecayE < 2))
-        n2 = np.sum(experiment.DecayE >= 2)
+        W = self._rate_weight(experiment)
+        n0 = np.sum(W[experiment.DecayE < 1])
+        n1 = np.sum(W[(experiment.DecayE >= 1) & (experiment.DecayE < 2)])
+        n2 = np.sum(W[experiment.DecayE >= 2])
         N = n0 + n1 + n2
         r0 = n0 / N
         r1 = n1 / N
@@ -900,9 +858,10 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 0
         mue = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.DecayE < 1)
-        n1 = np.sum((experiment.DecayE >= 1) & (experiment.DecayE < 2))
-        n2 = np.sum(experiment.DecayE >= 2)
+        W = self._rate_weight(experiment)
+        n0 = np.sum(W[experiment.DecayE < 1])
+        n1 = np.sum(W[(experiment.DecayE >= 1) & (experiment.DecayE < 2)])
+        n2 = np.sum(W[experiment.DecayE >= 2])
         N = n0 + n1 + n2
         r0 = n0 / N
         r1 = n1 / N
@@ -919,9 +878,7 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 1e-3
         um = np.ones(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == 18)
-        n1 = np.sum(experiment.Sample == 17)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, 18, 17)
         if self._unphysical_value(1 + r * (1 - x)):
             return 1e-3
         um[experiment.Sample == 18] = x
@@ -932,9 +889,7 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 0
         um = np.zeros(experiment.NumberOfEvents)
-        n0 = np.sum(experiment.Sample == 18)
-        n1 = np.sum(experiment.Sample == 17)
-        r = n0 / n1
+        r = self._migration_ratio(experiment, 18, 17)
         if self._unphysical_value(1 + r * (1 - x)):
             return 0
         um[experiment.Sample == 18] = 1
