@@ -307,7 +307,14 @@ class SuperK_2023(SuperK):
         self.nuPDG = self.MC["ipnu"]#[sample_condition]
         self.ETrue = self.MC["pnu"]#[sample_condition]
         self.Weight = self.MC["inv_flux"]#[sample_condition]
-        self.WMC = self.MC["weight_genMC"]#[sample_condition] * self.MC["weight_tune"]#[sample_condition]
+        # Finding 3 fix: apply weight_tune. The inline comment previously disabled it,
+        # so WMC was weight_genMC only. weight_tune is present in the production *_x50*
+        # MC; fall back to 1.0 if a given h5 lacks it (mirrors the Mode handling below).
+        try:
+            weight_tune = self.MC["weight_tune"]
+        except (KeyError, ValueError):
+            weight_tune = 1.0
+        self.WMC = self.MC["weight_genMC"] * weight_tune
         self.Sample = self.MC["itype"]#[sample_condition]  # Sample of each event
         self.Bin = self.MC["bin_number"]#[sample_condition]
         self.wno = self.MC["w_no"]#[sample_condition]
@@ -420,7 +427,9 @@ class SuperK_2023(SuperK):
         """Compute MC statistical variance for Barlow-Beeston."""
         safe_weight_sq = np.where(self.Weight != 0, self.Weight**2, 1.0)
         relative_var = np.where(self.Weight != 0, self.WeightVariance / safe_weight_sq, 0.0)
-        var_weights = (array * self.Weight * self.NORM)**2 * relative_var
+        # Finding 2 fix: include WMC so sigma^2_MC matches the model weight
+        # BaseWeight = Weight*NORM*WMC; otherwise tau = sigma^2/N^2 is mis-scaled by 1/<WMC^2>.
+        var_weights = (array * self.Weight * self.NORM * self.WMC)**2 * relative_var
 
         variance_binned = []
         for m in self.Samples:
