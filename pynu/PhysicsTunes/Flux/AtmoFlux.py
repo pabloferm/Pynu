@@ -292,3 +292,60 @@ class AtmosphericFlux(Tune):
             np.tanh(experiment.CosZTrue[experiment.CosZTrue >= 0]) ** 2
         )
         return zenith
+
+    @staticmethod
+    def _barr_zenith_envelope(etrue):
+        r"""Barr up/down flux-ratio uncertainty envelope (fractional, 1-sigma).
+
+        $\mathrm{env}(E) = 0.07 / (1 + (E/0.5\,\mathrm{GeV})^2)$ — fit to Barr &
+        Robbins, as used by Newtrinos.jl (`atm_flux.jl:391`): 3.5% at 0.5 GeV,
+        1.4% at 1 GeV, <0.1% above ~5 GeV. The envelope carries the physical
+        scale, so the nuisance prior is N(0, 1).
+        """
+        return 0.07 / (1.0 + (etrue / 0.5) ** 2)
+
+    def barr_zenith(self, experiment, x):
+        r"""Barr-style energy-damped up/down flux asymmetry (PE/Newtrinos.jl form).
+
+        $w(E, \cos\theta_z; x) = (1 + \mathrm{env}(E)\,x)^{\tanh(3\cos\theta_z)}$
+
+        Up-going flux is scaled by ~$(1+\mathrm{env}\,x)$ and down-going by its
+        inverse (rate-preserving across the horizon), with a smooth
+        $\tanh(3\cos\theta_z)$ transition — NOTE this deliberately also moves the
+        down-going side by the reciprocal factor, unlike the one-sided
+        `zenith_up`/`zenith_down` dials it is meant to replace. Mirrors
+        Newtrinos.jl `updown()` (`atm_flux.jl:332-338`) with
+        $r = 1 + \mathrm{env}(E)\,x$.
+
+        Args:
+            x (float): Value of the tuning parameter (nominal 0, prior N(0,1)).
+            experiment: Experiment class with per-event `ETrue`, `CosZTrue`.
+
+        Returns:
+            Numpy.array with the per-event weights from this tune.
+        """
+        env = self._barr_zenith_envelope(experiment.ETrue)
+        r = 1.0 + env * x
+        if np.any(r <= 0):
+            return 1e-3 * np.ones(experiment.NumberOfEvents)
+        return r ** np.tanh(3.0 * experiment.CosZTrue)
+
+    def diff_barr_zenith(self, experiment, x):
+        r"""Derivative of `barr_zenith` w.r.t. the tuning parameter.
+
+        $\frac{dw}{dx} = \tanh(3\cos\theta_z)\,\mathrm{env}(E)\,
+        (1 + \mathrm{env}(E)\,x)^{\tanh(3\cos\theta_z) - 1}$
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment: Experiment class with per-event `ETrue`, `CosZTrue`.
+
+        Returns:
+            Numpy.array with the derivative of the `barr_zenith` weights.
+        """
+        env = self._barr_zenith_envelope(experiment.ETrue)
+        r = 1.0 + env * x
+        if np.any(r <= 0):
+            return np.zeros(experiment.NumberOfEvents)
+        t = np.tanh(3.0 * experiment.CosZTrue)
+        return t * env * r ** (t - 1.0)

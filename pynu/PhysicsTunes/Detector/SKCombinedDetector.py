@@ -815,6 +815,53 @@ class SuperK_Combined(Tune):
         nn[nn1] = -r
         return nn
 
+    # --- Era-split neutron tagging (PE/Newtrinos.jl granularity) -------------
+    # Newtrinos.jl uses two independent n-tag efficiency dofs
+    # (sk_iv_v_subgev_neutron_tag_eff, sk_iv_v_multigev_neutron_tag_eff, both
+    # N(1, 0.12); super_k.jl:319-320) where the shared `neutron_tagging` above
+    # ties SubGeV+MGeV (and e-like+mu-like) to one parameter. Same
+    # rate-conserving migration form as `neutron_tagging`, restricted per era.
+    # Sample ids: SubGeV untagged {20 (ebar 0n), 22 (numu)} <-> tagged
+    # {21 (ebar 1n), 23 (numubar)}; MGeV untagged {25, 27} <-> tagged {26, 28}.
+
+    def _neutron_tagging_era(self, experiment, x, s0, s1, diff=False):
+        nn0 = (experiment.Sample == s0[0]) | (experiment.Sample == s0[1])
+        nn1 = (experiment.Sample == s1[0]) | (experiment.Sample == s1[1])
+        r = self._mask_ratio(experiment, nn0, nn1)
+        if diff:
+            nn = np.zeros(experiment.NumberOfEvents)
+            nn[nn0] = 1
+            nn[nn1] = -r
+        else:
+            nn = np.ones(experiment.NumberOfEvents)
+            nn[nn0] = x
+            nn[nn1] = 1 + r * (1 - x)
+        return nn
+
+    def neutron_tagging_subgev(self, experiment, x):
+        """SubGeV-only neutron-tagging efficiency (samples 20/22 <-> 21/23)."""
+        if self._unphysical_value(x):
+            return 1e-3
+        return self._neutron_tagging_era(experiment, x, (20, 22), (21, 23))
+
+    def diff_neutron_tagging_subgev(self, experiment, x):
+        """Derivative of `neutron_tagging_subgev` w.r.t. the tuning parameter."""
+        if self._unphysical_value(x):
+            return 0
+        return self._neutron_tagging_era(experiment, x, (20, 22), (21, 23), diff=True)
+
+    def neutron_tagging_multigev(self, experiment, x):
+        """MGeV-only neutron-tagging efficiency (samples 25/27 <-> 26/28)."""
+        if self._unphysical_value(x):
+            return 1e-3
+        return self._neutron_tagging_era(experiment, x, (25, 27), (26, 28))
+
+    def diff_neutron_tagging_multigev(self, experiment, x):
+        """Derivative of `neutron_tagging_multigev` w.r.t. the tuning parameter."""
+        if self._unphysical_value(x):
+            return 0
+        return self._neutron_tagging_era(experiment, x, (25, 27), (26, 28), diff=True)
+
     def decay_e_tagging(self, experiment, x):
         r"""Method changing the efficiency of decay electron tagging.
 
