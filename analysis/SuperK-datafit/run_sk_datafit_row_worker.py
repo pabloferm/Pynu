@@ -101,7 +101,19 @@ def setup_pynufit_datafit(config):
 
 
 def set_physics_params(pynufit, dm231, sin2theta23, dcp):
-    """Set oscillation parameters and recompute weights."""
+    """Set oscillation parameters and recompute weights.
+
+    PhysicsWeight is RESET (StartPhysics) before ApplyOscillations so that the
+    oscillated flux is applied exactly once. ApplyOscillations multiplies onto the
+    existing PhysicsWeight (PyNuFit.ApplyOscillations -> UpdatePhysicsWeights), so a
+    caller that runs setup_pynufit_datafit() (which leaves PhysicsWeight = Phi_osc(NOM))
+    and then calls this without a StartPhysics() would get PhysicsWeight =
+    Phi_osc(NOM) * Phi_osc(point) -- a double-application that crushes the CC model by
+    ~Phi_osc (and is invisible to NC, which is force-set to 1). The fit loop already
+    resets per dcp, but standalone callers (extraction/diagnostic scripts) did not;
+    resetting here makes the helper correct for every caller. The extra StartPhysics
+    is a no-op for the loop-callers, so the fit result is bit-identical.
+    """
     for name, pt in pynufit.physics_tunes.items():
         pt.OscillationTunes.Parameters["Dm231"] = dm231
         if "Dm231_bar" in pt.OscillationTunes.Parameters:
@@ -111,39 +123,51 @@ def set_physics_params(pynufit, dm231, sin2theta23, dcp):
         if hasattr(pt.OscillationTunes, 'reset_cache'):
             pt.OscillationTunes.reset_cache()
 
+    pynufit.StartPhysics()
     pynufit.ApplyOscillations("Physics")
 
 
 def minimize_nuisance(pynufit, x0, sigma, bounds):
-    """Minimize chi2 over nuisance parameters at current physics point."""
-    def objective(nuisance):
+    """Minimize chi2 over nuisance parameters at current physics point.
+
+    Finding 1 fix: the expectation, Barlow-Beeston MC variance, and the analytic
+    Jacobian (DiffExpectation) are all refreshed at the CURRENT nuisance point on every
+    evaluation, instead of being frozen at x0 (variance) / nominal (Jacobian). Note the
+    previous code called ComputeBinnedDiffExpectation() with no argument, which defaults
+    to NuisNominalList -> the Jacobian was evaluated at nominal, not the current point.
+
+    The analytic gradient is valid (no finite differences) because the SK migration
+    ratio r is nuisance-independent (r from BaseWeight*PhysicsWeight), so the
+    diff_* derivatives (-r) are exact. f and g share one expectation build via jac=True.
+    """
+    def obj_and_grad(nuisance):
         pynufit.StartNuisance()
         pynufit.ApplyNuisanceWeights(nuisance)
         pynufit.SetExpectedWeights()
         pynufit.SetBinnedExpectedEvents()
-        return pynufit.LLH.stats_and_systematics(
+        pynufit.SetBinnedMCVariance()                                   # refresh variance @ current point
+        pynufit.LLH.set_mc_variance(pynufit.MCVariance)
+        pynufit.ComputeBinnedDiffExpectation(nuisance_vector=nuisance)  # refresh Jacobian @ current point
+        f = pynufit.LLH.stats_and_systematics(
             pynufit.Expectation, nuisance, pynufit.MCVariance
         )
-
-    def gradient(nuisance):
-        return pynufit.LLH.gradient(
+        g = pynufit.LLH.gradient(
             pynufit.Expectation, pynufit.DiffExpectation, nuisance, pynufit.MCVariance
         )
+        return f, g
 
-    # Prepare differential expectation for gradient
+    # initial stat-only chi2 for tolerance scaling
     pynufit.StartNuisance()
     pynufit.ApplyNuisanceWeights(x0)
     pynufit.SetExpectedWeights()
     pynufit.SetBinnedExpectedEvents()
     pynufit.SetBinnedMCVariance()
-    pynufit.ComputeBinnedDiffExpectation()
-
     chi2_stat = pynufit.LLH.stats_only(pynufit.Expectation, pynufit.MCVariance)
     tol_adj = max(1e-5, np.sqrt(max(chi2_stat, 0)) * 1e-5)
 
     result = minimize(
-        objective, x0,
-        method='L-BFGS-B', jac=gradient, bounds=bounds,
+        obj_and_grad, x0,
+        method='L-BFGS-B', jac=True, bounds=bounds,
         options={'ftol': tol_adj, 'gtol': 1e-5, 'maxiter': 200}
     )
 
