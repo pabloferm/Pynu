@@ -51,11 +51,13 @@ class BinnedLogLikelihoodRatio:
         """
         X2: float = 0
         for O, E in zip(self.observation.values(), expectation.values()):
-            #for oo, ee in zip(O, E):
-            #    print(f"{oo}, {ee}")
-            if np.any(E) <= 0:
+            # Guard non-positive expectations: bare Poisson has no per-bin Barlow-Beeston
+            # beta to keep bins positive, so a nuisance step can drive a bin's model <= 0,
+            # and O*log(O/E) would be NaN -> the minimizer hangs. Penalize heavily so
+            # L-BFGS-B rejects the step. (Was `np.any(E) <= 0`, a no-op typo for
+            # `np.any(E <= 0)`.)
+            if np.any(E <= 0):
                 return 9e9
-                # sys.exit("Negative number of events. Please check the physics tunes you are using (printing their value might help).")
             X2 += np.sum(E - O + O * np.log(O / E))
         return 2 * X2
 
