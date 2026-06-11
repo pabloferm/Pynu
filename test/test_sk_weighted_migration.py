@@ -97,9 +97,26 @@ def test_diff_matches_minus_r():
     assert np.isclose(d[exp.Sample == 10][0], 1.0), "diff donor != 1"
 
 
+def test_raw_basis_backcompat():
+    """MIGRATION_BASIS='raw' reproduces the original raw-count ratios exactly."""
+    sk, exp = SuperK_Combined(), make_mock()
+    x = 0.8
+    old_basis = SuperK_Combined.MIGRATION_BASIS
+    try:
+        SuperK_Combined.MIGRATION_BASIS = "raw"
+        mr = np.asarray(sk.multiring_nunubar_separation(exp, x), dtype=float)
+    finally:
+        SuperK_Combined.MIGRATION_BASIS = old_basis
+    r_raw = np.sum(exp.Sample == 10) / np.sum(exp.Sample == 11)
+    assert np.isclose(mr[exp.Sample == 11][0], 1 + r_raw * (1 - x)), \
+        "raw basis: acceptor factor != 1 + r_raw*(1-x)"
+    assert np.isclose(mr[exp.Sample == 10][0], x), "raw basis: donor factor must be x"
+
+
 if __name__ == "__main__":
     tests = [test_control_unity_at_nominal, test_weighted_ratio_not_raw,
-             test_weighted_rate_conserved, test_diff_matches_minus_r]
+             test_weighted_rate_conserved, test_diff_matches_minus_r,
+             test_raw_basis_backcompat]
     failed = 0
     for t in tests:
         try:

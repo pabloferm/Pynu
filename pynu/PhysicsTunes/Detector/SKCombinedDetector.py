@@ -2,6 +2,7 @@ from ..PhysicsTunes import Tune
 
 import numpy as np
 
+import os
 import sys
 
 sys.path.append("../")
@@ -12,14 +13,29 @@ sys.path.append("../")
 
 
 class SuperK_Combined(Tune):
-    def _rate_weight(self, experiment):
-        """Physics-weighted, pre-detector-nuisance per-event expected rate.
+    #: Rate basis for the migration ratios r (and decay-e fractions):
+    #:   "weighted" (default) -- expected rates, W = BaseWeight*PhysicsWeight
+    #:                           (Newtrinos/PE `get_double_factor` convention)
+    #:   "raw"                -- unweighted MC event counts (pre-2026 behavior)
+    #: Select via the PYNU_SK_MIGRATION_BASIS environment variable (read at
+    #: import time) or set SuperK_Combined.MIGRATION_BASIS = "raw" before the
+    #: fit. Both bases are nuisance-independent, so the analytic diff_*
+    #: derivatives stay exact either way.
+    MIGRATION_BASIS = os.environ.get("PYNU_SK_MIGRATION_BASIS", "weighted")
 
-        BaseWeight*PhysicsWeight. Weighted-rate basis for rate-conserving migration
-        ratios r (Newtrinos/PE `get_double_factor` convention) in place of raw event
-        counts. Independent of the detector nuisance vector, so the paired diff_*
-        derivatives (which treat r as constant) remain exact.
+    def _rate_weight(self, experiment):
+        """Per-event rate basis for migration ratios, per MIGRATION_BASIS.
+
+        Default "weighted": BaseWeight*PhysicsWeight, the physics-weighted,
+        pre-detector-nuisance per-event expected rate -- rate-conserving
+        migration ratios r in place of raw event counts. "raw": ones, which
+        reduces every sum to an unweighted event count, reproducing the
+        original implementation exactly. Either basis is independent of the
+        detector nuisance vector, so the paired diff_* derivatives (which
+        treat r as constant) remain exact.
         """
+        if str(self.MIGRATION_BASIS).lower() == "raw":
+            return np.ones(experiment.NumberOfEvents)
         return experiment.BaseWeight * experiment.PhysicsWeight
 
     def _migration_ratio(self, experiment, donor, acceptor):
