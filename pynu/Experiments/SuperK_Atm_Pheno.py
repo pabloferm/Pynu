@@ -303,15 +303,12 @@ class SuperK_2023(SuperK):
         self.CosZReco = self.MC["recodirZ"]#[sample_condition]
         self.CosZTrue = self.MC["dirnuZ"]#[sample_condition]
         #self.AziTrue = self.MC["azi"]#[sample_condition]
-        #self.Mode = self.MC["mode"]#[sample_condition]
-        #self.CC = np.abs(self.Mode) < 30
         self.current = self.MC["current"].astype(str) #[sample_condition]
         self.nuPDG = self.MC["ipnu"]#[sample_condition]
         self.ETrue = self.MC["pnu"]#[sample_condition]
         self.Weight = self.MC["inv_flux"]#[sample_condition]
         self.WMC = self.MC["weight_genMC"]#[sample_condition] * self.MC["weight_tune"]#[sample_condition]
         self.Sample = self.MC["itype"]#[sample_condition]  # Sample of each event
-        #self.DecayE = self.MC["muedk"]#[sample_condition]
         self.Bin = self.MC["bin_number"]#[sample_condition]
         self.wno = self.MC["w_no"]#[sample_condition]
 
@@ -326,10 +323,14 @@ class SuperK_2023(SuperK):
         self.E_edges = [self.Erec_min, self.Erec_max]
         self.Z_edges = [-1, 1]
 
-        self.CC = np.full(self.NumberOfEvents, True)
-        self.CC[self.current != "CC"] = False
-        # No mode/interaction_type in this h5 — set zeros for safety
-        self.Mode = np.zeros(self.NumberOfEvents, dtype=int)
+        # Handle both |S3 ('CC'/'NC') and |S1 ('C'/'N') current-type encodings
+        cc_mask = np.array([c.startswith("C") for c in self.current])
+        self.CC = cc_mask
+        # NEUT mode (signed) — present in *_allvariables.h5; fall back to zeros if absent.
+        try:
+            self.Mode = self.MC["mode"].astype(int)
+        except (KeyError, ValueError):
+            self.Mode = np.zeros(self.NumberOfEvents, dtype=int)
 
         # NC weight fix: use w_no for NC events instead of inv_flux.
         # inv_flux is the raw inverse generation flux — it only gives physical
