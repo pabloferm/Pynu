@@ -57,13 +57,53 @@ class SuperK_Combined(Tune):
 
     def energy_scale(self, experiment, x):
         """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.energy_scale`."""
+        escale = np.ones(experiment.NumberOfEvents)
         for sample in experiment.Samples:
-            pass
+            ebins = experiment.EnergyBins[sample]
+            if len(ebins)>1:
+                for i in range(ebins.size):
+                    if i==0 and x<0:
+                        pass # do nothing if lowest bin and shift is negative
+                    elif (i==ebins.size-1) and (x>0):
+                        pass # do nothing if highest bin and shift is positive
+                    else: # energy migration
+                        bin_cut = (experiment.EReco >= ebins[i]) * (experiment.EReco >= ebins[i+1]) # select events with energy in bin
+                        events_in_bin = np.sum(bin_cut)
+                        escale[bin_cut] = 1 + x
+                        if x>0: # shifts energy upwards and so does the event migration
+                            bin_cut_above = (experiment.EReco >= ebins[i+1]) * (experiment.EReco >= ebins[i+2]) # select events with energy in bin
+                            events_in_bin_above = np.sum(bin_cut_above)
+                            escale[bin_cut_above] = 1 - x * events_in_bin / events_in_bin_above
+                        elif x<=0: # shifts energy upwards and so does the event migration
+                            bin_cut_below = (experiment.EReco >= ebins[i-1]) * (experiment.EReco >= ebins[i]) # select events with energy in bin
+                            events_in_bin_below = np.sum(bin_cut_below)
+                            escale[bin_cut_below] = 1 - x * events_in_bin / events_in_bin_below
+        return escale
             
-
     def diff_energy_scale(self, experiment, x):
         """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_energy_scale`."""
-        return SuperK.diff_energy_scale(experiment, x)
+        escale = np.zeros(experiment.NumberOfEvents)
+        for sample in experiment.Samples:
+            ebins = experiment.EnergyBins[sample]
+            if len(ebins)>1:
+                for i in range(ebins.size):
+                    if i==0 and x<0:
+                        pass # do nothing if lowest bin and shift is negative
+                    elif (i==ebins.size-1) and (x>0):
+                        pass # do nothing if highest bin and shift is positive
+                    else: # energy migration
+                        bin_cut = (experiment.EReco >= ebins[i]) * (experiment.EReco >= ebins[i+1]) # select events with energy in bin
+                        events_in_bin = np.sum(bin_cut)
+                        escale[bin_cut] = 1
+                        if x>0: # shifts energy upwards and so does the event migration
+                            bin_cut_above = (experiment.EReco >= ebins[i+1]) * (experiment.EReco >= ebins[i+2]) # select events with energy in bin
+                            events_in_bin_above = np.sum(bin_cut_above)
+                            escale[bin_cut_above] = events_in_bin / events_in_bin_above
+                        elif x<=0: # shifts energy upwards and so does the event migration
+                            bin_cut_below = (experiment.EReco >= ebins[i-1]) * (experiment.EReco >= ebins[i]) # select events with energy in bin
+                            events_in_bin_below = np.sum(bin_cut_below)
+                            escale[bin_cut_below] = events_in_bin / events_in_bin_below
+        return escale
 
     def fiducial_volume(self, experiment, x):
         r"""Method changing the efficiency of the fiducial volume cut.
