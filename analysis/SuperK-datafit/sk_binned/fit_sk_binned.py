@@ -50,9 +50,9 @@ def fit_point(model, phi_dcp, min_entries=-1.0, x0=None, profile_dcp=True):
     order = range(len(dcps)) if profile_dcp else [0]
     for i in order:
         phi = phi_dcp[i]
-        res = minimize(lambda v: model.chi2(phi, v, min_entries), x_warm,
-                       method="L-BFGS-B", bounds=bounds,
-                       options=dict(maxiter=500, ftol=1e-10))
+        res = minimize(lambda v: model.chi2_and_grad(phi, v, min_entries), x_warm,
+                       method="L-BFGS-B", jac=True, bounds=bounds,
+                       options=dict(maxiter=500, ftol=1e-7, gtol=1e-5))
         if res.fun < best["chi2"]:
             best = dict(chi2=float(res.fun),
                         dcp=(float(dcps[i]) if dcps[i] is not None else None),

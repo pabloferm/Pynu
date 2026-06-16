@@ -11,10 +11,13 @@
 #
 # Runs fit_sk_binned.py --grid: the full 15x15 (Dm231 x sin2th23) scan in ONE
 # process, profiling dCP over the 13 precomputed values and minimizing all XML
-# nuisances, warm-starting the nuisance vector across the grid. ~1 hr for the
-# 225 points (the numpy fit phase is memory-bandwidth-bound). This is a SINGLE
-# (non-array) job by design -- the warm-start chaining is sequential, so do NOT
-# fan it out per-point.
+# nuisances, warm-starting the nuisance vector across the grid. The L-BFGS-B fit
+# uses the model's ANALYTIC gradient (chi2_and_grad, jac=True): ~30 s per cold
+# grid point (faster warm-started), ~1-2 hr for the 225 points. (Without the
+# analytic gradient L-BFGS-B finite-differences the 42-dial vector, never
+# satisfies its tolerance, and burns its eval cap -> hours per point.) This is a
+# SINGLE (non-array) job by design -- the warm-start chaining is sequential, so
+# do NOT fan it out per-point.
 #
 # PREREQUISITE: run submit_sk_binned_build.sh first to produce the build
 # artifacts this consumes: ${OUT}/sk_response.npz + ${OUT}/osc_tensors/.

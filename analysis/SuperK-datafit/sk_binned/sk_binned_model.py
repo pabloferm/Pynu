@@ -284,3 +284,136 @@ class SKBinnedModel:
         stats = np.sum(E - O) + np.sum(O[nz] * np.log(O[nz] / E[nz]))
         penalty = np.sum(((vec - self.nominal) / self.sigma) ** 2)
         return 2.0 * stats + penalty
+
+    def chi2_and_grad(self, phi, vec, min_entries=-1.0):
+        """Eq.10 chi2 AND its analytic gradient w.r.t. the nuisance vector, for
+        scipy.optimize.minimize(jac=True). Returns (chi2, grad).
+
+        The expectation is bilinear in the dials:
+            n_b = d_b(x_det) * (Reff(es)^T w_full(x_flux,x_xsec,x_axial))_b,
+        Reff = R + ((es-1)/0.04)(Rp - Rm)  -- the energy-scale tilt folded in
+        exactly (n*(1+fij*delta) = n_raw*d + delta*(Rp-Rm)^T w * d / 0.04 for
+        n>0), and the migration ratios r are CONSTANT in the dials (set by the
+        physics-only rate n_phys). So every dial is a single multiplicative
+        factor: d(log factor)/d(dial) gives the gradient from one forward and
+        one adjoint sparse matvec plus O(cells) reductions. Value matches chi2()
+        on the kept bins (where n>0); verified against finite differences.
+        """
+        vec = np.asarray(vec, float)
+        gx = self.vec_to_dict(vec)
+        w_full_flat, w_phys_flat = self._cell_weights(phi, gx)
+        w_full = w_full_flat.reshape(self.n_cls, self.nE, self.nZ)
+        n_phys = self.R.T.dot(w_phys_flat)
+        d = self._detector_factors(n_phys, gx)
+
+        baseR = self.R.T.dot(w_full_flat)
+        es_on = self.energy_scale_enabled and "energy_scale" in gx
+        if es_on:
+            delta = gx["energy_scale"] - 1.0
+            dR = self.Rp.T.dot(w_full_flat) - self.Rm.T.dot(w_full_flat)
+            M = baseR + (delta / 0.04) * dR if delta != 0.0 else baseR
+        else:
+            delta = 0.0; dR = None; M = baseR
+        n = M * d
+
+        o = self.observed
+        m = o > min_entries
+        E, O = n[m], o[m]
+        if np.any(E <= 0):
+            return 9e9, np.zeros_like(vec)
+        nz = O > 0
+        stats = np.sum(E - O) + np.sum(O[nz] * np.log(O[nz] / E[nz]))
+        penalty = np.sum(((vec - self.nominal) / self.sigma) ** 2)
+        chi2 = 2.0 * stats + penalty
+
+        # dchi2/dn_b on kept bins (0 elsewhere): 2*(1 - O/E)
+        g = np.zeros(self.n_bins)
+        g[m] = 2.0 * (1.0 - np.where(O > 0, O / E, 0.0))
+        gd = g * d
+        gn = g * n
+
+        grad = 2.0 * (vec - self.nominal) / self.sigma ** 2   # penalty term
+        idx = {nm: i for i, nm in enumerate(self.nuis_names)}
+
+        def add(name, val):
+            if name in idx:
+                grad[idx[name]] += float(val)
+
+        # ---- cell-level dials (flux/xsec/axial): adjoint G = Reff @ (g*d)
+        Gcell = self.R.dot(gd)
+        if es_on and delta != 0.0:
+            Gcell = Gcell + (delta / 0.04) * (self.Rp.dot(gd) - self.Rm.dot(gd))
+        A = Gcell.reshape(self.n_cls, self.nE, self.nZ) * w_full
+        A_ez = A.sum(axis=0)                       # (nE, nZ): all-class factors
+        Zc = self.z_c[None, :]
+
+        if "normalization_below1GeV" in gx:
+            add("normalization_below1GeV",
+                A_ez[self.e_c < 1.0, :].sum() / gx["normalization_below1GeV"])
+        if "normalization_above1GeV" in gx:
+            add("normalization_above1GeV",
+                A_ez[self.e_c > 1.0, :].sum() / gx["normalization_above1GeV"])
+        if "tilt" in gx:
+            add("tilt", (A_ez * np.log(self.e_c[:, None] / 10.0)).sum())
+        if "zenith_up" in gx:
+            t = np.where(Zc < 0, -np.tanh(Zc) ** 2
+                         / (1.0 - gx["zenith_up"] * np.tanh(Zc) ** 2), 0.0)
+            add("zenith_up", (A_ez * t).sum())
+        if "zenith_down" in gx:
+            t = np.where(Zc >= 0, -np.tanh(Zc) ** 2
+                         / (1.0 - gx["zenith_down"] * np.tanh(Zc) ** 2), 0.0)
+            add("zenith_down", (A_ez * t).sum())
+        if "barr_zenith" in gx:
+            env = 0.07 / (1.0 + (self.e_c / 0.5) ** 2)
+            t = np.tanh(3.0 * Zc) * env[:, None] / (1.0 + env[:, None] * gx["barr_zenith"])
+            add("barr_zenith", (A_ez * t).sum())
+
+        if "nunubar_ratio" in gx:
+            add("nunubar_ratio", A[self.cls_pdg < 0].sum() / gx["nunubar_ratio"])
+        if "flavor_ratio" in gx:
+            add("flavor_ratio",
+                A[np.abs(self.cls_pdg) == 12].sum() / gx["flavor_ratio"])
+        for j, name in enumerate(XSEC_FLAT):
+            if name in gx and self.cls_bits[:, j].any():
+                add(name, A[self.cls_bits[:, j]].sum() / gx[name])
+        if "AxialMass" in gx:
+            denom = 1.0 + 0.042 * (gx["AxialMass"] - 1.0) * 1.05 * self.log10_ec
+            t = 0.042 * 1.05 * self.log10_ec / denom
+            A_cc_ez = A[self.cls_cc.astype(bool)].sum(axis=0)   # (nE, nZ)
+            add("AxialMass", (A_cc_ez * t[:, None]).sum())
+
+        # ---- detector dials (operate on d only): dn_b = n_b * dlog(factor)
+        for name, samp in NORM_TUNES.items():
+            if name not in gx:
+                continue
+            if samp == "ALL":
+                sel = np.ones(self.n_bins, bool)
+            else:
+                sl = self.fc_samples if samp == "FC" else samp
+                sel = np.isin(self.bin_sample, sl)
+            add(name, gn[sel].sum() / gx[name])
+        for name, (don, acc) in MIGRATION_TUNES.items():
+            if name not in gx:
+                continue
+            xv = gx[name]
+            if name == "multiring_pid" and abs(1.0 - xv) < 1e-4:
+                continue                            # snapped to 1 -> locally flat
+            seld = np.isin(self.bin_sample, don)
+            sela = np.isin(self.bin_sample, acc)
+            r = n_phys[seld].sum() / n_phys[sela].sum()
+            add(name, gn[seld].sum() / xv
+                + gn[sela].sum() * (-r / (1.0 + r * (1.0 - xv))))
+        if "fcpc_separation" in gx and self.sample_counts is not None:
+            xv = gx["fcpc_separation"]
+            wfc = sum(self.sample_counts[s] for s in self.fc_samples)
+            wpc = sum(self.sample_counts[s] for s in PC_SAMPLES)
+            y = ((wpc + wfc) - xv * wfc) / wpc
+            selfc = np.isin(self.bin_sample, self.fc_samples)
+            selpc = np.isin(self.bin_sample, PC_SAMPLES)
+            add("fcpc_separation", gn[selfc].sum() / xv
+                + gn[selpc].sum() * ((-wfc / wpc) / y))
+
+        if es_on:
+            grad[idx["energy_scale"]] += float((gd * dR).sum()) / 0.04
+
+        return chi2, grad
