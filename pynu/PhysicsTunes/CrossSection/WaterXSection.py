@@ -110,6 +110,49 @@ class WaterXSection(Tune):
         w[cond] = 1
         return w
 
+    def CC_2p2h(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        cc_2p2h = np.ones(experiment.NumberOfEvents)
+        cc_2p2h[np.abs(experiment.Mode) == 2] = x
+        return cc_2p2h
+
+    def diff_CC_2p2h(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        cc_2p2h = np.zeros(experiment.NumberOfEvents)
+        cc_2p2h[np.abs(experiment.Mode) == 2] = 1
+        return cc_2p2h
+
+    def CC_2p2hNuBarNu(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        cc_2p2h = np.ones(experiment.NumberOfEvents)
+        cc_2p2h[experiment.Mode == -2] = x
+        return cc_2p2h
+
+    def diff_CC_2p2hNuBarNu(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        cc_2p2h = np.zeros(experiment.NumberOfEvents)
+        cc_2p2h[experiment.Mode == -2] = 1
+        return cc_2p2h
+
+    def diff_CC_2p2hNuBarNu(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        cc_2p2h = np.zeros(experiment.NumberOfEvents)
+        cc_2p2h[experiment.Mode == -1] = 1
+        return cc_2p2h
+
+    def CC_2p2hMuE(self, experiment, x):
+        if self._unphysical_value(x):
+            return 0
+        cc_2p2h = np.ones(experiment.NumberOfEvents)
+        cond = (np.abs(experiment.Mode) == 1) * (np.abs(experiment.nuPDG) == 14)
+        cc_2p2h[cond] = x
+        return cc_2p2h
+
     def CCQE(self, experiment, x):
         if self._unphysical_value(x):
             return 0
