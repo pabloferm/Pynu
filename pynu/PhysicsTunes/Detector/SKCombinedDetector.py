@@ -1723,7 +1723,7 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 1e-3
         um = np.ones(experiment.NumberOfEvents)
-        um[experiment.Sample == 16] = x
+        um[(experiment.Sample == 16) * (experiment.CosZReco>-0.1)] = x
         return um
 
     def diff_upmu_stop_bkg(self, experiment, x):
@@ -1777,14 +1777,14 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 1e-3
         um = np.ones(experiment.NumberOfEvents)
-        um[experiment.Sample == 18] = x
+        um[(experiment.Sample == 18) * (experiment.CosZReco>-0.1)] = x
         return um
 
     def diff_upmu_showering_bkg(self, experiment, x):
         if self._unphysical_value(x):
             return 0
         um = np.zeros(experiment.NumberOfEvents)
-        um[experiment.Sample == 18] = 1
+        um[(experiment.Sample == 18) * (experiment.CosZReco>-0.1)] = 1
         return um
 
     def upmu_showering_bkg_sk1(self, experiment, x):
@@ -1831,14 +1831,14 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(x):
             return 1e-3
         um = np.ones(experiment.NumberOfEvents)
-        um[experiment.Sample == 17] = x
+        um[(experiment.Sample == 17) * (experiment.CosZReco>-0.1)] = x
         return um
 
     def diff_upmu_nonshowering_bkg(self, experiment, x):
         if self._unphysical_value(x):
             return 0
         um = np.zeros(experiment.NumberOfEvents)
-        um[experiment.Sample == 17] = 1
+        um[(experiment.Sample == 17) * (experiment.CosZReco>-0.1)] = 1
         return um
 
     def upmu_nonshowering_bkg_sk1(self, experiment, x):
