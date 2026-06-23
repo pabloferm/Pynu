@@ -9,6 +9,17 @@ import numpy as np
 class AtmosphericFlux(Tune):
     """Class containing the tunes for the atmospheric neutrino flux."""
 
+    def solar_activity(self, experiment, x):
+        w = np.ones(experiment.NumberOfEvents)
+        w = 1.0 - x * 0.08 * np.exp(-experiment.ETrue / 3.0)
+        return w
+
+    def diff_solar_activity(self, experiment, x):
+        w = np.ones(experiment.NumberOfEvents)
+        w = - 0.08 * np.exp(-experiment.ETrue / 3.0)
+        return w
+
+
     def normalization(self, experiment, x):
         r"""Method for modifying the atmospheric flux normalization.
 

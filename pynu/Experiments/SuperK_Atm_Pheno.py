@@ -41,6 +41,7 @@ class SuperK(Experiment):
         self.Weight = self.MC["weightReco"][condition] * self.MC["weightSim"][condition]
         self.Sample = self.MC["itype"][condition]  # Sample of each event
         self.DecayE = self.MC["muedk"][condition]
+        self.SKPhase = self.MC["sk_phase"][condition]
 
         self.NumberOfEvents = self.Sample.size
         self.Samples = np.unique(self.Sample)  # Samples in the analysis

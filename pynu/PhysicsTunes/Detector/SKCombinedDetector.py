@@ -105,6 +105,46 @@ class SuperK_Combined(Tune):
                             escale[bin_cut_below] = events_in_bin / events_in_bin_below
         return escale
 
+    def energy_scale_sk1(self, experiment, x):
+        w = self.energy_scale(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_energy_scale_sk1(self, experiment, x):
+        w = self.diff_energy_scale(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def energy_scale_sk2(self, experiment, x):
+        w = self.energy_scale(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_energy_scale_sk2(self, experiment, x):
+        w = self.diff_energy_scale(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def energy_scale_sk3(self, experiment, x):
+        w = self.energy_scale(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_energy_scale_sk3(self, experiment, x):
+        w = self.diff_energy_scale(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def energy_scale_sk45(self, experiment, x):
+        w = self.energy_scale(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_energy_scale_sk45(self, experiment, x):
+        w = self.diff_energy_scale(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def fiducial_volume(self, experiment, x):
         r"""Method changing the efficiency of the fiducial volume cut.
         NOTE: Currently, it applies a normalization factor on all events. More precise implementation coming soon.
@@ -169,6 +209,46 @@ class SuperK_Combined(Tune):
             pi02r[experiment.Sample == 6] = 1
         return pi02r
 
+    def subgev_2ring_pi0_sk1(self, experiment, x):
+        w = self.subgev_2ring_pi0(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_subgev_2ring_pi0_sk1(self, experiment, x):
+        w = self.diff_subgev_2ring_pi0(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def subgev_2ring_pi0_sk2(self, experiment, x):
+        w = self.subgev_2ring_pi0(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_subgev_2ring_pi0_sk2(self, experiment, x):
+        w = self.diff_subgev_2ring_pi0(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def subgev_2ring_pi0_sk3(self, experiment, x):
+        w = self.subgev_2ring_pi0(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_subgev_2ring_pi0_sk3(self, experiment, x):
+        w = self.diff_subgev_2ring_pi0(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def subgev_2ring_pi0_sk45(self, experiment, x):
+        w = self.subgev_2ring_pi0(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_subgev_2ring_pi0_sk45(self, experiment, x):
+        w = self.diff_subgev_2ring_pi0(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def fcpc_separation(self, experiment, x):
         r"""Method changing the efficiency of the fully and partially-contained events in SK.
 
@@ -230,6 +310,46 @@ class SuperK_Combined(Tune):
 
         return fcpc
 
+    def fcpc_separation_sk1(self, experiment, x):
+        w = self.fcpc_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_fcpc_separation_sk1(self, experiment, x):
+        w = self.diff_fcpc_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def fcpc_separation_sk2(self, experiment, x):
+        w = self.fcpc_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_fcpc_separation_sk2(self, experiment, x):
+        w = self.diff_fcpc_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def fcpc_separation_sk3(self, experiment, x):
+        w = self.fcpc_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_fcpc_separation_sk3(self, experiment, x):
+        w = self.diff_fcpc_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def fcpc_separation_sk45(self, experiment, x):
+        w = self.fcpc_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_fcpc_separation_sk45(self, experiment, x):
+        w = self.diff_fcpc_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def fc_reduction(self, experiment, x):
         r"""Method changing the efficiency of the fully-contained events reduction in SK.
 
@@ -273,6 +393,46 @@ class SuperK_Combined(Tune):
 
         return fc
 
+    def fc_reduction_sk1(self, experiment, x):
+        w = self.fc_reduction(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_fc_reduction_sk1(self, experiment, x):
+        w = self.diff_fc_reduction(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def fc_reduction_sk2(self, experiment, x):
+        w = self.fc_reduction(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_fc_reduction_sk2(self, experiment, x):
+        w = self.diff_fc_reduction(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def fc_reduction_sk3(self, experiment, x):
+        w = self.fc_reduction(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_fc_reduction_sk3(self, experiment, x):
+        w = self.diff_fc_reduction(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def fc_reduction_sk45(self, experiment, x):
+        w = self.fc_reduction(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_fc_reduction_sk45(self, experiment, x):
+        w = self.diff_fc_reduction(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def pc_reduction(self, experiment, x):
         r"""Method changing the efficiency of the partially-contained events reduction in SK.
 
@@ -310,6 +470,46 @@ class SuperK_Combined(Tune):
             w[pc] = 1
         return w
 
+    def pc_reduction_sk1(self, experiment, x):
+        w = self.pc_reduction(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_pc_reduction_sk1(self, experiment, x):
+        w = self.diff_pc_reduction(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def pc_reduction_sk2(self, experiment, x):
+        w = self.pc_reduction(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_pc_reduction_sk2(self, experiment, x):
+        w = self.diff_pc_reduction(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def pc_reduction_sk3(self, experiment, x):
+        w = self.pc_reduction(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_pc_reduction_sk3(self, experiment, x):
+        w = self.diff_pc_reduction(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def pc_reduction_sk45(self, experiment, x):
+        w = self.pc_reduction(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_pc_reduction_sk45(self, experiment, x):
+        w = self.diff_pc_reduction(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def subgev_1ring_pi0(self, experiment, x):
         r"""Method changing the fraction of single-ring $\pi^0$-like events.
 
@@ -344,6 +544,46 @@ class SuperK_Combined(Tune):
         pi01r[experiment.Sample == 2] = 1
         return pi01r
 
+    def subgev_1ring_pi0_sk1(self, experiment, x):
+        w = self.subgev_1ring_pi0(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_subgev_1ring_pi0_sk1(self, experiment, x):
+        w = self.diff_subgev_1ring_pi0(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def subgev_1ring_pi0_sk2(self, experiment, x):
+        w = self.subgev_1ring_pi0(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_subgev_1ring_pi0_sk2(self, experiment, x):
+        w = self.diff_subgev_1ring_pi0(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def subgev_1ring_pi0_sk3(self, experiment, x):
+        w = self.subgev_1ring_pi0(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_subgev_1ring_pi0_sk3(self, experiment, x):
+        w = self.diff_subgev_1ring_pi0(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def subgev_1ring_pi0_sk45(self, experiment, x):
+        w = self.subgev_1ring_pi0(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_subgev_1ring_pi0_sk45(self, experiment, x):
+        w = self.diff_subgev_1ring_pi0(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def mre_nonubkg(self, experiment, x):
         if self._unphysical_value(x):
             return 1e-3
@@ -368,6 +608,46 @@ class SuperK_Combined(Tune):
             | (experiment.Sample == 13)
         )
         w[mge] = 1
+        return w
+
+    def mre_nonubkg_sk1(self, experiment, x):
+        w = self.mre_nonubkg(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_mre_nonubkg_sk1(self, experiment, x):
+        w = self.diff_mre_nonubkg(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def mre_nonubkg_sk2(self, experiment, x):
+        w = self.mre_nonubkg(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_mre_nonubkg_sk2(self, experiment, x):
+        w = self.diff_mre_nonubkg(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def mre_nonubkg_sk3(self, experiment, x):
+        w = self.mre_nonubkg(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_mre_nonubkg_sk3(self, experiment, x):
+        w = self.diff_mre_nonubkg(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def mre_nonubkg_sk45(self, experiment, x):
+        w = self.mre_nonubkg(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_mre_nonubkg_sk45(self, experiment, x):
+        w = self.diff_mre_nonubkg(experiment, x)
+        w[experiment.SKPhase < 4] = 0
         return w
 
     def mge_nonubkg(self, experiment, x):
@@ -396,6 +676,46 @@ class SuperK_Combined(Tune):
             | (experiment.Sample == 26)
         )
         w[mge] = 1
+        return w
+
+    def mge_nonubkg_sk1(self, experiment, x):
+        w = self.mge_nonubkg(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_mge_nonubkg_sk1(self, experiment, x):
+        w = self.diff_mge_nonubkg(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def mge_nonubkg_sk2(self, experiment, x):
+        w = self.mge_nonubkg(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_mge_nonubkg_sk2(self, experiment, x):
+        w = self.diff_mge_nonubkg(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def mge_nonubkg_sk3(self, experiment, x):
+        w = self.mge_nonubkg(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_mge_nonubkg_sk3(self, experiment, x):
+        w = self.diff_mge_nonubkg(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def mge_nonubkg_sk45(self, experiment, x):
+        w = self.mge_nonubkg(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_mge_nonubkg_sk45(self, experiment, x):
+        w = self.diff_mge_nonubkg(experiment, x)
+        w[experiment.SKPhase < 4] = 0
         return w
 
     def multiring_nunubar_separation(self, experiment, x):
@@ -434,6 +754,46 @@ class SuperK_Combined(Tune):
         mr[experiment.Sample == 10] = 1
         mr[experiment.Sample == 11] = -r
         return mr
+
+    def multiring_nunubar_separation_sk1(self, experiment, x):
+        w = self.multiring_nunubar_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_multiring_nunubar_separation_sk1(self, experiment, x):
+        w = self.diff_multiring_nunubar_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def multiring_nunubar_separation_sk2(self, experiment, x):
+        w = self.multiring_nunubar_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_multiring_nunubar_separation_sk2(self, experiment, x):
+        w = self.diff_multiring_nunubar_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def multiring_nunubar_separation_sk3(self, experiment, x):
+        w = self.multiring_nunubar_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_multiring_nunubar_separation_sk3(self, experiment, x):
+        w = self.diff_multiring_nunubar_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def multiring_nunubar_separation_sk45(self, experiment, x):
+        w = self.multiring_nunubar_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_multiring_nunubar_separation_sk45(self, experiment, x):
+        w = self.diff_multiring_nunubar_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
 
     def multiring_emu_separation(self, experiment, x):
         r"""Method changing the efficiency of electron-muon separation in multi-ring events.
@@ -488,6 +848,46 @@ class SuperK_Combined(Tune):
             return 0
         return mr
 
+    def multiring_emu_separation_sk1(self, experiment, x):
+        w = self.multiring_emu_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_multiring_emu_separation_sk1(self, experiment, x):
+        w = self.diff_multiring_emu_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def multiring_emu_separation_sk2(self, experiment, x):
+        w = self.multiring_emu_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_multiring_emu_separation_sk2(self, experiment, x):
+        w = self.diff_multiring_emu_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def multiring_emu_separation_sk3(self, experiment, x):
+        w = self.multiring_emu_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_multiring_emu_separation_sk3(self, experiment, x):
+        w = self.diff_multiring_emu_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def multiring_emu_separation_sk45(self, experiment, x):
+        w = self.multiring_emu_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_multiring_emu_separation_sk45(self, experiment, x):
+        w = self.diff_multiring_emu_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def multiring_eother_separation(self, experiment, x):
         r"""Method changing the efficiency of electron neutrinos interacting charged-current and neutral-current
         interactions in multi-ring events.
@@ -534,6 +934,46 @@ class SuperK_Combined(Tune):
         mr[experiment.Sample == o0] = -r
         return mr
 
+    def multiring_eother_separation_sk1(self, experiment, x):
+        w = self.multiring_eother_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_multiring_eother_separation_sk1(self, experiment, x):
+        w = self.diff_multiring_eother_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def multiring_eother_separation_sk2(self, experiment, x):
+        w = self.multiring_eother_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_multiring_eother_separation_sk2(self, experiment, x):
+        w = self.diff_multiring_eother_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def multiring_eother_separation_sk3(self, experiment, x):
+        w = self.multiring_eother_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_multiring_eother_separation_sk3(self, experiment, x):
+        w = self.diff_multiring_eother_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def multiring_eother_separation_sk45(self, experiment, x):
+        w = self.multiring_eother_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_multiring_eother_separation_sk45(self, experiment, x):
+        w = self.diff_multiring_eother_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def pc_stopthru_separation(self, experiment, x):
         r"""Method changing the efficiency of pc-StopThru separation.
 
@@ -575,6 +1015,46 @@ class SuperK_Combined(Tune):
         mr[experiment.Sample == pct] = -r
         return mr
 
+    def pc_stopthru_separation_sk1(self, experiment, x):
+        w = self.pc_stopthru_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_pc_stopthru_separation_sk1(self, experiment, x):
+        w = self.diff_pc_stopthru_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def pc_stopthru_separation_sk2(self, experiment, x):
+        w = self.pc_stopthru_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_pc_stopthru_separation_sk2(self, experiment, x):
+        w = self.diff_pc_stopthru_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def pc_stopthru_separation_sk3(self, experiment, x):
+        w = self.pc_stopthru_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_pc_stopthru_separation_sk3(self, experiment, x):
+        w = self.diff_pc_stopthru_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def pc_stopthru_separation_sk45(self, experiment, x):
+        w = self.pc_stopthru_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_pc_stopthru_separation_sk45(self, experiment, x):
+        w = self.diff_pc_stopthru_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def pi0_ring_separation(self, experiment, x):
         r"""Method changing the efficiency of ring separation in the $\pi^0\rightarrow 2\gamma$ decay.
 
@@ -615,6 +1095,46 @@ class SuperK_Combined(Tune):
         mr[experiment.Sample == r1] = 1
         mr[experiment.Sample == r2] = -r
         return mr
+
+    def pi0_ring_separation_sk1(self, experiment, x):
+        w = self.pi0_ring_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_pi0_ring_separation_sk1(self, experiment, x):
+        w = self.diff_pi0_ring_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def pi0_ring_separation_sk2(self, experiment, x):
+        w = self.pi0_ring_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_pi0_ring_separation_sk2(self, experiment, x):
+        w = self.diff_pi0_ring_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def pi0_ring_separation_sk3(self, experiment, x):
+        w = self.pi0_ring_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_pi0_ring_separation_sk3(self, experiment, x):
+        w = self.diff_pi0_ring_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def pi0_ring_separation_sk45(self, experiment, x):
+        w = self.pi0_ring_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_pi0_ring_separation_sk45(self, experiment, x):
+        w = self.diff_pi0_ring_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
 
     def e_ring_separation(self, experiment, x):
         r"""Method changing the efficiency of detecting e-like rings.
@@ -661,6 +1181,46 @@ class SuperK_Combined(Tune):
             mr[experiment.Sample == sample] = -r
         return mr
 
+    def e_ring_separation_sk1(self, experiment, x):
+        w = self.e_ring_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_e_ring_separation_sk1(self, experiment, x):
+        w = self.diff_e_ring_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def e_ring_separation_sk2(self, experiment, x):
+        w = self.e_ring_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_e_ring_separation_sk2(self, experiment, x):
+        w = self.diff_e_ring_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def e_ring_separation_sk3(self, experiment, x):
+        w = self.e_ring_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_e_ring_separation_sk3(self, experiment, x):
+        w = self.diff_e_ring_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def e_ring_separation_sk45(self, experiment, x):
+        w = self.e_ring_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_e_ring_separation_sk45(self, experiment, x):
+        w = self.diff_e_ring_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def mu_ring_separation(self, experiment, x):
         r"""Method changing the efficiency of detecting $\mu$-like rings.
 
@@ -705,6 +1265,46 @@ class SuperK_Combined(Tune):
         for sample in r2:
             mr[experiment.Sample == sample] = -r
         return mr
+
+    def mu_ring_separation_sk1(self, experiment, x):
+        w = self.mu_ring_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_mu_ring_separation_sk1(self, experiment, x):
+        w = self.diff_mu_ring_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def mu_ring_separation_sk2(self, experiment, x):
+        w = self.mu_ring_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_mu_ring_separation_sk2(self, experiment, x):
+        w = self.diff_mu_ring_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def mu_ring_separation_sk3(self, experiment, x):
+        w = self.mu_ring_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_mu_ring_separation_sk3(self, experiment, x):
+        w = self.diff_mu_ring_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def mu_ring_separation_sk45(self, experiment, x):
+        w = self.mu_ring_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_mu_ring_separation_sk45(self, experiment, x):
+        w = self.diff_mu_ring_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
 
     def singlering_pid(self, experiment, x):
         r"""Method changing the particle identification efficiency of single-ring events.
@@ -756,6 +1356,46 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(1 + r * (1 - x)):
             return 0
         return mr
+
+    def singlering_pid_sk1(self, experiment, x):
+        w = self.singlering_pid(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_singlering_pid_sk1(self, experiment, x):
+        w = self.diff_singlering_pid(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def singlering_pid_sk2(self, experiment, x):
+        w = self.singlering_pid(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_singlering_pid_sk2(self, experiment, x):
+        w = self.diff_singlering_pid(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def singlering_pid_sk3(self, experiment, x):
+        w = self.singlering_pid(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_singlering_pid_sk3(self, experiment, x):
+        w = self.diff_singlering_pid(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def singlering_pid_sk45(self, experiment, x):
+        w = self.singlering_pid(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_singlering_pid_sk45(self, experiment, x):
+        w = self.diff_singlering_pid(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
 
     def multiring_pid(self, experiment, x):
         r"""Method changing the particle identification efficiency of multi-ring events.
@@ -809,6 +1449,46 @@ class SuperK_Combined(Tune):
         if self._unphysical_value(1 + r * (1 - x)):
             return 0
         return mr
+
+    def multiring_pid_sk1(self, experiment, x):
+        w = self.multiring_pid(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_multiring_pid_sk1(self, experiment, x):
+        w = self.diff_multiring_pid(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def multiring_pid_sk2(self, experiment, x):
+        w = self.multiring_pid(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_multiring_pid_sk2(self, experiment, x):
+        w = self.diff_multiring_pid(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def multiring_pid_sk3(self, experiment, x):
+        w = self.multiring_pid(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_multiring_pid_sk3(self, experiment, x):
+        w = self.diff_multiring_pid(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def multiring_pid_sk45(self, experiment, x):
+        w = self.multiring_pid(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_multiring_pid_sk45(self, experiment, x):
+        w = self.diff_multiring_pid(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
 
     def neutron_tagging(self, experiment, x):
         r"""Method changing the efficiency of neutron tagging.
@@ -999,6 +1679,46 @@ class SuperK_Combined(Tune):
         um[experiment.Sample == 17] = -r
         return um
 
+    def upmu_shower_separation_sk1(self, experiment, x):
+        w = self.upmu_shower_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_upmu_shower_separation_sk1(self, experiment, x):
+        w = self.diff_upmu_shower_separation(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def upmu_shower_separation_sk2(self, experiment, x):
+        w = self.upmu_shower_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_upmu_shower_separation_sk2(self, experiment, x):
+        w = self.diff_upmu_shower_separation(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def upmu_shower_separation_sk3(self, experiment, x):
+        w = self.upmu_shower_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_upmu_shower_separation_sk3(self, experiment, x):
+        w = self.diff_upmu_shower_separation(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def upmu_shower_separation_sk45(self, experiment, x):
+        w = self.upmu_shower_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_upmu_shower_separation_sk45(self, experiment, x):
+        w = self.diff_upmu_shower_separation(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def upmu_stop_bkg(self, experiment, x):
         if self._unphysical_value(x):
             return 1e-3
@@ -1012,6 +1732,46 @@ class SuperK_Combined(Tune):
         um = np.zeros(experiment.NumberOfEvents)
         um[experiment.Sample == 16] = 1
         return um
+
+    def upmu_stop_bkg_sk1(self, experiment, x):
+        w = self.upmu_stop_bkg(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_upmu_stop_bkg_sk1(self, experiment, x):
+        w = self.diff_upmu_stop_bkg(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def upmu_stop_bkg_sk2(self, experiment, x):
+        w = self.upmu_stop_bkg(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_upmu_stop_bkg_sk2(self, experiment, x):
+        w = self.diff_upmu_stop_bkg(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def upmu_stop_bkg_sk3(self, experiment, x):
+        w = self.upmu_stop_bkg(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_upmu_stop_bkg_sk3(self, experiment, x):
+        w = self.diff_upmu_stop_bkg(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def upmu_stop_bkg_sk45(self, experiment, x):
+        w = self.upmu_stop_bkg(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_upmu_stop_bkg_sk45(self, experiment, x):
+        w = self.diff_upmu_stop_bkg(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
 
     def upmu_showering_bkg(self, experiment, x):
         if self._unphysical_value(x):
@@ -1027,6 +1787,46 @@ class SuperK_Combined(Tune):
         um[experiment.Sample == 18] = 1
         return um
 
+    def upmu_showering_bkg_sk1(self, experiment, x):
+        w = self.upmu_showering_bkg(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_upmu_showering_bkg_sk1(self, experiment, x):
+        w = self.diff_upmu_showering_bkg(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def upmu_showering_bkg_sk2(self, experiment, x):
+        w = self.upmu_showering_bkg(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_upmu_showering_bkg_sk2(self, experiment, x):
+        w = self.diff_upmu_showering_bkg(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def upmu_showering_bkg_sk3(self, experiment, x):
+        w = self.upmu_showering_bkg(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_upmu_showering_bkg_sk3(self, experiment, x):
+        w = self.diff_upmu_showering_bkg(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def upmu_showering_bkg_sk45(self, experiment, x):
+        w = self.upmu_showering_bkg(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_upmu_showering_bkg_sk45(self, experiment, x):
+        w = self.diff_upmu_showering_bkg(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
+
     def upmu_nonshowering_bkg(self, experiment, x):
         if self._unphysical_value(x):
             return 1e-3
@@ -1040,6 +1840,46 @@ class SuperK_Combined(Tune):
         um = np.zeros(experiment.NumberOfEvents)
         um[experiment.Sample == 17] = 1
         return um
+
+    def upmu_nonshowering_bkg_sk1(self, experiment, x):
+        w = self.upmu_nonshowering_bkg(experiment, x)
+        w[experiment.SKPhase != 1] = 1
+        return w
+
+    def diff_upmu_nonshowering_bkg_sk1(self, experiment, x):
+        w = self.diff_upmu_nonshowering_bkg(experiment, x)
+        w[experiment.SKPhase != 1] = 0
+        return w
+
+    def upmu_nonshowering_bkg_sk2(self, experiment, x):
+        w = self.upmu_nonshowering_bkg(experiment, x)
+        w[experiment.SKPhase != 2] = 1
+        return w
+
+    def diff_upmu_nonshowering_bkg_sk2(self, experiment, x):
+        w = self.diff_upmu_nonshowering_bkg(experiment, x)
+        w[experiment.SKPhase != 2] = 0
+        return w
+
+    def upmu_nonshowering_bkg_sk3(self, experiment, x):
+        w = self.upmu_nonshowering_bkg(experiment, x)
+        w[experiment.SKPhase != 3] = 1
+        return w
+
+    def diff_upmu_nonshowering_bkg_sk3(self, experiment, x):
+        w = self.diff_upmu_nonshowering_bkg(experiment, x)
+        w[experiment.SKPhase != 3] = 0
+        return w
+
+    def upmu_nonshowering_bkg_sk45(self, experiment, x):
+        w = self.upmu_nonshowering_bkg(experiment, x)
+        w[experiment.SKPhase < 4] = 1
+        return w
+
+    def diff_upmu_nonshowering_bkg_sk45(self, experiment, x):
+        w = self.diff_upmu_nonshowering_bkg(experiment, x)
+        w[experiment.SKPhase < 4] = 0
+        return w
 
     def subgev_numulike_sk45_mc(self, experiment, x):
         if self._unphysical_value(x):
