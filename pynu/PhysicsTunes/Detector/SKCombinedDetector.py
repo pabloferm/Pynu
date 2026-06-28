@@ -43,7 +43,6 @@ class SuperK_Combined(Tune):
 
         `donor`/`acceptor` may be a scalar sample id or a list of ids.
         """
-        import numpy as np
         W = self._rate_weight(experiment)
         n0 = np.sum(W[np.isin(experiment.Sample, np.atleast_1d(donor))])
         n1 = np.sum(W[np.isin(experiment.Sample, np.atleast_1d(acceptor))])
@@ -53,7 +52,7 @@ class SuperK_Combined(Tune):
         """Weighted-rate ratio r from boolean event masks (used by neutron_tagging)."""
         import numpy as np
         W = self._rate_weight(experiment)
-        return np.sum(W[mask0]) / np.sum(W[mask1])
+        return np.sum(W[mask1]) / np.sum(W[mask0])
 
     def energy_scale(self, experiment, x):
         """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.energy_scale`."""
@@ -268,14 +267,16 @@ class SuperK_Combined(Tune):
 
         wfc = np.sum(fc)
         wpc = np.sum(pc)
+        r = wpc/wfc
 
         if self._unphysical_value(x):
             fcpc[fc] = 1e-3
-            y = (wpc + wfc) / wpc
+            y = 1 + r
             fcpc[pc] = y
         else:
             fcpc[fc] = x
-            y = ((wpc + wfc) - x * wfc) / wpc
+            y = 1 + r*(1-x)
+            # ((wpc + wfc) - x * wfc) / wpc
             fcpc[pc] = y
 
         return fcpc
@@ -305,7 +306,7 @@ class SuperK_Combined(Tune):
             fcpc[pc] = 0
         else:
             fcpc[fc] = 1
-            y = -wfc / wpc
+            y = -wpc / wfc
             fcpc[pc] = y
 
         return fcpc
@@ -1515,9 +1516,9 @@ class SuperK_Combined(Tune):
             | (experiment.Sample == 23)
             | (experiment.Sample == 28)
         )
-        r = self._mask_ratio(experiment, nn0, nn1)
-        nn[nn0] = x
-        nn[nn1] = 1 + r * (1 - x)
+        r = self._mask_ratio(experiment, nn1, nn0)
+        nn[nn1] = x
+        nn[nn0] = 1 + r * (1 - x)
         return nn
 
     def diff_neutron_tagging(self, experiment, x):
@@ -1546,9 +1547,9 @@ class SuperK_Combined(Tune):
             | (experiment.Sample == 23)
             | (experiment.Sample == 28)
         )
-        r = self._mask_ratio(experiment, nn0, nn1)
-        nn[nn0] = 1
-        nn[nn1] = -r
+        r = self._mask_ratio(experiment, nn1, nn0)
+        nn[nn1] = 1
+        nn[nn0] = -r
         return nn
 
     # --- Era-split neutron tagging (PE/Newtrinos.jl granularity) -------------
@@ -1563,15 +1564,15 @@ class SuperK_Combined(Tune):
     def _neutron_tagging_era(self, experiment, x, s0, s1, diff=False):
         nn0 = (experiment.Sample == s0[0]) | (experiment.Sample == s0[1])
         nn1 = (experiment.Sample == s1[0]) | (experiment.Sample == s1[1])
-        r = self._mask_ratio(experiment, nn0, nn1)
+        r = self._mask_ratio(experiment, nn1, nn0)
         if diff:
             nn = np.zeros(experiment.NumberOfEvents)
-            nn[nn0] = 1
-            nn[nn1] = -r
+            nn[nn1] = 1
+            nn[nn0] = -r
         else:
             nn = np.ones(experiment.NumberOfEvents)
-            nn[nn0] = x
-            nn[nn1] = 1 + r * (1 - x)
+            nn[nn1] = x
+            nn[nn0] = 1 + r * (1 - x)
         return nn
 
     def neutron_tagging_subgev(self, experiment, x):
@@ -1598,7 +1599,7 @@ class SuperK_Combined(Tune):
             return 0
         return self._neutron_tagging_era(experiment, x, (25, 27), (26, 28), diff=True)
 
-    def decay_e_tagging(self, experiment, x):
+    def decay_e_tagging_sk1(self, experiment, x):
         r"""Method changing the efficiency of decay electron tagging.
 
         Args:
@@ -1612,50 +1613,371 @@ class SuperK_Combined(Tune):
             return 1e-3
         mue = np.ones(experiment.NumberOfEvents)
         W = self._rate_weight(experiment)
-        n0 = np.sum(W[experiment.DecayE < 1])
-        n1 = np.sum(W[(experiment.DecayE >= 1) & (experiment.DecayE < 2)])
-        n2 = np.sum(W[experiment.DecayE >= 2])
+        # subgev e-like
+        n0 = np.sum(W[(experiment.Sample == 0) & (experiment.SKphase == 1)])
+        n1 = np.sum(W[(experiment.Sample == 1) & (experiment.SKphase == 1)])
+        r = n1/n0
+        mue[(experiment.Sample == 0) & (experiment.SKphase == 1)] = 1 + r+(1-x)
+        mue[(experiment.Sample == 1) & (experiment.SKphase == 1)] = x
+        # multigev e-like
+        n0 = np.sum(W[(experiment.Sample == 8) & (experiment.SKphase == 1)])
+        n1 = np.sum(W[(experiment.Sample == 7) & (experiment.SKphase == 1)])
+        r = n1/n0
+        mue[(experiment.Sample == 8) & (experiment.SKphase == 1)] = 1 + r+(1-x)
+        mue[(experiment.Sample == 7) & (experiment.SKphase == 1)] = x
+        # subgev mu-like
+        n0 = np.sum(W[(experiment.Sample == 3) & (experiment.SKphase == 1)])
+        n1 = np.sum(W[(experiment.Sample == 4) & (experiment.SKphase == 1)])
+        n2 = np.sum(W[(experiment.Sample == 5) & (experiment.SKphase == 1)])
         N = n0 + n1 + n2
         r0 = n0 / N
         r1 = n1 / N
         r2 = n2 / N
         rx1 = x * r1 + 2 * (1 - x) * r2
-        rx2 = x * x * r2 + 2 * (1 - x) * r2
+        rx2 = x * x * r2
         rx0 = 1 - rx1 - rx2
-        mue[experiment.DecayE == 0] = rx0 / r0
-        mue[experiment.DecayE == 1] = rx1 / r1
-        mue[experiment.DecayE > 1] = rx2 / r2
+        mue[(experiment.Sample == 3) & (experiment.SKphase == 1)] = rx0 / r0
+        mue[(experiment.Sample == 4) & (experiment.SKphase == 1)] = rx1 / r1
+        mue[(experiment.Sample == 5) & (experiment.SKphase == 1)] = rx2 / r2
         return mue
 
-    def diff_decay_e_tagging(self, experiment, x):
-        r"""Method for computing the derivative of the weights w.r.t. the decay electron tagging efficiency tuning
-        parameter.
+    def diff_decay_e_tagging_sk1(self, experiment, x):
+        r"""Method changing the efficiency of decay electron tagging.
 
         Args:
             x (float): Value of the tuning parameter.
             experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
 
         Returns:
-            Numpy.array or float with the derivative of the `decay_e_tagging` weights.
+            Numpy.array or float with the weights from this tune.
         """
         if self._unphysical_value(x):
-            return 0
+            return 1e-3
         mue = np.zeros(experiment.NumberOfEvents)
         W = self._rate_weight(experiment)
-        n0 = np.sum(W[experiment.DecayE < 1])
-        n1 = np.sum(W[(experiment.DecayE >= 1) & (experiment.DecayE < 2)])
-        n2 = np.sum(W[experiment.DecayE >= 2])
+        # subgev e-like
+        n0 = np.sum(W[(experiment.Sample == 0) & (experiment.SKphase == 1)])
+        n1 = np.sum(W[(experiment.Sample == 1) & (experiment.SKphase == 1)])
+        r = n1/n0
+        mue[(experiment.Sample == 0) & (experiment.SKphase == 1)] = -r
+        mue[(experiment.Sample == 1) & (experiment.SKphase == 1)] = 1
+        # multigev e-like
+        n0 = np.sum(W[(experiment.Sample == 8) & (experiment.SKphase == 1)])
+        n1 = np.sum(W[(experiment.Sample == 7) & (experiment.SKphase == 1)])
+        r = n1/n0
+        mue[(experiment.Sample == 8) & (experiment.SKphase == 1)] = -r
+        mue[(experiment.Sample == 7) & (experiment.SKphase == 1)] = 1
+        # subgev mu-like
+        n0 = np.sum(W[(experiment.Sample == 3) & (experiment.SKphase == 1)])
+        n1 = np.sum(W[(experiment.Sample == 4) & (experiment.SKphase == 1)])
+        n2 = np.sum(W[(experiment.Sample == 5) & (experiment.SKphase == 1)])
         N = n0 + n1 + n2
         r0 = n0 / N
         r1 = n1 / N
         r2 = n2 / N
         rx1 = r1 - 2 * r2
-        rx2 = 2 * x * r2 - 2 * r2
-        rx0 = -rx1 - rx2
-        mue[experiment.DecayE == 0] = rx0 / r0
-        mue[experiment.DecayE == 1] = rx1 / r1
-        mue[experiment.DecayE > 1] = rx2 / r2
+        rx2 = 2 * x * r2
+        rx0 = 0 - rx1 - rx2
+        mue[(experiment.Sample == 3) & (experiment.SKphase == 1)] = rx0 / r0
+        mue[(experiment.Sample == 4) & (experiment.SKphase == 1)] = rx1 / r1
+        mue[(experiment.Sample == 5) & (experiment.SKphase == 1)] = rx2 / r2
         return mue
+
+    def decay_e_tagging_sk2(self, experiment, x):
+        r"""Method changing the efficiency of decay electron tagging.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
+        if self._unphysical_value(x):
+            return 1e-3
+        mue = np.ones(experiment.NumberOfEvents)
+        W = self._rate_weight(experiment)
+        # subgev e-like
+        n0 = np.sum(W[(experiment.Sample == 0) & (experiment.SKphase == 1)])
+        n1 = np.sum(W[(experiment.Sample == 1) & (experiment.SKphase == 1)])
+        r = n1/n0
+        mue[(experiment.Sample == 0) & (experiment.SKphase == 2)] = 1 + r+(1-x)
+        mue[(experiment.Sample == 1) & (experiment.SKphase == 2)] = x
+        # multigev e-like
+        n0 = np.sum(W[(experiment.Sample == 8) & (experiment.SKphase == 2)])
+        n1 = np.sum(W[(experiment.Sample == 7) & (experiment.SKphase == 2)])
+        r = n1/n0
+        mue[(experiment.Sample == 8) & (experiment.SKphase == 2)] = 1 + r+(1-x)
+        mue[(experiment.Sample == 7) & (experiment.SKphase == 2)] = x
+        # subgev mu-like
+        n0 = np.sum(W[(experiment.Sample == 3) & (experiment.SKphase == 2)])
+        n1 = np.sum(W[(experiment.Sample == 4) & (experiment.SKphase == 2)])
+        n2 = np.sum(W[(experiment.Sample == 5) & (experiment.SKphase == 2)])
+        N = n0 + n1 + n2
+        r0 = n0 / N
+        r1 = n1 / N
+        r2 = n2 / N
+        rx1 = x * r1 + 2 * (1 - x) * r2
+        rx2 = x * x * r2
+        rx0 = 1 - rx1 - rx2
+        mue[(experiment.Sample == 3) & (experiment.SKphase == 2)] = rx0 / r0
+        mue[(experiment.Sample == 4) & (experiment.SKphase == 2)] = rx1 / r1
+        mue[(experiment.Sample == 5) & (experiment.SKphase == 2)] = rx2 / r2
+        return mue
+
+    def diff_decay_e_tagging_sk2(self, experiment, x):
+        r"""Method changing the efficiency of decay electron tagging.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
+        if self._unphysical_value(x):
+            return 1e-3
+        mue = np.zeros(experiment.NumberOfEvents)
+        W = self._rate_weight(experiment)
+        # subgev e-like
+        n0 = np.sum(W[(experiment.Sample == 0) & (experiment.SKphase == 2)])
+        n1 = np.sum(W[(experiment.Sample == 1) & (experiment.SKphase == 2)])
+        r = n1/n0
+        mue[(experiment.Sample == 0) & (experiment.SKphase == 2)] = -r
+        mue[(experiment.Sample == 1) & (experiment.SKphase == 2)] = 1
+        # multigev e-like
+        n0 = np.sum(W[(experiment.Sample == 8) & (experiment.SKphase == 2)])
+        n1 = np.sum(W[(experiment.Sample == 7) & (experiment.SKphase == 2)])
+        r = n1/n0
+        mue[(experiment.Sample == 8) & (experiment.SKphase == 2)] = -r
+        mue[(experiment.Sample == 7) & (experiment.SKphase == 2)] = 1
+        # subgev mu-like
+        n0 = np.sum(W[(experiment.Sample == 3) & (experiment.SKphase == 2)])
+        n1 = np.sum(W[(experiment.Sample == 4) & (experiment.SKphase == 2)])
+        n2 = np.sum(W[(experiment.Sample == 5) & (experiment.SKphase == 2)])
+        N = n0 + n1 + n2
+        r0 = n0 / N
+        r1 = n1 / N
+        r2 = n2 / N
+        rx1 = r1 - 2 * r2
+        rx2 = 2 * x * r2
+        rx0 = 0 - rx1 - rx2
+        mue[(experiment.Sample == 3) & (experiment.SKphase == 2)] = rx0 / r0
+        mue[(experiment.Sample == 4) & (experiment.SKphase == 2)] = rx1 / r1
+        mue[(experiment.Sample == 5) & (experiment.SKphase == 2)] = rx2 / r2
+        return mue
+
+    def decay_e_tagging_sk3(self, experiment, x):
+        r"""Method changing the efficiency of decay electron tagging.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
+        if self._unphysical_value(x):
+            return 1e-3
+        mue = np.ones(experiment.NumberOfEvents)
+        W = self._rate_weight(experiment)
+        # subgev e-like
+        n0 = np.sum(W[(experiment.Sample == 0) & (experiment.SKphase == 3)])
+        n1 = np.sum(W[(experiment.Sample == 1) & (experiment.SKphase == 3)])
+        r = n1/n0
+        mue[(experiment.Sample == 0) & (experiment.SKphase == 3)] = 1 + r+(1-x)
+        mue[(experiment.Sample == 1) & (experiment.SKphase == 3)] = x
+        # multigev e-like
+        n0 = np.sum(W[(experiment.Sample == 8) & (experiment.SKphase == 3)])
+        n1 = np.sum(W[(experiment.Sample == 7) & (experiment.SKphase == 3)])
+        r = n1/n0
+        mue[(experiment.Sample == 8) & (experiment.SKphase == 3)] = 1 + r+(1-x)
+        mue[(experiment.Sample == 7) & (experiment.SKphase == 3)] = x
+        # subgev mu-like
+        n0 = np.sum(W[(experiment.Sample == 3) & (experiment.SKphase == 3)])
+        n1 = np.sum(W[(experiment.Sample == 4) & (experiment.SKphase == 3)])
+        n2 = np.sum(W[(experiment.Sample == 5) & (experiment.SKphase == 3)])
+        N = n0 + n1 + n2
+        r0 = n0 / N
+        r1 = n1 / N
+        r2 = n2 / N
+        rx1 = x * r1 + 2 * (1 - x) * r2
+        rx2 = x * x * r2
+        rx0 = 1 - rx1 - rx2
+        mue[(experiment.Sample == 3) & (experiment.SKphase == 3)] = rx0 / r0
+        mue[(experiment.Sample == 4) & (experiment.SKphase == 3)] = rx1 / r1
+        mue[(experiment.Sample == 5) & (experiment.SKphase == 3)] = rx2 / r2
+        return mue
+
+    def diff_decay_e_tagging_sk3(self, experiment, x):
+        r"""Method changing the efficiency of decay electron tagging.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
+        if self._unphysical_value(x):
+            return 1e-3
+        mue = np.zeros(experiment.NumberOfEvents)
+        W = self._rate_weight(experiment)
+        # subgev e-like
+        n0 = np.sum(W[(experiment.Sample == 0) & (experiment.SKphase == 3)])
+        n1 = np.sum(W[(experiment.Sample == 1) & (experiment.SKphase == 3)])
+        r = n1/n0
+        mue[(experiment.Sample == 0) & (experiment.SKphase == 3)] = -r
+        mue[(experiment.Sample == 1) & (experiment.SKphase == 3)] = 1
+        # multigev e-like
+        n0 = np.sum(W[(experiment.Sample == 8) & (experiment.SKphase == 3)])
+        n1 = np.sum(W[(experiment.Sample == 7) & (experiment.SKphase == 3)])
+        r = n1/n0
+        mue[(experiment.Sample == 8) & (experiment.SKphase == 3)] = -r
+        mue[(experiment.Sample == 7) & (experiment.SKphase == 3)] = 1
+        # subgev mu-like
+        n0 = np.sum(W[(experiment.Sample == 3) & (experiment.SKphase == 3)])
+        n1 = np.sum(W[(experiment.Sample == 4) & (experiment.SKphase == 3)])
+        n2 = np.sum(W[(experiment.Sample == 5) & (experiment.SKphase == 3)])
+        N = n0 + n1 + n2
+        r0 = n0 / N
+        r1 = n1 / N
+        r2 = n2 / N
+        rx1 = r1 - 2 * r2
+        rx2 = 2 * x * r2
+        rx0 = 0 - rx1 - rx2
+        mue[(experiment.Sample == 3) & (experiment.SKphase == 3)] = rx0 / r0
+        mue[(experiment.Sample == 4) & (experiment.SKphase == 3)] = rx1 / r1
+        mue[(experiment.Sample == 5) & (experiment.SKphase == 3)] = rx2 / r2
+        return mue
+
+    def decay_e_tagging_sk45(self, experiment, x):
+        r"""Method changing the efficiency of decay electron tagging.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
+        if self._unphysical_value(x):
+            return 1e-3
+        mue = np.ones(experiment.NumberOfEvents)
+        W = self._rate_weight(experiment)
+        # subgev e-like
+        n0 = np.sum(W[(experiment.Sample == 20) | (experiment.Sample == 21)])
+        n1 = np.sum(W[(experiment.Sample == 19)])
+        r = n1/n0
+        mue[(experiment.Sample == 20) | (experiment.Sample == 21)] = 1 + r+(1-x)
+        mue[(experiment.Sample == 19)] = x
+        # multigev e-like
+        n0 = np.sum(W[(experiment.Sample == 25) | (experiment.Sample == 26)])
+        n1 = np.sum(W[(experiment.Sample == 24)])
+        r = n1/n0
+        mue[(experiment.Sample == 25) | (experiment.Sample == 26)] = 1 + r+(1-x)
+        mue[(experiment.Sample == 24)] = x
+        # subgev mu-like
+        n0 = np.sum(W[(experiment.Sample == 28)])
+        n1 = np.sum(W[(experiment.Sample == 27)])
+        r = n1/n0
+        mue[(experiment.Sample == 28)] = 1 + r+(1-x)
+        mue[(experiment.Sample == 27)] = x
+        return mue
+
+    def diff_decay_e_tagging_sk45(self, experiment, x):
+        r"""Method changing the efficiency of decay electron tagging.
+
+        Args:
+            x (float): Value of the tuning parameter.
+            experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+        Returns:
+            Numpy.array or float with the weights from this tune.
+        """
+        if self._unphysical_value(x):
+            return 1e-3
+        mue = np.ones(experiment.NumberOfEvents)
+        W = self._rate_weight(experiment)
+        # subgev e-like
+        n0 = np.sum(W[(experiment.Sample == 20) | (experiment.Sample == 21)])
+        n1 = np.sum(W[(experiment.Sample == 19)])
+        r = n1/n0
+        mue[(experiment.Sample == 20) | (experiment.Sample == 21)] = -r
+        mue[(experiment.Sample == 19)] = 1
+        # multigev e-like
+        n0 = np.sum(W[(experiment.Sample == 25) | (experiment.Sample == 26)])
+        n1 = np.sum(W[(experiment.Sample == 24)])
+        r = n1/n0
+        mue[(experiment.Sample == 25) | (experiment.Sample == 26)] = -r
+        mue[(experiment.Sample == 24)] = 1
+        # subgev mu-like
+        n0 = np.sum(W[(experiment.Sample == 28)])
+        n1 = np.sum(W[(experiment.Sample == 27)])
+        r = n1/n0
+        mue[(experiment.Sample == 28)] = -r
+        mue[(experiment.Sample == 27)] = 1
+        return mue
+
+
+    # def decay_e_tagging(self, experiment, x):
+    #     r"""Method changing the efficiency of decay electron tagging.
+
+    #     Args:
+    #         x (float): Value of the tuning parameter.
+    #         experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+    #     Returns:
+    #         Numpy.array or float with the weights from this tune.
+    #     """
+    #     if self._unphysical_value(x):
+    #         return 1e-3
+    #     mue = np.ones(experiment.NumberOfEvents)
+    #     W = self._rate_weight(experiment)
+    #     n0 = np.sum(W[experiment.DecayE < 1])
+    #     n1 = np.sum(W[(experiment.DecayE >= 1) & (experiment.DecayE < 2)])
+    #     n2 = np.sum(W[experiment.DecayE >= 2])
+    #     N = n0 + n1 + n2
+    #     r0 = n0 / N
+    #     r1 = n1 / N
+    #     r2 = n2 / N
+    #     rx1 = x * r1 + 2 * (1 - x) * r2
+    #     rx2 = x * x * r2 + 2 * (1 - x) * r2
+    #     rx0 = 1 - rx1 - rx2
+    #     mue[experiment.DecayE == 0] = rx0 / r0
+    #     mue[experiment.DecayE == 1] = rx1 / r1
+    #     mue[experiment.DecayE > 1] = rx2 / r2
+    #     return mue
+
+    # def diff_decay_e_tagging(self, experiment, x):
+    #     r"""Method for computing the derivative of the weights w.r.t. the decay electron tagging efficiency tuning
+    #     parameter.
+
+    #     Args:
+    #         x (float): Value of the tuning parameter.
+    #         experiment (`pynu.Experiments.Experiment` class): Class containing the information of the experiment.
+
+    #     Returns:
+    #         Numpy.array or float with the derivative of the `decay_e_tagging` weights.
+    #     """
+    #     if self._unphysical_value(x):
+    #         return 0
+    #     mue = np.zeros(experiment.NumberOfEvents)
+    #     W = self._rate_weight(experiment)
+    #     n0 = np.sum(W[experiment.DecayE < 1])
+    #     n1 = np.sum(W[(experiment.DecayE >= 1) & (experiment.DecayE < 2)])
+    #     n2 = np.sum(W[experiment.DecayE >= 2])
+    #     N = n0 + n1 + n2
+    #     r0 = n0 / N
+    #     r1 = n1 / N
+    #     r2 = n2 / N
+    #     rx1 = r1 - 2 * r2
+    #     rx2 = 2 * x * r2 - 2 * r2
+    #     rx0 = -rx1 - rx2
+    #     mue[experiment.DecayE == 0] = rx0 / r0
+    #     mue[experiment.DecayE == 1] = rx1 / r1
+    #     mue[experiment.DecayE > 1] = rx2 / r2
+    #     return mue
 
     def upmu_shower_separation(self, experiment, x):
         if self._unphysical_value(x):

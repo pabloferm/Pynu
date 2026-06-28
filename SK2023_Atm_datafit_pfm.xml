@@ -694,9 +694,27 @@ Based on SK2023_Atm_fullsyst.xml with DataFiles enabled.
 <nominal> 1.0 </nominal>
 <distribution> normal </distribution>
 </nuisance>
-<nuisance name="decay_e_tagging">
+<nuisance name="decay_e_tagging_sk1">
 <status> 1 </status>
-<sigma> 0.1 </sigma>
+<sigma> 0.13 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="decay_e_tagging_sk2">
+<status> 1 </status>
+<sigma> 0.13 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="decay_e_tagging_sk3">
+<status> 1 </status>
+<sigma> 0.13 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="decay_e_tagging_sk45">
+<status> 1 </status>
+<sigma> 0.13 </sigma>
 <nominal> 1.0 </nominal>
 <distribution> normal </distribution>
 </nuisance>

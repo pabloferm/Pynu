@@ -309,6 +309,7 @@ class SuperK_2023(SuperK):
         self.ETrue = self.MC["pnu"]#[sample_condition]
         self.Weight = self.MC["inv_flux"]#[sample_condition]
         self.DecayE = self.MC["muedk"]
+        self.SKPhase = self.MC["sk_phase"][condition]
         # Finding 3 fix: apply weight_tune. The inline comment previously disabled it,
         # so WMC was weight_genMC only. weight_tune is present in the production *_x50*
         # MC; fall back to 1.0 if a given h5 lacks it (mirrors the Mode handling below).
