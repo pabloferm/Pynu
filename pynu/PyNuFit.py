@@ -11,7 +11,7 @@ import fitter as ft  # does all the fitting calculations
 
 from fitter.inference import mcmc
 from fitter.inference import variational
-from fitter.inference.mcmc_cython import run_metropolis_hastings
+# from fitter.inference.mcmc_cython import run_metropolis_hastings
 
 
 class PyNuFit:

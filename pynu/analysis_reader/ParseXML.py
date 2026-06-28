@@ -10,7 +10,7 @@ class ParseXML:
     storing them to be used elsewhere.
     """
 
-    def __init__(self, xmlfile='AnalysisFiles/test.xml', check=False):
+    def __init__(self, xmlfile='AnalysisFiles/test.xml', check=False) -> None:
         """Initiates class with input analysis file, declares the necessary lists and dicts.
 
         Args:
@@ -60,7 +60,7 @@ class ParseXML:
         self.n_sphere = False
         self.n_sphere_cut = None
 
-    def set_spherical_grid(self, radius=1):
+    def set_spherical_grid(self, radius=1) -> None:
         """Calls the n-dimensional sphere cut over the analysis grid of points.
 
         Args:
@@ -76,7 +76,7 @@ class ParseXML:
             f"**** Your analysis grid has gone from {self.NumberOfPhysPoints} to {np.sum(self.n_sphere_cut)} points. ****")
         print(f"****************************************************************")
 
-    def do_point(self, point):
+    def do_point(self, point) -> bool:
         """Checks whether a point has to be analized or not.
 
         Args:
@@ -89,7 +89,7 @@ class ParseXML:
             return self.n_sphere_cut[point]
         return True
 
-    def get_analysis(self):
+    def get_analysis(self) -> None:
         """Sets all analysis variables, that is all the sources, targets, detectors and oscillation
         parameters of the given analysis. It also computes the number of nuisance and physics parameters,
         in case it is useful at some point.
@@ -130,7 +130,7 @@ class ParseXML:
 
         del self.root
 
-    def apply_n_sphere(self, radius=1):
+    def apply_n_sphere(self, radius=1) -> np.dtype[np.bool]:
         """Removes the corners of the n-dimensional grid of physics point to be probed,
         accepting only those points inside a n-dimensional elipse.
         This is useful to reduce the number of points to be evaluated during grid search
