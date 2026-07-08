@@ -68,6 +68,10 @@ class PyNuFit:
         """ Compute Observation """
         self.ComputeBinnedObservation()
 
+        """ Optional native binned-tensor engine (default OFF: {} unless the XML
+        declares a <BinnedEngine> block; then one adapter per opted-in experiment) """
+        self.BinnedAdapters = self._setup_binned_engines(analysis_file)
+
     def _parse_marginalization_config(self, analysis_file):
         """Parse marginalization parameters from XML config for profile scans."""
         import xml.etree.ElementTree as ET
@@ -385,6 +389,11 @@ class PyNuFit:
     def FitModel(
         self, point, mode="BinnedLogLikelihoodRatio", method="BFGS", eps=None
     ):
+
+        # Native binned-tensor engine takes over when a <BinnedEngine> block is
+        # active (default-OFF: BinnedAdapters is {} -> falsy -> this guard is a no-op).
+        if getattr(self, "BinnedAdapters", None):
+            return self.FitModelBinned(point, mode=mode)
 
         if not self.Analysis.do_point(point):
             print(f"Skipping point {point}.")
@@ -1004,3 +1013,131 @@ class PyNuFit:
                     hf[f"{block}/{source}/{par}"][self.point] = val
             except BaseException:
                 hf[f"{block}/{item}"][self.point] = value
+
+    # ---------------- native binned-tensor engine (default-OFF toggle) ----------------
+    # Additive methods: never reached unless an analysis XML declares an enabled
+    # <BinnedEngine> block (parsed independently of ParseXML). See pynu/binned/.
+
+    _MODE_TO_LIKELIHOOD = {
+        "BinnedLogLikelihoodRatio": "poisson",
+        "BarlowBeestonLikelihood": "bb",
+    }
+
+    def _setup_binned_engines(self, analysis_file):
+        """Return {experiment_name: loaded BinnedEngineAdapter} for the XML's
+        enabled <BinnedEngine> blocks, or {} (the toggle-OFF default). Lazy: no
+        pynu.binned forward-model code runs when the XML has no such block."""
+        from .binned.config import parse_binned_config
+        configs = parse_binned_config(analysis_file)
+        if not configs:
+            return {}
+        from .binned.adapter import BinnedEngineAdapter
+        return {
+            name: BinnedEngineAdapter(cfg, analysis_xml=analysis_file).load()
+            for name, cfg in configs.items()
+        }
+
+    def set_binned_engine(self, exp_name, config, analysis_xml=None):
+        """Programmatic opt-in (overrides XML): attach a loaded BinnedEngineAdapter
+        for `exp_name` from a BinnedConfig. Enables FitModelBinned for this fit.
+        Pass analysis_xml when the config uses nuisance_spec='self'."""
+        from .binned.adapter import BinnedEngineAdapter
+        if getattr(self, "BinnedAdapters", None) is None:
+            self.BinnedAdapters = {}
+        self.BinnedAdapters[exp_name] = BinnedEngineAdapter(
+            config, analysis_xml=analysis_xml
+        ).load()
+        return self.BinnedAdapters[exp_name]
+
+    def _binned_phys_value(self, point, name):
+        """(Dm231, Sin2Theta23) etc. for a grid point: from FullPhysicsGrid via
+        PhysicsList when scanned, else the fixed value."""
+        pl = self.Analysis.PhysicsList
+        if name in pl:
+            return float(self.Analysis.FullPhysicsGrid[point][pl.index(name)])
+        for pars in self.Analysis.FixedValue.values():
+            if name in pars:
+                return float(pars[name])
+        raise KeyError(f"binned engine: {name} is neither a scanned physics nor a "
+                       "fixed parameter in this analysis")
+
+    def FitModelBinned(self, point, mode=None):
+        """Binned-mode fit for one physics grid point. Resolves (Dm231,
+        Sin2Theta23) from the analysis grid, runs the engine's dCP-profiled
+        L-BFGS-B fit via the adapter, writes the chi2 to the h5 output, and dumps
+        the engine dial vector to a per-point sidecar JSON (engine dial names do
+        not fit the h5 Nuisance Parameters/<source>/<par> hierarchy)."""
+        if not self.Analysis.do_point(point):
+            print(f"Skipping point {point}.")
+            return False
+
+        if len(self.BinnedAdapters) != 1:
+            raise NotImplementedError(
+                "binned engine phase 1 supports exactly one binned experiment "
+                f"(got {len(self.BinnedAdapters)}); mixed event+binned is phase 2")
+        adapter = next(iter(self.BinnedAdapters.values()))
+
+        # phase-1 physics scope: normal ordering, no CPT (Dm231_bar)
+        if "Ordering" in self.Analysis.PhysicsList:
+            raise NotImplementedError("binned engine: scanning Ordering is phase 2")
+        for pars in self.Analysis.FixedValue.values():
+            if "Ordering" in pars and str(pars["Ordering"]).strip() != "normal":
+                raise NotImplementedError(
+                    "binned engine phase 1 assumes normal ordering; got "
+                    f"{str(pars['Ordering']).strip()!r}")
+        if ("Dm231_bar" in self.Analysis.PhysicsList
+                or "Dm231_bar" in self.Analysis.FixedList):
+            raise NotImplementedError("binned engine: CPT (Dm231_bar) is phase 2")
+
+        # likelihood: engine config authoritative; error on an explicit conflict
+        if mode is not None:
+            want = self._MODE_TO_LIKELIHOOD.get(mode)
+            if want is not None and want != adapter.config.likelihood:
+                raise ValueError(
+                    f"binned engine likelihood {adapter.config.likelihood!r} "
+                    f"conflicts with FitModel mode {mode!r} (={want!r}); make the "
+                    "<BinnedEngine> <likelihood> and the fit mode agree")
+
+        dm231 = self._binned_phys_value(point, "Dm231")
+        s23 = self._binned_phys_value(point, "Sin2Theta23")
+
+        for msg in adapter.crosscheck_xml_nuisances(self.Analysis):
+            print(f"WARNING [binned nuisance cross-check]: {msg}")
+
+        self.point = point
+        chi2_min, dcp_idx, theta, nit, conv = adapter.fit_point(dm231, s23)
+        chi2_stats = adapter.chi2(dm231, s23, adapter.nominal)
+        print(f"Binned point {point}: dm231={dm231:.6e} s23={s23:.4f} "
+              f"chi2={chi2_min:.6f} (stats-only {chi2_stats:.6f}) "
+              f"dcp_idx={dcp_idx} nit={nit} conv={conv}")
+
+        self.WriteToOutFile("Analysis", "Chi2 Stats. Only", chi2_stats)
+        if self.Analysis.wSyst:
+            self.WriteToOutFile("Analysis", "Chi2 Systs.", chi2_min)
+        self._dump_binned_sidecar(point, adapter, dm231, s23,
+                                  chi2_min, dcp_idx, theta, nit, conv)
+        return chi2_min
+
+    def _dump_binned_sidecar(self, point, adapter, dm231, s23,
+                             chi2, dcp_idx, theta, nit, conv):
+        """Per-point JSON next to the h5 output carrying the engine dial vector."""
+        import json
+        base = os.path.splitext(self.outfile)[0] if getattr(self, "outfile", None) \
+            else "binned"
+        path = f"{base}.binned_point{point:04d}.json"
+        with open(path, "w") as f:
+            json.dump({
+                "point": int(point),
+                "dm231": float(dm231),
+                "sin2theta23": float(s23),
+                "chi2": float(chi2),
+                "chi2_stats_only": float(adapter.chi2(dm231, s23, adapter.nominal)),
+                "best_dcp_index": int(dcp_idx),
+                "nit": int(nit),
+                "converged": bool(conv),
+                "likelihood": adapter.config.likelihood,
+                "osc_averaging": adapter.config.osc_averaging,
+                "nuisance_names": list(adapter.nuisance_names),
+                "nuisance": [float(v) for v in theta],
+            }, f)
+        return path

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from itertools import repeat
 from .Oscillations import Oscillator
@@ -18,7 +19,7 @@ class AtmosphericOscillations(Oscillator):
     - When Dm231_bar differs from Dm231: dual propagation for CPT test
     """
 
-    def __init__(self, scenario, neutrino_flavors, experiment):
+    def __init__(self, scenario, neutrino_flavors, experiment, avg_scale=None):
         super().__init__(scenario, neutrino_flavors, source="Atmospheric")
 
         self.E_nodes = 200
@@ -30,6 +31,22 @@ class AtmosphericOscillations(Oscillator):
         self.cth_nodes = np.linspace(
             experiment.Z_edges[0], experiment.Z_edges[1], self.Z_nodes
         )
+
+        # NEW OPTION (default OFF -> prior behavior byte-identical): nuSQuIDS
+        # fast-oscillation averaging. Precedence: env PYNU_OSC_AVG_SCALE OVERRIDES
+        # (compat with the live branch's build scripts), else the `avg_scale`
+        # constructor arg, else OFF. "4pi" reproduces the SK prescription (average
+        # modes whose sin^2 argument 1.2667*dm2*L/E exceeds 2*pi, i.e. L/E > ~2000
+        # km/GeV); nuSQuIDS compares `scale` to the eigenvalue phase dm2*L/(2E) ==
+        # 2x that sin^2 argument, hence 4*pi. OFF -> the prior
+        # EvalFlavor(..., randomize_height=True) path.
+        _env = os.environ.get("PYNU_OSC_AVG_SCALE")
+        self.osc_avg_scale = self._resolve_avg_scale(
+            _env if _env is not None else avg_scale)
+        if self.osc_avg_scale is not None:
+            print(f"[AtmOsc] fast-oscillation averaging ON: EvalFlavor scale="
+                  f"{self.osc_avg_scale:.5f} "
+                  f"(source={'env' if _env is not None else 'ctor'})")
 
         self.CosZTrue = experiment.CosZTrue
         self.ETrue = experiment.ETrue
@@ -73,6 +90,42 @@ class AtmosphericOscillations(Oscillator):
             self.Parameters.get("Ordering"),
         )
 
+    @staticmethod
+    def _resolve_avg_scale(value):
+        """Resolve an averaging selector to a nuSQuIDS EvalFlavor scale (float) or
+        None (OFF). Accepts the tokens '2pi'/'4pi', a float or float-string, or
+        None/''/'off'/'none' -> OFF."""
+        if value is None:
+            return None
+        if isinstance(value, str):
+            s = value.strip().lower()
+            if s in ("", "off", "none"):
+                return None
+            tok = {"2pi": 2.0 * np.pi, "4pi": 4.0 * np.pi}.get(s)
+            return tok if tok is not None else float(s)
+        return float(value)
+
+    def _eval_flavor_weights(self):
+        """EvalFlavor over all events for the current evolved state.
+
+        Default (osc_avg_scale is None): the prior path, passing
+        randomize_height=True. When averaging is enabled, use nuSQuIDS's
+        fast-oscillation averaging overload EvalFlavor(flv,cz,E,rho,scale,avr):
+        modes whose accumulated eigenvalue phase exceeds `scale` are phase-averaged
+        (avr is an ignored per-call output buffer of length n_flavors)."""
+        flav = self.NSQneuflavor
+        cosz = self.CosZTrue.astype(float).tolist()
+        enu = (self.ETrue * self.UNITS.GeV).astype(float).tolist()
+        ntype = self.NSQneutype
+        if self.osc_avg_scale is None:
+            return np.asarray(list(map(
+                self.Osc.EvalFlavor, flav, cosz, enu, ntype, repeat(True))))
+        s, nf = self.osc_avg_scale, self.NeutrinoFlavors
+        return np.asarray([
+            self.Osc.EvalFlavor(f, c, e, t, s, [False] * nf)
+            for f, c, e, t in zip(flav, cosz, enu, ntype)
+        ])
+
     def _single_propagation(self, dm31_value):
         """
         Run single propagation with given Dm31 value.
@@ -91,18 +144,7 @@ class AtmosphericOscillations(Oscillator):
         self.Osc.EvolveState()
 
         # Evaluate weights for each event
-        weights = list(
-            map(
-                self.Osc.EvalFlavor,
-                self.NSQneuflavor,
-                self.CosZTrue.astype(float).tolist(),
-                (self.ETrue * self.UNITS.GeV).astype(float).tolist(),
-                self.NSQneutype,
-                repeat(True),
-            )
-        )
-
-        return np.asarray(weights)
+        return self._eval_flavor_weights()
 
     def GetOscillations(self):
         """
@@ -136,17 +178,7 @@ class AtmosphericOscillations(Oscillator):
             self.Osc.Set_initial_state(self.InitialFlux, nsq.Basis.flavor)
             self.Osc.EvolveState()
 
-            weights = list(
-                map(
-                    self.Osc.EvalFlavor,
-                    self.NSQneuflavor,
-                    self.CosZTrue.astype(float).tolist(),
-                    (self.ETrue * self.UNITS.GeV).astype(float).tolist(),
-                    self.NSQneutype,
-                    repeat(True),
-                )
-            )
-            weights = np.asarray(weights)
+            weights = self._eval_flavor_weights()
         else:
             # CPT mode: dual propagation
             # First, apply all parameters except Dm31
