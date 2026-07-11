@@ -2,7 +2,7 @@
 
 This branch extends `pheno-CPT` with the Super-Kamiokande 2023 data-fit work:
 fixes to the SK systematics implementation and minimizer loop, new opt-in
-nuisance dials at the granularity of the published SK / Newtrinos.jl analyses,
+nuisance dials at the granularity of the published SK analysis,
 and an experimental **binned forward engine** that reproduces the event-by-event
 pipeline at true-grid resolution. It is structured to merge directly into
 `main` (it carries the full `pheno-CPT` line; the only merge conflicts are the
@@ -52,7 +52,7 @@ W = BaseWeight × PhysicsWeight          # per-event expected rate,
 r = Σ W[donor] / Σ W[acceptor]          # pre-detector-nuisance
 ```
 
-(the `get_double_factor` convention of the SK/Newtrinos.jl analyses). With
+(the rate-weighted convention of the published SK analysis). With
 weighted rates, the total *expected rate* — not the raw event count — is
 conserved across the migration. The same basis is used for the DecayE
 occupancy fractions in `decay_e_tagging`.
