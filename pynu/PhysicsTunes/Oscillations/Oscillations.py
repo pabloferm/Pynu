@@ -1,6 +1,6 @@
 from math import asin, sqrt
 import numpy as np
-import nuSQuIDS as nsq
+# import nuSQuIDS as nsq
 from PhysicsTunes import Tune
 import sys
 sys.path.append('../')
@@ -21,12 +21,12 @@ class Oscillator(Tune):
 
         ''' Support for 3 active neutrinos and any number of sterile neutrinos '''
         self.NeutrinoFlavors = neutrino_flavors
-        self.units = nsq.Const()
-        self.interactions = False
-        self.rel_error = 1e-4
-        self.abs_error = 1e-4
-        self.E_nodes = 100
-        self.eps = 1e-2
+        # self.units = nsq.Const()
+        # self.interactions = False
+        # self.rel_error = 1e-4
+        # self.abs_error = 1e-4
+        # self.E_nodes = 100
+        # self.eps = 1e-2
 
         self.ParameterLabels = None
         self.Parameters = {
@@ -56,17 +56,17 @@ class Oscillator(Tune):
                 s_theta = 'Sin2Theta' + str(j + 1) + str(i + 1)
                 if s_theta in self.Parameters:
                     theta = self.Parameters[s_theta]
-                    param = "theta"+str(j+1)+str(i+1)
-                    self.Osc.update(param, asin(sqrt(theta)))
+                    param = "theta_"+str(j+1)+str(i+1)
+                    self.Osc.update_parameter(param, asin(sqrt(theta)))
             s_dm = 'Dm2' + str(i + 1) + '1'
         if s_dm in self.Parameters:
             dm = self.Parameters[s_dm]
             if 'inverted' in self.Parameters['Ordering'] and s_dm == 'Dm231':
                 dm = self.Parameters['Dm221'] - self.Parameters['Dm231']
-            self.Osc.update(s_dm.lowe(), dm)
+            self.Osc.update_parameter(s_dm.lowe(), dm)
 
         if 'dCP' in self.Parameters:
-            self.Osc.update('dcp', self.Parameters['dCP'])
+            self.Osc.update_parameter('dcp', self.Parameters['dCP'])
 
         # if self.NeutrinoFlavors > 3 and 'dCP2' in self.Parameters:
         #     self.Osc.Set_CPPhase(0, 3, self.Parameters['dCP2'])
@@ -75,8 +75,8 @@ class Oscillator(Tune):
         if self.Source in ['Sun', 'Atmospheric']:
             print(self.Source)
             import pychic_earth as pce
-            self.Osc = pce.CHICEARTHDIFF()
-        elif self.Source == 'Accelerator':
+            self.Osc = pce.CHIC_EARTHDIFF_BATCH()
+        elif self.Source in ['Accelerator', 'Reactor']:
             print(self.Source)
             import pychic as pc
             self.Osc = pc.CHICEARTHDIFF()
@@ -87,31 +87,31 @@ class Oscillator(Tune):
     def diff_oscillations(self):
         sys.exit('Oscillator not defined.')
 
-    def NSQNeutrinoType(self, experiment):
-        neutype = np.zeros(experiment.NumberOfEvents)
-        neutype[experiment.nuPDG < 0] = 1
-        return neutype.astype(np.uint32).tolist()
+    # def NSQNeutrinoType(self, experiment):
+    #     neutype = np.zeros(experiment.NumberOfEvents)
+    #     neutype[experiment.nuPDG < 0] = 1
+    #     return neutype.astype(np.uint32).tolist()
 
-    def NSQNeutrinoFlavor(self, experiment):
-        neuflavor = 0.5 * np.abs(experiment.nuPDG) - 6
-        return neuflavor.astype(np.uint32).tolist()
+    # def NSQNeutrinoFlavor(self, experiment):
+    #     neuflavor = 0.5 * np.abs(experiment.nuPDG) - 6
+    #     return neuflavor.astype(np.uint32).tolist()
 
     # def diff_Sin2Theta13(self, experiment, x):  # Numerical derivation
     #     return self.Osc.compute_oscillations_derivatives_vector("theta_23", nunubar, E, cosz, self.Ini)
 
-    # def Sin2Theta12(self, experiment, x):
-    #     self.Osc.Set_MixingAngle(0, 1, asin(sqrt(x)))
-    #     self.Parameters['Sin2Theta12'] = x
-    #     return self.GetOscillations()
+    def Sin2Theta12(self, experiment, x):
+        self.Osc.update_parameter("theta_12", asin(sqrt(x)))
+        self.Parameters['Sin2Theta12'] = x
+        return self.GetOscillations()
 
-    # def diff_Sin2Theta12(self, experiment, x):  # Numerical derivation
-    #     h0 = x * (1 + self.eps)
-    #     h1 = x * (1 - self.eps)
-    #     w0 = self.Sin2Theta12(experiment, h0)
-    #     w1 = self.Sin2Theta12(experiment, h1)
-    #     dw = ((w0 - w1) / (h0 - h1))
-    #     self.Parameters['Sin2Theta12'] = x
-    #     return dw
+    def diff_Sin2Theta12(self, experiment, x):  # Numerical derivation
+        h0 = x * (1 + self.eps)
+        h1 = x * (1 - self.eps)
+        w0 = self.Sin2Theta12(experiment, h0)
+        w1 = self.Sin2Theta12(experiment, h1)
+        dw = ((w0 - w1) / (h0 - h1))
+        self.Parameters['Sin2Theta12'] = x
+        return dw
 
     # def Sin2Theta23(self, experiment, x):
     #     self.Osc.Set_MixingAngle(1, 2, asin(sqrt(x)))
