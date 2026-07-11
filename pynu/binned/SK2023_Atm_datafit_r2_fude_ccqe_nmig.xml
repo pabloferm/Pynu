@@ -1,29 +1,17 @@
 <?xml version="1.0"?>
 <!--
-  SK2023_Atm_datafit_r2_fude_ccqe.xml — nuisance ACTIVATION MANIFEST for the
-  production r2_fude_ccqe systematics set (131 dials).
+  SK2023_Atm_datafit_r2_fude_ccqe_nmig.xml — nuisance ACTIVATION MANIFEST for the r2_fude_ccqe_nmig arm
+  (133 dials = production r2_fude_ccqe 131 + the 2 TRIAL 0n/1n neutron-migration dials (sigma 0.10, unpinned)).
 
-  SCOPE: this file is consumed ONLY by sk_binned_engine.resolve_nuisance_spec
-  (<path>.xml branch), which reads <nuisance name=".."><status>1</status>
-  </nuisance> blocks in document order via a lightweight regex parser
-  (_parse_xml_active). It activates the SAME 131 dials, in the SAME order, as
-  the named spec "R2FUDECCQE" (byte-verified equal at generation time).
-  Nominal values and sigmas for every dial
-  live in the engine's CANONICAL_DIALS table, NOT in this file -- there is
-  deliberately no <type>/<box>/<prior> content here. This is NOT a drop-in
-  replacement for a full event-level PyNuFit Analysis XML: most of these 131
-  dials (era-split detector systematics, momentum-banded flux ratios, the
-  multi-GeV CCQE flavor norms, etc.) only exist inside the standalone binned
-  engine and have no event-level PyNuFit tune-class counterpart.
-
-  Equivalent invocations once this snapshot is vendored/resynced:
-    nuisance_spec="R2FUDECCQE"                                   (named spec)
-    nuisance_spec="path/to/SK2023_Atm_datafit_r2_fude_ccqe.xml"  (this file)
-    nuisance_spec=json.load(open("r2_fude_ccqe.json"))["nuisance_names"]
-  All three are verified identical, in order (see repo commit that added this
-  file for the verification script).
+  SCOPE: consumed ONLY by sk_binned_engine.resolve_nuisance_spec (<path>.xml
+  branch, _parse_xml_active regex). Activates the SAME 133 dials, in the
+  SAME order, as resolve_nuisance_spec("r2_fude_ccqe_nmig"). Nominal values, sigmas and
+  box bounds live in the engine's CANONICAL_DIALS / NEUTRON_MIG_BOX_PINNED, NOT
+  in this file. See the base SK2023_Atm_datafit_r2_fude_ccqe.xml for the 131-dial
+  production block; the trailing blocks below are this variant's additions.
 -->
 <data>
+
     <nuisance name='normalization_below1GeV'>
         <status> 1 </status>
     </nuisance>
@@ -415,6 +403,12 @@
         <status> 1 </status>
     </nuisance>
     <nuisance name='xsec_ccqe_multigev_numu'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='nmig_subgev_nuebar'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='nmig_multigev_nuebar'>
         <status> 1 </status>
     </nuisance>
 </data>

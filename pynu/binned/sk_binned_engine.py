@@ -14,7 +14,7 @@ L-BFGS-B protocol — is transcribed 1:1 from the production code paths:
   pynu/Experiments/SuperK_Atm_Pheno.py:SuperK_2023 (BaseWeight, GetMCVariance, NC fix)
   pynu/Experiments/Experiment.py              (FewEntries: observed > 5)
   pynu/fitter/BarlowBeestonLikelihood.py      (BB-lite beta, penalties, gradient)
-  scripts/run_sk_datafit_point_worker.py      (minimizer protocol, dCP profiling)
+  analysis/SuperK-datafit/run_sk_datafit_row_worker.py (minimizer protocol, dCP profiling)
 
 Engine model per (physics point, dCP slice):
   W[k,cE,cZ]  = Phi_or_1 * F_flux(cell, pdg_k) * A_axial(cell, CC_k) * X_k(mask bits)
@@ -25,7 +25,7 @@ Engine model per (physics point, dCP slice):
 with m = FewEntries mask (observed > 5, strict), NC classes get Phi = 1
 (SuperK_2023.UpdatePhysicsWeights override).
 
-No muon background (SuperK_2023 has no GetMuonBackground; worker printed 0).
+No muon background (SuperK_2023 has no GetMuonBackground).
 energy_scale is not in the 41-param list, so R_plus/R_minus are unused here.
 """
 import json
@@ -40,7 +40,7 @@ FLUX_NAMES = ["normalization_below1GeV", "normalization_above1GeV", "tilt",
 # 15 mask xsec tunes in the order of build_sk_response.XSEC_TUNES (class bits),
 # but the VECTOR order below is the Analysis order (AxialMass sits after NCHad).
 # The 3 CC_2p2h* dials (real 2p2h, |Mode|==2) sit after DIS, before CCQE — the
-# new pfm config order (PLAN_2P2H_AUTONOMOUS). They require the 2p2h MC + a
+# new pfm config order. They require the 2p2h MC + a
 # response rebuilt with these mask bits; the engine asserts the response's
 # xsec_tune_names == MASK_TUNES, so this is forward-only (old 12-bit responses
 # no longer load — by design; their grids are preserved as files).
@@ -114,8 +114,8 @@ SOLAR_SCALE = 3.0   # GeV, AtmoFlux.solar_activity decay scale
 #   leading effect); the K/pi flavor / nu-nubar structure is left to the banded flux ratios.
 KPI_E0 = 3.0        # GeV, kaon-onset pivot for the K/pi high-E flux ramp
 #   flux_horizvert : SK's Horizontal/Vertical flux ratio (thesis 5509-18, 1-3%,
-#   a high-E pion/mu decay-path effect) — the zenith-SHAPE flux dial the S3.3
-#   audit (2026-07-02) found missing: zenith_up/down pivot to zero at the
+#   a high-E pion/mu decay-path effect) — a zenith-SHAPE flux dial the
+#   zenith_up/down pair structurally cannot make: they pivot to zero at the
 #   horizon (tanh^2) so they cannot reshape horizontal-vs-vertical. Energy-flat,
 #   symmetric in cosz: flux *= 1 + x*g(cz) with g = (1-3cz^2)/2 (mean-zero over
 #   cosz => a shape, not a norm; +0.5 horizontal, -1.0 vertical). nominal 0 (no-op).
@@ -199,8 +199,8 @@ ENERGY_SCALE_NAMES = [f"energy_scale_{tag}" for tag in ERA_TAGS]
 # These act on the oscillated tensor at fit time => NO response rebuild.
 FLUX_RATIO_NAMES = ["flux_nuebar_subgev", "flux_flavor_subgev"]
 # generous default priors (diagnostic: "can the SHAPE absorb it?"). SK's published
-# 1-sigma are tighter (nu_e/nu-bar_e ~0.03, flavor ~0.02 sub-GeV) — the worker can
-# override via --flux-ratio-sigma to test absorption within SK's own uncertainty.
+# 1-sigma are tighter (nu_e/nu-bar_e ~0.03, flavor ~0.02 sub-GeV) — callers can
+# override the sigmas to test absorption within SK's own uncertainty.
 FLUX_RATIO_PRIORS = {"flux_nuebar_subgev": (1.0, 0.10),
                      "flux_flavor_subgev": (1.0, 0.10)}
 FLUX_RATIO_BOX = {"flux_nuebar_subgev": (0.3, 1.7),
@@ -217,13 +217,13 @@ for _rn, _pr in FLUX_RATIO_PRIORS.items():
 #       migration WITHIN its band between donor {20,22}(0-neutron) and acceptor
 #       {21,23}(1-neutron) sub-GeV samples. NTAG_PSPLIT = first high-band
 #       momentum index (ie>=PSPLIT is "high"); ie<PSPLIT ("low") = the lowest
-#       reco-momentum slice (ie=0 == logP<=2.4 per the per-bin study).
+#       reco-momentum slice (ie=0 == logP<=2.4).
 NTAG_SPLIT_NAMES = ["ntag_subgev_lowp", "ntag_subgev_highp"]
 NTAG_PSPLIT = 2          # low band = ie in {0,1} (logP<=2.6); high = ie>=2
 for _rn in NTAG_SPLIT_NAMES:
     CANONICAL_DIALS[_rn] = CANONICAL_DIALS["neutron_tagging_subgev"]  # (1.0, 0.12)
 
-# ---- EXTENDED set: SK systematics we lack, screened for the octant (2026-06-18) ----
+# ---- EXTENDED set: SK systematics the base lacks, screened for octant relevance ----
 # (a) ENERGY-BANDED flux ratios — SK's 3-band structure (E<1 / 1-10 / >10 GeV),
 #     extending the two sub-GeV absorbers above. Same rate-conserving symmetric
 #     form (heavy leg *2r/(1+r), light leg *2/(1+r)); r=1 no-op. Each dial is one
@@ -254,10 +254,10 @@ ALL_FLUX_RATIO_NAMES = FLUX_RATIO_NAMES + FLUX_BAND_NAMES   # superset for detec
 #   xsec_ccqe_subgev_nue — sub-GeV (E<1) CCQE nu_e+nu-bar_e norm (SK 5% nu_e); ALSO
 #       the surrogate for our MISSING 2p2h (zero in OLD MC -> CCQE inflated).
 #   xsec_1p1h_subgev_nue / xsec_2p2h_subgev_nue — the THESIS-FAITHFUL SPLIT of the
-#       above (2026-06-21). On the new 2p2h MC the CCQE class is pure 1p1h and 2p2h
+#       above. On the new 2p2h MC the CCQE class is pure 1p1h and 2p2h
 #       is its own class, so the sub-GeV nu_e norm separates into a 1p1h piece
-#       (sigma 0.05, ~SK's sub-GeV nu_e CCQE 5%) and a 2p2h piece (sigma 0.20, ~PE
-#       cc2p2h_norm; box wide since 2p2h is poorly known). Same mask form as
+#       (sigma 0.05, ~SK's sub-GeV nu_e CCQE 5%) and a 2p2h piece (sigma 0.20;
+#       box wide since 2p2h is poorly known). Same mask form as
 #       xsec_ccqe_subgev_nue but on the 1p1h(=CCQE) and CC_2p2h class bits resp.
 #       Diagnostic: with real 2p2h present, does the octant pull load onto 1p1h or 2p2h?
 #   xsec_ccqe_shape_subgev — sub-GeV-LOCALIZED CCQE shape: the faithful-ish version of
@@ -285,13 +285,13 @@ SUBGEV_NUE_NORM = {"xsec_ccqe_subgev_nue": "ccqe_nue_cls",
                    "xsec_1p1h_subgev_nue": "ccqe_nue_cls",     # CCQE == 1p1h on the 2p2h MC
                    "xsec_2p2h_subgev_nue": "twop2h_nue_cls"}
 
-# ---- OPTIONAL multi-GeV CCQE flavor-norm dials (Track H, OFF by default) ------
+# ---- OPTIONAL multi-GeV CCQE flavor-norm dials (OFF by default) ---------------
 # SK's "CCQE Norm., Multi-GeV" systematic, applied SEPARATELY to nu_e and nu_mu,
 # each ~25% (Wester thesis 5569-5571: "the CCQE normalization ... multi-GeV ...
 # nu_e and nu_mu ... 25%"; Table B.1 "Norm., Multi-GeV" 9247). Multi-GeV e-like
 # is a primary dCP appearance sample, so a nu_e-localized multi-GeV CCQE norm is
-# the largest dCP-relevant absorber our R2 120-set lacks -- only the global 10%
-# CCQE norm reaches the multi-GeV region (DCP_DEPTH_AUDIT.md items #1/#3). Mirrors
+# the largest dCP-relevant absorber the R2 120-set lacks -- only the global 10%
+# CCQE norm reaches the multi-GeV region. Mirrors
 # the sub-GeV xsec_ccqe_subgev_nue machinery (SUBGEV_NUE_NORM) EXACTLY but on the
 # COMPLEMENTARY energy mask E_true >= CCQE_SHAPE_SUBGEV_E (1.33 GeV, the SK sub-/
 # multi-GeV boundary the sub-GeV CCQE shape is confined below) and split by flavor:
@@ -319,6 +319,77 @@ REL_NORM_FCMG_SAMPLES = frozenset({7, 8, 9, 10, 11, 12, 13, 24, 25, 26, 27, 28})
 REL_NORM_NAMES = ["rel_norm_fcmg"]
 CANONICAL_DIALS["rel_norm_fcmg"] = (1.0, 0.05)
 
+# ---- OPTIONAL neutron-production 0n/1n migration dials (OFF by default) ------------
+# A per-PAIR neutron-tag migration meant to absorb a neutron-PRODUCTION cross-section
+# systematic: the true (nu-capture) neutron multiplicity of an interaction shifts events
+# between the 0-neutron and 1-neutron reconstructed samples. Unlike the production
+# neutron_tagging_subgev/_multigev dials (which lump the numu(bar) single-ring samples
+# {22,23}/{27,28} onto the 0n/1n legs by ANALOGY -- those samples carry NO neutron label
+# in the release binning), these dials act ONLY on the EXPLICITLY 0n/1n-split pairs:
+#   sk4-5_fc_subgev_1ring_nuebarlike_0neutron  (20) -> _1neutron (21)
+#   sk4-5_fc_multigev_1ring_nuebarlike_0neutron (25) -> _1neutron (26)
+# (SuperK_Atm_Pheno.sample_names: the ONLY samples with 0neutron/1neutron in the name.)
+# So this is NOT the same enumeration as neutron_tagging_*: it is nuebar-ONLY and
+# per-pair-INDEPENDENT (one dial per pair), whereas ntag is one shared dial per (sub/
+# multi)-GeV band spanning nuebar+numu(bar). Same rate-conserving migration algebra as
+# apply2 (donor x, acceptor 1+r(1-x), r = rate(0n)/rate(1n) from the weighted rates),
+# so total 0n+1n rate per pair is invariant under x -- the systematic reshuffles the
+# neutron split, it does not change the sample-pair total. nominal x=1 (exact no-op).
+#   TRIAL dials (nmig_*): Gaussian sigma 0.20, default +-10sigma bounds (unpinned).
+#     The trial prior is deliberately LOOSE (0.20) to give the
+#     maximal-effect / diagnostic estimate of how much depth this migration can absorb.
+#   PINNED dials (nmig_*_pinned): sigma 0.10 prior BUT a hard BOX so the fit cannot
+#     migrate more events than physically exist. A dial value x drains the 0n leg to
+#     x*rate(0n) and adds r(1-x)*rate(1n) = (1-x)*rate(0n) to the 1n leg; the 1n leg stays
+#     >=0 for ALL x>=0 and the 0n leg stays >=0 for x>=0, so the physical box is
+#     x in [0, 1 + rate(1n)/rate(0n)] = [0, 1 + 1/r] (the upper edge is where the 1n leg
+#     is fully drained into 0n: acc-factor 1+r(1-x)=0). BOX = (0.0, 1.0 + 1.0/r_pair)
+#     with r_pair from the raw MC event counts (below). Trial and pinned share the SAME
+#     migration algebra, donor/acceptor pair, and prior width -- they differ ONLY in the box.
+NEUTRON_MIG_PAIRS = {                 # dial name -> (donor 0n sample, acceptor 1n sample)
+    "nmig_subgev_nuebar":          (20, 21),
+    "nmig_multigev_nuebar":        (25, 26),
+    "nmig_subgev_nuebar_pinned":   (20, 21),
+    "nmig_multigev_nuebar_pinned": (25, 26),
+}
+NEUTRON_MIG_NAMES = list(NEUTRON_MIG_PAIRS)
+NEUTRON_MIG_TRIAL_NAMES = ["nmig_subgev_nuebar", "nmig_multigev_nuebar"]
+NEUTRON_MIG_PINNED_NAMES = ["nmig_subgev_nuebar_pinned", "nmig_multigev_nuebar_pinned"]
+# raw MC event counts of the 0n/1n samples in the release (sk_response.npz
+# sample_event_counts) -> the physical rate ratio r = counts(0n)/counts(1n) that bounds
+# the pinned box. These are FIXED (raw-count) bounds; the runtime migration r used in the
+# algebra is the per-oscillation-point WEIGHTED rate (matches every other migration dial).
+NEUTRON_MIG_RAWCOUNTS = {20: 294634, 21: 112964, 25: 43858, 26: 38369}
+NEUTRON_MIG_BOX_PINNED = {                    # x in [0, 1 + 1/r] (max physical migration)
+    n: (0.0, 1.0 + NEUTRON_MIG_RAWCOUNTS[a] / NEUTRON_MIG_RAWCOUNTS[d])
+    for n, (d, a) in NEUTRON_MIG_PAIRS.items() if n in NEUTRON_MIG_PINNED_NAMES
+}
+for _rn in NEUTRON_MIG_TRIAL_NAMES:
+    CANONICAL_DIALS[_rn] = (1.0, 0.20)        # nominal 1 = no-op, LOOSE trial prior sigma 0.20
+for _rn in NEUTRON_MIG_PINNED_NAMES:
+    CANONICAL_DIALS[_rn] = (1.0, 0.10)        # nominal 1 = no-op, sigma 0.10 + physical box
+
+# ---- OPTIONAL decay-e tagging dial (OFF by default) --------------------------
+# SK's "Decay-e Tagging" detector systematic (Wester thesis 6022-6024, 6061-6062):
+# "The decay electron efficiency uncertainty PROPORTIONALLY CHANGES THE NORMALIZATION
+# of events in the FC sub-GeV and multi-GeV samples which utilize the number of decay
+# electrons as part of their sample selection." So the release mechanism is a NORM
+# (efficiency) pull, NOT a migration -- a flat multiplicative factor on the decay-e-keyed
+# samples. In the SuperK_2023 release binning the ONLY decay-e-keyed samples are the SK
+# I-III sub-GeV single-ring ones (SuperK_Atm_Pheno.sample_names ..._Ndecaye):
+#   0 e-like 0decaye, 1 e-like 1decaye, 3 mu-like 0decaye, 4 mu-like 1decaye, 5 mu-like 2decaye
+# (verified era-present only in sk1/sk2/sk3, never sk45), so the dial is naturally
+# ERA-INDEPENDENT here (the decay-e samples don't exist in SK IV+V). sigma = SK I-III
+# published decay-e efficiency uncertainty = 1.5% (thesis 6061; the SK IV-V 0.8% value is
+# moot -- no decay-e samples in sk45). Implemented as a whole-sample multiplicative norm
+# on those 5 bins folded into D (like rel_norm_fcmg), nominal x=1 = exact no-op,
+# d ln D/dx = 1/x. (The pfm.xml carries era-split decay_e_tagging_sk* blocks at sigma 0.13,
+# but those are inactive placeholders -- the header states DecayE is unset in SuperK_2023;
+# the physical thesis width 0.015 is adopted here.)
+DECAY_E_SAMPLES = frozenset({0, 1, 3, 4, 5})   # SK I-III sub-GeV decay-e-keyed samples
+DECAY_E_NAME = "decay_e_tagging"
+CANONICAL_DIALS[DECAY_E_NAME] = (1.0, 0.015)   # nominal 1 = no-op, SK I-III eff. unc. 1.5%
+
 # ---- OPTIONAL up-mu background zenith x momentum SHAPE dials -----------------
 # SK's cosmic-mu background subtraction (Wester thesis Sec 5.2, lines 5975-5984)
 # acts ONLY on the near-horizon zenith bins: the TWO horizon-nearest reco-cosZ bins
@@ -336,7 +407,7 @@ CANONICAL_DIALS["rel_norm_fcmg"] = (1.0, 0.05)
 # horizon-nearest bin, iz=8 the second; stopping momentum = upmus_ebins (3 bins):
 # low = ie 0 (1.585-2.495 GeV), high = ie {1,2} (>2.495 GeV). sigma = SK's bkg-rate
 # uncertainty (~10-20 events, midpoint 15) / affected-bin SK-data content, so every
-# dial carries the SAME ~15-event 1sigma background uncertainty (design doc Sec 3c).
+# dial carries the SAME ~15-event 1sigma background uncertainty.
 UPMU_BKG_SHAPE_NAMES = ["upmu_stop_bkg_horiz_lowp", "upmu_stop_bkg_horiz_highp",
                         "upmu_nonshow_bkg_horiz"]
 # name -> (sample id, tuple of reco-cosZ bin indices, reco-momentum bin indices or
@@ -377,29 +448,25 @@ UPDOWN_ESCALE_EXCLUDE = frozenset({16, 17, 18})   # up-mu samples (all up-going)
 for _rn in UPDOWN_ESCALE_NAMES:
     CANONICAL_DIALS[_rn] = (0.0, UPDOWN_ESCALE_SIGMA[_rn])   # nominal 0 = no-op
 
-# ---- OPTIONAL direction-smearing systematic (Track D, OFF by default) --------
-# BEYOND-SK-VOCABULARY DIAGNOSTIC (HANDOFF_2026-07-04 item 9: NO direction-smearing
-# systematic exists anywhere in SK's treatment -- central-MC direction physics only;
-# our binned response inherits it; P1.1 bounds zenith-shape mismodeling at <~2%). Every
-# norm-type dial tested (R2HV/R2UBS/UDE, r2_faithful) left a coherent, persistent,
-# irreducible residual (HANDOFF item 8): the multi-GeV UPGOING oscillation fingerprint
-# (e +2.174 / mu +0.901, p 2.5-10 GeV, cz[-0.84,-0.64]), "oscillation-shaped data
-# structure no SK-vocabulary reweighting expresses". This dial asks the one question the
-# norm dials could not: can a direction-RESOLUTION SHAPE freedom -- zenith-bin migration
-# built from a confusion matrix (user directive: "assign a 5-10% directional smearing to
-# the per-event MC ... which we in turn use to build the systematic in the binned
-# engine") -- reach that residual and/or move Delta m^2, where every norm dial could not?
-# The dial is still FLAVOR-BLIND (it migrates e-like and mu-like bins by the SAME reco-cz
-# confusion matrix), so it cannot IMPOSE the anti-correlated e/mu fingerprint; but unlike
-# the norm dials it CAN reshape the zenith DISTRIBUTION (redistribute counts between
-# zenith bins), so a measured null is a genuinely new, informative answer.
+# ---- OPTIONAL direction-smearing systematic (OFF by default) -----------------
+# DIAGNOSTIC beyond SK's published systematics vocabulary: no direction-smearing
+# systematic exists in SK's treatment (central-MC direction physics only, which
+# the binned response inherits). Norm-type dials can rescale bins but cannot
+# redistribute counts BETWEEN zenith bins, so none of them can express a
+# direction-RESOLUTION mismatch. This dial adds that one freedom: a zenith-bin
+# migration built from a per-sample reco-cz confusion matrix (derived offline by
+# re-smearing the per-event MC directions by a few-percent angular resolution
+# variation). The dial is FLAVOR-BLIND (it migrates e-like and mu-like bins by
+# the SAME reco-cz confusion matrix), so it cannot impose anti-correlated e/mu
+# structure; but unlike the norm dials it CAN reshape the zenith DISTRIBUTION
+# (redistribute counts between zenith bins), so a measured null is informative.
 #
 # Single global dial s (nominal 0 = exact no-op), prior sigma 10 (effectively
 # unconstrained -- the question is whether the DATA pulls s), custom box [0,1] (s<0 =
 # de-smearing is unphysical and can drive negative expectations; s in [0,1] keeps the
 # migration operator A=(1-s)I + s*M a convex mix of two non-negative matrices, so
-# E'=A@E >= 0). The migration matrices M[sample] (nz x nz, reco-cz confusion, built by
-# build_dirsmear_confusion.py) are chosen at engine construction via the dirsmear_matrix
+# E'=A@E >= 0). The migration matrices M[sample] (nz x nz, reco-cz confusion, built
+# offline from the per-event MC) are chosen at engine construction via the dirsmear_matrix
 # ctor arg (default OFF -- no matrix loaded unless the dial is active). Action per
 # sample x reco-momentum row: E(s) = E + s*(M - I) @ E; linear in s so dE/ds=(M-I)@E is
 # exact and s-independent (mirrors the absolute energy-scale migration precedent).
@@ -458,8 +525,8 @@ def resolve_nuisance_spec(spec):
         names = CORE_FLUX_NAMES + ["zenith_up", "zenith_down"] \
             + XSEC_VECTOR_NAMES + det
     elif spec == "phased_prod":
-        # PRODUCTION octant set (2026-06-26): era-split phased (102) + the four
-        # octant-relevant systematics added this session + solar_activity:
+        # Octant-focused production set: era-split phased (102) + four
+        # octant-relevant systematics + solar_activity:
         #   +9 energy-banded flux ratios (ALL_FLUX_RATIO_NAMES)
         #   +xsec_ccqe_shape_subgev (sub-GeV-localized CCQE shape, the #1 octant lever)
         #   +kpi_ratio (K/pi high-E flux), +rel_norm_fcmg (FC-multiGeV rel. norm)
@@ -468,10 +535,9 @@ def resolve_nuisance_spec(spec):
         #   - energy_scale_* : the BIN-LEVEL version is functional (NOT inert -- the
         #     'inert' issue was the abandoned +-2% Rp/Rm re-digitization on the quantized
         #     MC; the histogram-migration version works). Left out only because its thesis
-        #     pull is sub-1sigma (weak octant lever) and it can't be cross-checked vs the
-        #     buggy upstream event-engine energy_scale.
-        #   - xsec_1p1h/2p2h_subgev_nue : phased_max's sub-GeV nu_e norms; scoped out (this
-        #     session's flagged 4 only), and partly redundant with the base CCQE/CC_2p2h norms.
+        #     pull is sub-1sigma (a weak octant lever).
+        #   - xsec_1p1h/2p2h_subgev_nue : sub-GeV nu_e norms; scoped out, and partly
+        #     redundant with the base CCQE/CC_2p2h norms.
         # = 102 + 9 + 4 = 115 dials. All additions act at fit time (no response rebuild).
         det = []
         for stem in DET_ERA_STEMS:
@@ -481,7 +547,7 @@ def resolve_nuisance_spec(spec):
                  + list(ALL_FLUX_RATIO_NAMES)
                  + ["xsec_ccqe_shape_subgev", "kpi_ratio", "rel_norm_fcmg", "solar_activity"])
     elif spec == "phased_full":
-        # MAXIMAL octant set (2026-06-26): phased_prod (115) + the dials that were scoped
+        # MAXIMAL octant set: phased_prod (115) + the dials that were scoped
         # out of it -- the two phased_max sub-GeV nu_e norms + the 4 era-split energy_scale
         # dials (bin-level, functional). = 115 + 2 + 4 = 121 dials. Tests "does the octant
         # relax further with everything functional turned on?". energy_scale needs the
@@ -490,29 +556,29 @@ def resolve_nuisance_spec(spec):
                  + ["xsec_1p1h_subgev_nue", "xsec_2p2h_subgev_nue"]
                  + list(ENERGY_SCALE_NAMES))
     elif spec in ("R1", "pfm_base"):
-        # PROVENANCE LADDER rung 1 (2026-06-27): the FULL Pablo-FM release (107) =
-        # phased (102) + the 4 era-split energy_scale dials + solar_activity. These
-        # last 5 are PFM-specified (Pablo's 107-dial release) but were staged out of
-        # 'phased' pending the bin-level/binned machinery we since built; per the user
-        # they belong in the PFM base. Pure Pablo -- nothing thesis-motivated of ours.
+        # R1 = the FULL datafit-SK release set (107): phased (102) + the 4
+        # era-split energy_scale dials + solar_activity. These last 5 are part
+        # of the 107-dial release but were staged out of 'phased' pending the
+        # bin-level/binned machinery, since built; they belong in the base set.
         names = (list(resolve_nuisance_spec("phased")[0])
                  + list(ENERGY_SCALE_NAMES) + ["solar_activity"])
     elif spec in ("R2", "ladder_r2"):
-        # rung 2 (120): R1 + the thesis-FAITHFUL SK systematics the base lacks --
+        # R2 (120): R1 + the thesis-FAITHFUL SK systematics the base lacks --
         # K/pi + FC-multiGeV rel.norm + the 3-band flux ratios (nu_e/nubar_e, flavor,
         # nu_mu/nubar_mu x sub/mid/high = ALL_FLUX_RATIO_NAMES, 9) + sub-GeV nu_e CCQE
         # norm (xsec_1p1h_subgev_nue, ~SK 5%) + sub-GeV-localized CCQE shape. Each maps
-        # 1:1 (form-faithful) to a real Wester-thesis dial. Run loose AND SK-tight (the
-        # worker's --tight narrows the flux-ratio sigmas toward SK's published widths).
+        # 1:1 (form-faithful) to a real Wester-thesis dial. Can be run loose or
+        # SK-tight (callers may narrow the flux-ratio sigmas toward SK's published widths).
         names = (list(resolve_nuisance_spec("R1")[0])
                  + ["kpi_ratio", "rel_norm_fcmg"]
                  + list(ALL_FLUX_RATIO_NAMES)
                  + ["xsec_1p1h_subgev_nue", "xsec_ccqe_shape_subgev"])
     elif spec in ("R3", "ladder_r3"):
-        # rung 3 (122): R2 + OUR constructions -- the 2p2h sub-GeV nu_e surrogate and
-        # the momentum-split neutron tag (low/high p), which REPLACES the single
-        # neutron_tagging_subgev (novel beyond SK AND PE). Needs migration_mode=
-        # 'weighted' (per-bin band rates); the engine asserts this.
+        # R3 (122): R2 + two additional constructions -- the 2p2h sub-GeV nu_e
+        # surrogate and the momentum-split neutron tag (low/high p), which
+        # REPLACES the single neutron_tagging_subgev (not part of SK's published
+        # vocabulary). Needs migration_mode='weighted' (per-bin band rates);
+        # the engine asserts this.
         base = list(resolve_nuisance_spec("R2")[0])
         k = base.index("neutron_tagging_subgev")
         base[k:k + 1] = list(NTAG_SPLIT_NAMES)
@@ -520,64 +586,85 @@ def resolve_nuisance_spec(spec):
     elif spec in ("R2NTS", "ladder_r2_ntagsplit"):
         # R2 + the momentum-split neutron tag ONLY (121): the R3 ntag
         # replacement (neutron_tagging_subgev -> ntag_subgev_lowp/highp)
-        # WITHOUT R3's xsec_2p2h_subgev_nue surrogate. Isolates the octant
-        # absorber flagged by the bf-convergence P1.3 audit (2026-07-01) on
-        # top of the r2_tight_lump arm. Needs migration_mode='weighted'
-        # (the engine asserts this via ntag_split).
+        # WITHOUT R3's xsec_2p2h_subgev_nue surrogate -- isolates the
+        # momentum-split neutron-tag freedom on its own. Needs
+        # migration_mode='weighted' (the engine asserts this via ntag_split).
         names = list(resolve_nuisance_spec("R2")[0])
         k = names.index("neutron_tagging_subgev")
         names[k:k + 1] = list(NTAG_SPLIT_NAMES)
     elif spec in ("R2HV", "ladder_r2_horizvert"):
-        # R2 + the Horizontal/Vertical flux-ratio dial ONLY (121): fills the
-        # 2026-07-02 S3.3 audit gap — thesis 5509-18 high-E zenith-shape flux
-        # systematic that zenith_up/down structurally cannot make (tanh^2
-        # pivots to zero at the horizon). g(cz)=(1-3cz^2)/2, sigma 0.03,
-        # nominal 0 = exact no-op.
+        # R2 + the Horizontal/Vertical flux-ratio dial ONLY (121): adds the
+        # thesis 5509-18 high-E zenith-shape flux systematic that
+        # zenith_up/down structurally cannot make (tanh^2 pivots to zero at
+        # the horizon). g(cz)=(1-3cz^2)/2, sigma 0.03, nominal 0 = exact no-op.
         names = list(resolve_nuisance_spec("R2")[0]) + ["flux_horizvert"]
     elif spec in ("R2UBS", "ladder_r2_upmu_bkg_shape"):
-        # R2 + the up-mu background zenith x momentum SHAPE dials ONLY (123): fills
-        # the 2026-07-02 audit gap C -- SK's cosmic-mu bkg subtraction (thesis
-        # 5975-5984) is horizon-localized (2 zenith bins stopping / 1 through-going
-        # non-showering) + momentum-shaped, while our whole-sample upmu_*_bkg norms
-        # are flat per era. 3 era-common dials, nominal 1 = exact no-op. Sibling of
-        # R2HV; same r2_tight_lump base so the two smokes compare apples-to-apples.
+        # R2 + the up-mu background zenith x momentum SHAPE dials ONLY (123):
+        # SK's cosmic-mu bkg subtraction (thesis 5975-5984) is horizon-localized
+        # (2 zenith bins stopping / 1 through-going non-showering) +
+        # momentum-shaped, while the whole-sample upmu_*_bkg norms are flat per
+        # era. 3 era-common dials, nominal 1 = exact no-op. Sibling of R2HV on
+        # the same R2 base so the two compare apples-to-apples.
         names = list(resolve_nuisance_spec("R2")[0]) + list(UPMU_BKG_SHAPE_NAMES)
     elif spec in ("R2UDE", "ladder_r2_updown_escale"):
         # R2 + the up/down energy-scale detector dials ONLY (124): the last
         # direction-coupled thesis detector systematic the base lacks (Wester
         # 6011-6018, Table 5.6). 4 era-split dials, anti-symmetric up/down
         # normalization of FC+PC events (up *= 1+d, down *= 1-d), nominal 0 =
-        # exact no-op. Sibling of R2UBS/R2HV on the same r2_tight_lump base so the
-        # smokes compare apples-to-apples. Needs the phased 4-era response.
+        # exact no-op. Sibling of R2UBS/R2HV on the same R2 base so the arms
+        # compare apples-to-apples. Needs the phased 4-era response.
         names = list(resolve_nuisance_spec("R2")[0]) + list(UPDOWN_ESCALE_NAMES)
     elif spec in ("R2DS", "ladder_r2_dirsmear"):
         # R2 + the direction-smearing dial ONLY (121): the beyond-SK-vocabulary
-        # direction-RESOLUTION shape freedom (Track D). One global dir_smear dial,
+        # direction-RESOLUTION shape freedom. One global dir_smear dial,
         # nominal 0 = exact no-op, box [0,1], loose prior sigma 10. Needs the
-        # dirsmear_matrix ctor arg (reco-cz confusion matrix). Sibling of R2UBS/UDE on
-        # the same r2_tight_lump base so the smokes compare apples-to-apples.
+        # dirsmear_matrix ctor arg (reco-cz confusion matrix). Sibling of
+        # R2UBS/UDE on the same R2 base.
         names = list(resolve_nuisance_spec("R2")[0]) + [DIR_SMEAR_NAME]
     elif spec in ("R2FUDECCQE", "r2_fude_ccqe", "ladder_r2_fude_ccqe"):
-        # R2 + Track H's multi-GeV CCQE appearance freedom, ON TOP OF the
-        # R2HV/R2UBS/R2UDE audit-gap dials (131): the ADOPTED PRODUCTION arm
-        # (2026-07-06) -- R2 (120) + flux_horizvert (R2HV) + the up-mu
-        # background-shape triplet (R2UBS) + the era-split up/down
-        # energy-scale quartet (R2UDE) + xsec_ccqe_shape (global CCQE-shape
-        # freedom, distinct from R2's xsec_ccqe_shape_subgev) + the two
-        # multi-GeV CCQE flavor norms (xsec_ccqe_multigev_nue/numu, Track H).
-        # This is the FIRST Δm²-moving arm found in the campaign; order below
-        # is byte-order-verified against the production seed
-        # (claude-tmp/dm2/seeds_r2_fude_ccqe/r2_fude_ccqe.json:nuisance_names).
+        # R2 + the multi-GeV CCQE appearance freedom, ON TOP OF the
+        # R2HV/R2UBS/R2UDE dials (131): the production set -- R2 (120) +
+        # flux_horizvert (R2HV) + the up-mu background-shape triplet (R2UBS)
+        # + the era-split up/down energy-scale quartet (R2UDE) +
+        # xsec_ccqe_shape (global CCQE-shape freedom, distinct from R2's
+        # xsec_ccqe_shape_subgev) + the two multi-GeV CCQE flavor norms
+        # (xsec_ccqe_multigev_nue/numu). The dial ORDER below is fixed and
+        # load-bearing: production seed vectors index into it.
         names = (list(resolve_nuisance_spec("R2")[0]) + ["flux_horizvert"]
                  + list(UPMU_BKG_SHAPE_NAMES) + list(UPDOWN_ESCALE_NAMES)
                  + ["xsec_ccqe_shape"] + list(MULTIGEV_CCQE_NAMES))
+    elif spec in ("R2FUDECCQE_NMIG", "r2_fude_ccqe_nmig"):
+        # TRIAL variant: production r2_fude_ccqe (131) + the two per-pair 0n/1n
+        # neutron-production migration dials (nmig_subgev_nuebar, nmig_multigev_nuebar),
+        # each LOOSE sigma 0.20 (max-effect diagnostic), default +-10sigma bounds
+        # (unpinned). = 133 dials. Additive -- every pre-existing dial + order
+        # is preserved.
+        names = (list(resolve_nuisance_spec("R2FUDECCQE")[0])
+                 + list(NEUTRON_MIG_TRIAL_NAMES))
+    elif spec in ("R2FUDECCQE_NMIG_PINNED", "r2_fude_ccqe_nmig_pinned"):
+        # PINNED variant: production r2_fude_ccqe (131) + the two per-pair 0n/1n
+        # migration dials with the SAME sigma 0.10 prior but a hard physical BOX
+        # x in [0, 1+1/r] (NEUTRON_MIG_BOX_PINNED, from raw MC 0n/1n counts) so the fit
+        # cannot migrate more events than the donor/acceptor rate ratio allows. = 133 dials.
+        names = (list(resolve_nuisance_spec("R2FUDECCQE")[0])
+                 + list(NEUTRON_MIG_PINNED_NAMES))
+    elif spec in ("R2FUDECCQE_DCYE", "r2_fude_ccqe_dcye"):
+        # production r2_fude_ccqe (131) + the decay-e tagging efficiency norm
+        # (decay_e_tagging, sigma 0.015, on the SK I-III sub-GeV decay-e-keyed samples).
+        # = 132 dials. Additive.
+        names = list(resolve_nuisance_spec("R2FUDECCQE")[0]) + [DECAY_E_NAME]
+    elif spec in ("R2FUDECCQE_NMIG_DCYE", "r2_fude_ccqe_nmig_dcye"):
+        # Combined variant: production r2_fude_ccqe (131) + the two TRIAL neutron
+        # migration dials + the decay-e norm. = 134 dials. Additive.
+        names = (list(resolve_nuisance_spec("R2FUDECCQE")[0])
+                 + list(NEUTRON_MIG_TRIAL_NAMES) + [DECAY_E_NAME])
     elif isinstance(spec, str) and spec.startswith("octsyst"):
         # octant-absorber ladder arms, all on the updown (42-dial) base:
         #   octsyst_base : the 42-dial reference (== 'updown')
         #   octsyst_flux : + sub-GeV flux ratios (flux_nuebar/flux_flavor)
         #   octsyst_ntag : neutron_tagging_subgev -> momentum-split low/high
         #   octsyst_both : both of the above together
-        # extended arms (2026-06-18) build on octsyst_both (ntag split + sub-GeV
+        # extended arms build on octsyst_both (ntag split + sub-GeV
         # flux ratios) and add the SK systematics we lack:
         #   octsyst_fluxband : + 7 energy-banded flux ratios (mid/high + numubar)
         #   octsyst_xsec     : + 2 sub-GeV xsec dials (CCQE shape, sub-GeV CCQE nue)
@@ -631,8 +718,8 @@ class SKBinnedEngine:
           (BaseWeight*PhysicsWeight sums per sample), recomputed at every
           oscillation point — the post-bugfix SKCombinedDetector behavior.
       'rawcount' (legacy): r = raw MC event counts per sample, frozen across
-          the oscillation grid — the pre-bugfix behavior. Collaborator
-          rationale (2026-06-11): experiments generate migration templates
+          the oscillation grid — the pre-bugfix behavior. Rationale:
+          experiments generate migration templates
           once, not per oscillation point, so the physics-independent ratio
           may model the actual systematic more faithfully; expected small.
 
@@ -676,6 +763,11 @@ class SKBinnedEngine:
                                 if n in UPMU_BKG_SHAPE_NAMES]
         self.active_ude = [n for n in self.nuisance_names
                            if n in UPDOWN_ESCALE_NAMES]
+        # neutron-production 0n/1n migration dials + decay-e norm:
+        # OFF unless the spec lists them explicitly. Both ride detector_factors/dlnD.
+        self.active_neutron_mig = [n for n in self.nuisance_names
+                                   if n in NEUTRON_MIG_NAMES]
+        self.active_decay_e = DECAY_E_NAME in self.nuisance_names
         # direction-smearing dial (OFF unless the spec lists it AND a matrix is given)
         self.active_dir_smear = DIR_SMEAR_NAME in self.nuisance_names
         self._dirsmear_matrix_path = dirsmear_matrix
@@ -766,6 +858,10 @@ class SKBinnedEngine:
         self.samples = np.unique(self.bin_sample)
         # FC multi-GeV per-bin mask for the optional rel_norm_fcmg dial
         self.fcmg_bin_mask = np.isin(self.bin_sample, list(REL_NORM_FCMG_SAMPLES))
+        # neutron-migration donor/acceptor sample pairs (per-dial) and the
+        # decay-e per-bin sample mask.
+        self.neutron_mig_pairs = dict(NEUTRON_MIG_PAIRS)
+        self.decay_e_bin_mask = np.isin(self.bin_sample, list(DECAY_E_SAMPLES))
 
         # ---- SK era partition (phased response). Absent -> single era 0, which
         #      collapses every per-era path to the legacy single-era behaviour.
@@ -952,7 +1048,7 @@ class SKBinnedEngine:
         if self.active_xsec_extra or self.active_multigev_ccqe:
             self.ccqe_cls = self.cls_bits[:, MASK_TUNES.index("CCQE")]   # (n_cls,)
             self.ccqe_nue_cls = self.ccqe_cls & (self.cls_flavor == 0)   # nu_e+nu-bar_e CCQE(=1p1h)
-            # multi-GeV CCQE flavor-norm masks (Track H): nu_mu+nu-bar_mu CCQE class
+            # multi-GeV CCQE flavor-norm masks: nu_mu+nu-bar_mu CCQE class
             # + the E_true>=1.33 GeV complement of the sub-GeV shape region. Built
             # here (unused, hence output-inert) for any active_xsec_extra spec.
             self.ccqe_numu_cls = self.ccqe_cls & (self.cls_flavor == 1)  # nu_mu+nu-bar_mu CCQE
@@ -1383,6 +1479,48 @@ class SKBinnedEngine:
             dlnD["rel_norm_fcmg"] = np.where(self.fcmg_bin_mask,
                                              (1.0 / x if x != 0 else 0.0), 0.0)
 
+        # neutron-production 0n/1n migration: one PER-PAIR rate-conserving
+        # migration between the explicit 0-neutron (donor) and 1-neutron (acceptor)
+        # nuebar sample of each pair. Same algebra as apply2 -- donor *= x, acceptor
+        # *= 1+r(1-x), r = weighted rate(donor)/rate(acceptor) -- but folded into the
+        # already-built per-bin D via the donor/acceptor sample masks (like ntag_split),
+        # so total (donor+acceptor) rate is invariant under x. Era-independent: the 0n/1n
+        # samples exist only in SK IV+V, so per-era rates leave them empty in eras 0-2
+        # (safe_ratio -> None => no-op, no derivative), exactly like the whole-sample ntag.
+        if self.active_neutron_mig:
+            for name in self.active_neutron_mig:
+                if name not in t:
+                    continue
+                d = np.zeros(self.n_bins)
+                x = t[name]
+                donor_s, acc_s = self.neutron_mig_pairs[name]
+                donor_m = self.bin_sample == donor_s
+                acc_m = self.bin_sample == acc_s
+                ra = float(rates.get(acc_s, 0.0)) if rates is not None else 0.0
+                if _unphys(x) or ra <= 0.0:
+                    dlnD[name] = d          # ratio undefined / unphysical => no-op
+                    continue
+                r_ = float(rates.get(donor_s, 0.0)) / ra
+                acc = 1.0 + r_ * (1.0 - x)
+                fac = np.ones(self.n_bins)
+                fac[donor_m] = x
+                d[donor_m] = 1.0 / x
+                fac[acc_m] = acc
+                d[acc_m] = (-r_ / acc) if acc != 0 else 0.0
+                D = D * fac
+                dlnD[name] = d
+
+        # decay-e tagging: flat multiplicative efficiency norm on the SK I-III
+        # sub-GeV decay-e-keyed samples (thesis 6022-6024 -- "proportionally changes the
+        # normalization"), folded into D like rel_norm_fcmg. nominal x=1 (no-op),
+        # d ln D/dx = 1/x on the masked bins. Era-independent (those samples are SK I-III
+        # only), so the same whole-sample mask is applied every era.
+        if self.active_decay_e and DECAY_E_NAME in t:
+            x = t[DECAY_E_NAME]
+            D = D * np.where(self.decay_e_bin_mask, x, 1.0)
+            dlnD[DECAY_E_NAME] = np.where(self.decay_e_bin_mask,
+                                          (1.0 / x if x != 0 else 0.0), 0.0)
+
         # up-mu background zenith x momentum SHAPE (SK cosmic-mu bkg subtraction,
         # thesis 5975-5984): multiplicative factor on the near-horizon affected model
         # bins, like rel_norm_fcmg (no separate bkg component). nominal x=1 (no-op),
@@ -1472,7 +1610,7 @@ class SKBinnedEngine:
             if return_parts:
                 parts_e.append(dict(D=D_e, dlnD=dlnD_e, n_pre=n_pre_e[e],
                                     rates=rates_e, n_phys=np_e))
-        # direction-smearing (Track D): reco-cz migration of the FINAL reco expectation
+        # direction-smearing: reco-cz migration of the FINAL reco expectation
         # E' = E + s*(M - I) @ E, applied POST-detector, POST-era-sum. M is era-common and
         # the migration is linear, so M(sum_e D_e n_pre_e) = sum_e M(D_e n_pre_e); and for
         # R2DS every active detector factor is per-sample-constant in zenith (and the
@@ -1802,13 +1940,13 @@ class SKBinnedEngine:
                                    (self.n_cls, self.nE, self.nZ))
         return None
 
-    # ---------------- per-point fit (worker protocol) ----------------
+    # ---------------- per-point fit (production minimizer protocol) ----------------
     def fit_point(self, phi_dcp_stack, x0=None, n_dcp=None, free_mask=None,
                   jac=None, dcp_warmchain=True):
-        """dCP-profiled nuisance minimization — run_one_point protocol.
+        """dCP-profiled nuisance minimization (production per-point protocol).
 
-        phi_dcp_stack: phi[n_dcp, 2, 3, nE, nZ]. Returns same tuple as the
-        event worker: (chi2, best_dcp_index, nuisance, nit, converged).
+        phi_dcp_stack: phi[n_dcp, 2, 3, nE, nZ]. Returns the tuple
+        (chi2, best_dcp_index, nuisance, nit, converged).
 
         jac: True/None (default) -> analytic gradient (era-aware); False ->
         L-BFGS-B finite differences (kept as a cross-check path).
@@ -1837,6 +1975,7 @@ class SKBinnedEngine:
         _box.update({n: (0.3, 1.7) for n in FLUX_BAND_NAMES})
         _box.update(XSEC_EXTRA_BOX)
         _box.update(MULTIGEV_CCQE_BOX)           # multi-GeV CCQE flavor norms [0,3]
+        _box.update(NEUTRON_MIG_BOX_PINNED)      # H5 pinned: x in [0, 1+1/r] (trial unpinned)
         _box[DIR_SMEAR_NAME] = DIR_SMEAR_BOX     # one-sided [0,1] (nominal-0 dial)
         for name, (lo, hi) in _box.items():
             if name in self.nuisance_names:

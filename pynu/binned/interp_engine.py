@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Continuous phi(Delta m^2, s23) interpolator + joint-fit objective for the SK
-binned GLOBAL-MINIMUM search (HANDOFF_2026-06-28_mcmc_interp.md, steps 2 & 4).
+binned GLOBAL-MINIMUM search.
 
-Purpose (2026-06-28/29 framing): the grid scan still draws the CONTOUR; this
+Purpose: the grid scan still draws the CONTOUR; this
 gives an ACCURATE GLOBAL MINIMUM (best-fit osc point + profiled nuisances), free
 of the per-cell grid convergence scatter, by interpolating the pre-built osc
 tensors so a continuous (Delta m^2, s23) optimiser / sampler never re-propagates
 nuSQuIDS.
 
-GATE (interp_gate.py + fit-level tests, 2026-06-28): CUBIC interpolation of the
+Validation (interpolation + fit-level tests): CUBIC interpolation of the
 15x15 osc-tensor grid is FIT-GRADE for the global minimum -- nuisance-profiled
 |dChi2| <~ 0.6 at the conservative leave-one-out distance (~0.04 at the real
 <=1/2-step), and the interpolant's safe-band minimum equals the node minimum
@@ -21,7 +21,7 @@ exactly (no aliasing wiggles). Constraints baked in here:
   * s23 is clean across the full [0.40, 0.80].
 
 The interpolant is a separable natural cubic spline over ALL 15 grid nodes per
-axis (the scheme the gate validated); queries are bounded to the trusted box by
+axis (the validated scheme); queries are bounded to the trusted box by
 JointSKFit, not by the interpolator (so the spline stencil keeps correct
 neighbour nodes). phi enters the forward model linearly, so interpolating phi
 then contracting == interpolating the observable -- verified at machine precision.
