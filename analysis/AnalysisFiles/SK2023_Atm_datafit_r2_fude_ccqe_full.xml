@@ -1,0 +1,838 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SK2023_Atm_datafit_r2_fude_ccqe_full.xml
+
+  The full-131-dial event-engine value/order source of truth for the production
+  r2_fude_ccqe systematics arm. Seeded structurally from
+  SK2023_Atm_datafit_pfm.xml (repo root, the era-split config); pfm.xml is
+  NEVER edited in place.
+
+  Deltas applied vs pfm: 5 sigma fixes (tilt 0.10, nunubar_ratio 0.05, zenith_up
+  0.20, zenith_down 0.20, XSecNuTau 0.20); combined neutron_tagging (sigma 0.1)
+  swapped for the neutron_tagging_subgev/_multigev split (sigma 0.12 each, from
+  SK2023_Atm_datafit_xsec_barr_ntag.xml:322-334); the 4 decay_e_tagging_sk* blocks
+  dropped (not in the 131); 26 missing blocks added (2 zenith already had methods,
+  24 new). Optional per-nuisance box children (14 dials) = hard truncation
+  bounds, verbatim from the engine bounds-build (sk_binned_engine.py:1836-1840);
+  absent box child = unbounded (event-engine default).
+
+  ORDER: the 131 <nuisance> blocks are in the flat production order, byte-identical
+  to pynu/binned/SK2023_Atm_datafit_r2_fude_ccqe.xml (= the theta-layout of the
+  production grid/seed files). All values are from the binned engine
+  CANONICAL_DIALS (the physics authority for these dials).
+
+  NOTE: all 131 are emitted under ONE NeutrinoSource block so the
+  ParseXML-resolved nuisance order equals the flat production order. Legacy
+  tune-block routing (get_flux/get_xsection/get_detector via
+  exp.Definition[source]) keys off the PARENT block name, and a 3-block
+  segregation (flux under NeutrinoSource, xsec under NeutrinoTarget, detector
+  under NeutrinoExperiment) reorders under ParseXML and cannot reproduce the
+  flat order (differs at 124/131 positions). PyNuFit therefore routes each dial
+  by its per-dial owner lookup (DialOwnerMap, built from the tune classes' own
+  method inventories), which makes this flat layout route correctly.
+-->
+<Analysis>
+<NeutrinoSource name="Atmospheric">
+<status> 1 </status>
+<nuisance name="normalization_below1GeV">
+<status> 1 </status>
+<sigma> 0.25 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="normalization_above1GeV">
+<status> 1 </status>
+<sigma> 0.15 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="tilt">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="nunubar_ratio">
+<status> 1 </status>
+<sigma> 0.05 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="flavor_ratio">
+<status> 1 </status>
+<sigma> 0.02 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="zenith_up">
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="zenith_down">
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="XSecNuTau">
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="NCoverCC">
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="NCHad">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="AxialMass">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="DIS">
+<status> 1 </status>
+<sigma> 0.05 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC_2p2h">
+<status> 1 </status>
+<sigma> 1.0 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC_2p2hNuBarNu">
+<status> 1 </status>
+<sigma> 1.0 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC_2p2hMuE">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CCQE">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CCQENuBarNu">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CCQEMuE">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC1Pi_Pi0Pi">
+<status> 1 </status>
+<sigma> 0.4 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC1Pi_NuBarNuE">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC1Pi_NuBarNuMu">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC1PiProduction">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CohPiProduction">
+<status> 1 </status>
+<sigma> 1.0 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fcpc_separation_sk1">
+<status> 1 </status>
+<sigma> 0.006 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fcpc_separation_sk2">
+<status> 1 </status>
+<sigma> 0.005 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fcpc_separation_sk3">
+<status> 1 </status>
+<sigma> 0.009 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fcpc_separation_sk45">
+<status> 1 </status>
+<sigma> 0.002 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_reduction_sk1">
+<status> 1 </status>
+<sigma> 0.024 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_reduction_sk2">
+<status> 1 </status>
+<sigma> 0.048 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_reduction_sk3">
+<status> 1 </status>
+<sigma> 0.005 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_reduction_sk45">
+<status> 1 </status>
+<sigma> 0.01 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mge_nonubkg_sk1">
+<status> 1 </status>
+<sigma> 0.13 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mge_nonubkg_sk2">
+<status> 1 </status>
+<sigma> 0.38 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mge_nonubkg_sk3">
+<status> 1 </status>
+<sigma> 0.27 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mge_nonubkg_sk45">
+<status> 1 </status>
+<sigma> 0.18 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fc_reduction_sk1">
+<status> 1 </status>
+<sigma> 0.002 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fc_reduction_sk2">
+<status> 1 </status>
+<sigma> 0.002 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fc_reduction_sk3">
+<status> 1 </status>
+<sigma> 0.008 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fc_reduction_sk45">
+<status> 1 </status>
+<sigma> 0.013 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_2ring_pi0_sk1">
+<status> 1 </status>
+<sigma> 0.056 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_2ring_pi0_sk2">
+<status> 1 </status>
+<sigma> 0.044 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_2ring_pi0_sk3">
+<status> 1 </status>
+<sigma> 0.059 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_2ring_pi0_sk45">
+<status> 1 </status>
+<sigma> 0.056 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_1ring_pi0_sk1">
+<status> 1 </status>
+<sigma> 0.12 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_1ring_pi0_sk2">
+<status> 1 </status>
+<sigma> 0.12 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_1ring_pi0_sk3">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_1ring_pi0_sk45">
+<status> 1 </status>
+<sigma> 0.15 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_nunubar_separation_sk1">
+<status> 1 </status>
+<sigma> 0.072 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_nunubar_separation_sk2">
+<status> 1 </status>
+<sigma> 0.079 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_nunubar_separation_sk3">
+<status> 1 </status>
+<sigma> 0.077 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_nunubar_separation_sk45">
+<status> 1 </status>
+<sigma> 0.068 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_emu_separation_sk1">
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_emu_separation_sk2">
+<status> 1 </status>
+<sigma> 0.038 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_emu_separation_sk3">
+<status> 1 </status>
+<sigma> 0.053 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_emu_separation_sk45">
+<status> 1 </status>
+<sigma> 0.033 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_eother_separation_sk1">
+<status> 1 </status>
+<sigma> 0.057 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_eother_separation_sk2">
+<status> 1 </status>
+<sigma> 0.041 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_eother_separation_sk3">
+<status> 1 </status>
+<sigma> 0.049 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_eother_separation_sk45">
+<status> 1 </status>
+<sigma> 0.034 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_stopthru_separation_sk1">
+<status> 1 </status>
+<sigma> 0.25 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_stopthru_separation_sk2">
+<status> 1 </status>
+<sigma> 0.14 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_stopthru_separation_sk3">
+<status> 1 </status>
+<sigma> 0.3 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_stopthru_separation_sk45">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pi0_ring_separation_sk1">
+<status> 1 </status>
+<sigma> 0.023 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pi0_ring_separation_sk2">
+<status> 1 </status>
+<sigma> 0.023 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pi0_ring_separation_sk3">
+<status> 1 </status>
+<sigma> 0.023 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pi0_ring_separation_sk45">
+<status> 1 </status>
+<sigma> 0.03 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="e_ring_separation_sk1">
+<status> 1 </status>
+<sigma> 0.035 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="e_ring_separation_sk2">
+<status> 1 </status>
+<sigma> 0.038 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="e_ring_separation_sk3">
+<status> 1 </status>
+<sigma> 0.013 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="e_ring_separation_sk45">
+<status> 1 </status>
+<sigma> 0.018 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mu_ring_separation_sk1">
+<status> 1 </status>
+<sigma> 0.045 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mu_ring_separation_sk2">
+<status> 1 </status>
+<sigma> 0.08 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mu_ring_separation_sk3">
+<status> 1 </status>
+<sigma> 0.026 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mu_ring_separation_sk45">
+<status> 1 </status>
+<sigma> 0.023 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="singlering_pid_sk1">
+<status> 1 </status>
+<sigma> 0.002 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="singlering_pid_sk2">
+<status> 1 </status>
+<sigma> 0.007 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="singlering_pid_sk3">
+<status> 1 </status>
+<sigma> 0.0026 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="singlering_pid_sk45">
+<status> 1 </status>
+<sigma> 0.0035 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_pid_sk1">
+<status> 1 </status>
+<sigma> 0.065 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_pid_sk2">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_pid_sk3">
+<status> 1 </status>
+<sigma> 0.05 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_pid_sk45">
+<status> 1 </status>
+<sigma> 0.035 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_shower_separation_sk1">
+<status> 1 </status>
+<sigma> 0.034 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_shower_separation_sk2">
+<status> 1 </status>
+<sigma> 0.044 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_shower_separation_sk3">
+<status> 1 </status>
+<sigma> 0.024 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_shower_separation_sk45">
+<status> 1 </status>
+<sigma> 0.03 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_stop_bkg_sk1">
+<status> 1 </status>
+<sigma> 0.16 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_stop_bkg_sk2">
+<status> 1 </status>
+<sigma> 0.21 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_stop_bkg_sk3">
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_stop_bkg_sk45">
+<status> 1 </status>
+<sigma> 0.17 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_showering_bkg_sk1">
+<status> 1 </status>
+<sigma> 0.18 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_showering_bkg_sk2">
+<status> 1 </status>
+<sigma> 0.14 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_showering_bkg_sk3">
+<status> 1 </status>
+<sigma> 0.24 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_showering_bkg_sk45">
+<status> 1 </status>
+<sigma> 0.17 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_nonshowering_bkg_sk1">
+<status> 1 </status>
+<sigma> 0.18 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_nonshowering_bkg_sk2">
+<status> 1 </status>
+<sigma> 0.14 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_nonshowering_bkg_sk3">
+<status> 1 </status>
+<sigma> 0.24 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_nonshowering_bkg_sk45">
+<status> 1 </status>
+<sigma> 0.24 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fiducial_volume">
+<status> 1 </status>
+<sigma> 0.02 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="neutron_tagging_subgev">
+<status> 1 </status>
+<sigma> 0.12 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="neutron_tagging_multigev">
+<status> 1 </status>
+<sigma> 0.12 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="energy_scale_sk1">
+<status> 1 </status>
+<sigma> 0.033 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="energy_scale_sk2">
+<status> 1 </status>
+<sigma> 0.028 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="energy_scale_sk3">
+<status> 1 </status>
+<sigma> 0.024 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="energy_scale_sk45">
+<status> 1 </status>
+<sigma> 0.021 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="solar_activity">
+<status> 1 </status>
+<sigma> 0.15 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="kpi_ratio">
+<status> 1 </status>
+<sigma> 0.05 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="rel_norm_fcmg">
+<status> 1 </status>
+<sigma> 0.05 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="flux_nuebar_subgev">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="flux_flavor_subgev">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="flux_nuebar_mid">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="flux_nuebar_high">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="flux_flavor_mid">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="flux_flavor_high">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="flux_numubar_subgev">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="flux_numubar_mid">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="flux_numubar_high">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="xsec_1p1h_subgev_nue">
+<status> 1 </status>
+<sigma> 0.05 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.5 1.5 </box>
+</nuisance>
+<nuisance name="xsec_ccqe_shape_subgev">
+<status> 1 </status>
+<sigma> 0.4 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+<box> -2.0 2.0 </box>
+</nuisance>
+<nuisance name="flux_horizvert">
+<status> 1 </status>
+<sigma> 0.03 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_stop_bkg_horiz_lowp">
+<status> 1 </status>
+<sigma> 0.09 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_stop_bkg_horiz_highp">
+<status> 1 </status>
+<sigma> 0.036 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_nonshow_bkg_horiz">
+<status> 1 </status>
+<sigma> 0.013 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="updown_escale_sk1">
+<status> 1 </status>
+<sigma> 0.006 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="updown_escale_sk2">
+<status> 1 </status>
+<sigma> 0.011 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="updown_escale_sk3">
+<status> 1 </status>
+<sigma> 0.006 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="updown_escale_sk45">
+<status> 1 </status>
+<sigma> 0.005 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="xsec_ccqe_shape">
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.3 1.7 </box>
+</nuisance>
+<nuisance name="xsec_ccqe_multigev_nue">
+<status> 1 </status>
+<sigma> 0.25 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.0 3.0 </box>
+</nuisance>
+<nuisance name="xsec_ccqe_multigev_numu">
+<status> 1 </status>
+<sigma> 0.25 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.0 3.0 </box>
+</nuisance>
+</NeutrinoSource>
+</Analysis>

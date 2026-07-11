@@ -31,6 +31,11 @@ class ParseXML:
         self.NuisSigmaList = []
         self.NuisDistribution = {}
         self.NuisDistributionList = []
+        # Optional per-nuisance hard bounds (a <box> child = two floats "lo hi").
+        # Absent <box> => unbounded default (-inf, +inf), so any XML WITHOUT the
+        # tag parses byte-identically to before this feature was added.
+        self.NuisBox = {}
+        self.NuisBoxList = []
 
         # Declare lists and dicts for Physics parameters
         self.PhysicsList = []
@@ -456,6 +461,7 @@ class ParseXML:
                     self.NuisSigma[sname] = {}
                     self.NuisNominal[sname] = {}
                     self.NuisDistribution[sname] = {}
+                    self.NuisBox[sname] = {}
                     for nuis in source.findall("nuisance"):
                         if int(nuis.find("status").text):
                             s = nuis.attrib["name"]
@@ -482,6 +488,18 @@ class ParseXML:
                                 self.NuisDistributionList.append(
                                     str(nuis.find("distribution").text).strip()
                                 )
+                                # Optional <box> child: hard bounds "lo hi".
+                                # Absent => unbounded (-inf, +inf), so XMLs with
+                                # no <box> tag resolve exactly as before.
+                                box_el = nuis.find("box")
+                                if box_el is not None:
+                                    lo, hi = (
+                                        float(v) for v in box_el.text.split()
+                                    )
+                                else:
+                                    lo, hi = float("-inf"), float("inf")
+                                self.NuisBox[sname][s] = (lo, hi)
+                                self.NuisBoxList.append((lo, hi))
                                 self.Nuisance[sname].append(s)
                                 self.NuisanceList.append(s)
                     self.Fixed[sname] = []
