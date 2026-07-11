@@ -15,7 +15,7 @@ sys.path.append("../")
 class SuperK_Combined(Tune):
     #: Rate basis for the migration ratios r (and decay-e fractions):
     #:   "weighted" (default) -- expected rates, W = BaseWeight*PhysicsWeight
-    #:                           (Newtrinos/PE `get_double_factor` convention)
+    #:                           (physics-weighted, rate-conserving convention)
     #:   "raw"                -- unweighted MC event counts (pre-2026 behavior)
     #: Select via the PYNU_SK_MIGRATION_BASIS environment variable (read at
     #: import time) or set SuperK_Combined.MIGRATION_BASIS = "raw" before the
@@ -259,6 +259,10 @@ class SuperK_Combined(Tune):
             Numpy.array or float with the weights from this tune.
         """
         # logging.info(f"Entering {__name__}")
+        # Rate-conserving FC/PC migration, algebra matching the binned engine
+        # (sk_binned_engine.py:1296-1314): FC leg *= x,
+        # PC leg *= y = ((wpc+wfc) - x*wfc)/wpc = 1 + (wfc/wpc)(1-x). The ratio
+        # in y is wfc/wpc (NOT wpc/wfc).
         fcpc = np.ones(experiment.NumberOfEvents)
 
         pc = (experiment.Sample == 14) | (experiment.Sample == 15)
@@ -267,16 +271,15 @@ class SuperK_Combined(Tune):
 
         wfc = np.sum(fc)
         wpc = np.sum(pc)
-        r = wpc/wfc
+        r = wfc/wpc
 
         if self._unphysical_value(x):
             fcpc[fc] = 1e-3
-            y = 1 + r
+            y = (wpc + wfc) / wpc
             fcpc[pc] = y
         else:
             fcpc[fc] = x
-            y = 1 + r*(1-x)
-            # ((wpc + wfc) - x * wfc) / wpc
+            y = ((wpc + wfc) - x * wfc) / wpc   # == 1 + r*(1-x), r = wfc/wpc
             fcpc[pc] = y
 
         return fcpc
@@ -306,7 +309,10 @@ class SuperK_Combined(Tune):
             fcpc[pc] = 0
         else:
             fcpc[fc] = 1
-            y = -wpc / wfc
+            # dy/dx = -r with r = wfc/wpc (matches the binned engine, ENG:1314
+            # dS_pc = (-wfc/wpc)/y; the fitter divides by the weight, so the
+            # raw derivative returned here is -wfc/wpc).
+            y = -wfc / wpc
             fcpc[pc] = y
 
         return fcpc
@@ -1503,6 +1509,10 @@ class SuperK_Combined(Tune):
         """
         if self._unphysical_value(x):
             return 1e-3
+        # Rate-conserving n-tag migration, algebra matching the binned engine
+        # (sk_binned_engine.py:1319-1332, apply2):
+        # DONOR (0-neutron, {20,22,25,27}) *= x; ACCEPTOR (1-neutron,
+        # {21,23,26,28}) *= 1 + r(1-x) with r = rate(donor)/rate(acceptor).
         nn = np.ones(experiment.NumberOfEvents)
         nn0 = (
             (experiment.Sample == 20)
@@ -1516,9 +1526,11 @@ class SuperK_Combined(Tune):
             | (experiment.Sample == 23)
             | (experiment.Sample == 28)
         )
+        # _mask_ratio(m0, m1) = sum W[m1]/sum W[m0]; donor=nn0, acceptor=nn1
+        # => r = rate(nn0)/rate(nn1) = _mask_ratio(experiment, nn1, nn0).
         r = self._mask_ratio(experiment, nn1, nn0)
-        nn[nn1] = x
-        nn[nn0] = 1 + r * (1 - x)
+        nn[nn0] = x
+        nn[nn1] = 1 + r * (1 - x)
         return nn
 
     def diff_neutron_tagging(self, experiment, x):
@@ -1534,6 +1546,8 @@ class SuperK_Combined(Tune):
         """
         if self._unphysical_value(x):
             return 0
+        # Matches the binned engine (see `neutron_tagging`): DONOR
+        # (nn0) dw/dx = 1; ACCEPTOR (nn1) dw/dx = -r, r = rate(donor)/rate(acc).
         nn = np.zeros(experiment.NumberOfEvents)
         nn0 = (
             (experiment.Sample == 20)
@@ -1548,31 +1562,35 @@ class SuperK_Combined(Tune):
             | (experiment.Sample == 28)
         )
         r = self._mask_ratio(experiment, nn1, nn0)
-        nn[nn1] = 1
-        nn[nn0] = -r
+        nn[nn0] = 1
+        nn[nn1] = -r
         return nn
 
-    # --- Era-split neutron tagging (PE/Newtrinos.jl granularity) -------------
-    # Newtrinos.jl uses two independent n-tag efficiency dofs
-    # (sk_iv_v_subgev_neutron_tag_eff, sk_iv_v_multigev_neutron_tag_eff, both
-    # N(1, 0.12); super_k.jl:319-320) where the shared `neutron_tagging` above
-    # ties SubGeV+MGeV (and e-like+mu-like) to one parameter. Same
+    # --- Era-split neutron tagging (published-SK granularity) ----------------
+    # The published SK analysis constrains the SK IV-V neutron-tagging
+    # efficiency with two independent dofs (one sub-GeV, one multi-GeV,
+    # both N(1, 0.12)), whereas the shared `neutron_tagging` above ties
+    # SubGeV+MGeV (and e-like+mu-like) to one parameter. Same
     # rate-conserving migration form as `neutron_tagging`, restricted per era.
     # Sample ids: SubGeV untagged {20 (ebar 0n), 22 (numu)} <-> tagged
     # {21 (ebar 1n), 23 (numubar)}; MGeV untagged {25, 27} <-> tagged {26, 28}.
 
     def _neutron_tagging_era(self, experiment, x, s0, s1, diff=False):
+        # s0 = DONOR (0-neutron / untagged), s1 = ACCEPTOR (1-neutron / tagged).
+        # Matches the binned engine (apply2, ENG:1319-1332):
+        # donor *= x (dw/dx=1), acceptor *= 1+r(1-x) (dw/dx=-r), with
+        # r = rate(donor)/rate(acceptor) = _mask_ratio(experiment, nn1, nn0).
         nn0 = (experiment.Sample == s0[0]) | (experiment.Sample == s0[1])
         nn1 = (experiment.Sample == s1[0]) | (experiment.Sample == s1[1])
         r = self._mask_ratio(experiment, nn1, nn0)
         if diff:
             nn = np.zeros(experiment.NumberOfEvents)
-            nn[nn1] = 1
-            nn[nn0] = -r
+            nn[nn0] = 1
+            nn[nn1] = -r
         else:
             nn = np.ones(experiment.NumberOfEvents)
-            nn[nn1] = x
-            nn[nn0] = 1 + r * (1 - x)
+            nn[nn0] = x
+            nn[nn1] = 1 + r * (1 - x)
         return nn
 
     def neutron_tagging_subgev(self, experiment, x):
@@ -2216,3 +2234,187 @@ class SuperK_Combined(Tune):
         sgm = np.zeros(experiment.NumberOfEvents)
         sgm[experiment.Sample == 27] = 1
         return sgm
+
+    # =====================================================================
+    #  r2_fude_ccqe event-engine dials
+    #  Sample/bin-keyed detector dials transcribed 1:1 from the binned
+    #  engine (ENG = pynu/binned/sk_binned_engine.py). All W-type;
+    #  guard -> 1e-3.
+    # =====================================================================
+
+    #: FC multi-GeV sample group for rel_norm_fcmg (ENG:318).
+    _REL_NORM_FCMG_SAMPLES = frozenset({7, 8, 9, 10, 11, 12, 13, 24, 25, 26, 27, 28})
+
+    def rel_norm_fcmg(self, experiment, x):
+        r"""Relative normalization of the FC multi-GeV sample group.
+
+        Flat multiplicative norm on samples {7,8,9,10,11,12,13,24,25,26,27,28}
+        (SK Rel.Norm FC-MultiGeV). $w = x$ on those samples, 1 elsewhere.
+        nominal x=1 (exact no-op). Mirrors sk_binned_engine.py:1480-1484 (D fold)
+        with d ln D/dx = 1/x; REL_NORM_FCMG_SAMPLES at ENG:318.
+
+        Args:
+            x (float): Value of the tuning parameter (nominal 1).
+            experiment: Experiment class with per-event `Sample`.
+
+        Returns:
+            Numpy.array with the per-event weights from this tune.
+        """
+        if self._unphysical_value(x):
+            return 1e-3
+        w = np.ones(experiment.NumberOfEvents)
+        w[np.isin(experiment.Sample, list(self._REL_NORM_FCMG_SAMPLES))] = x
+        return w
+
+    def diff_rel_norm_fcmg(self, experiment, x):
+        r"""Derivative of `rel_norm_fcmg` w.r.t. x: 1 on the FC multi-GeV group, 0 else."""
+        if self._unphysical_value(x):
+            return 0
+        w = np.zeros(experiment.NumberOfEvents)
+        w[np.isin(experiment.Sample, list(self._REL_NORM_FCMG_SAMPLES))] = 1.0
+        return w
+
+    # ---- up-mu background zenith x momentum SHAPE (UBS, ENG:407-420) ----------
+    # Per-bin norms on the near-horizon reco-cosZ x reco-momentum cells of the
+    # up-mu background samples. The event-side selection reproduces the binned
+    # (sample, iz, ie) cell sets by reco-variable membership. Binned reference:
+    # UPMU_BKG_SHAPE_SPEC ENG:411-415 (name -> (sample, iz set, ie set)), per-bin
+    # mask build ENG:962-975, D fold + d ln D/dx=1/x ENG:1533-1540.
+    #
+    # Reco-cosZ bins use CTBins[sample] (up-mu samples 16/17/18 use z10bins_up,
+    # edges [-1..0] in 10 bins) so iz = digitize(CosZReco, edges)-1. Reco-momentum
+    # bins use EnergyBins[sample] so ie = digitize(EReco, edges)-1.
+
+    @staticmethod
+    def _reco_bin_index(values, edges):
+        r"""Bin index of `values` in ascending `edges` (0..len(edges)-2), matching
+        np.histogram's convention (right-open bins, last bin closed)."""
+        idx = np.digitize(values, edges) - 1
+        idx = np.clip(idx, 0, len(edges) - 2)
+        return idx
+
+    #: name -> (sample id, frozenset of reco-cosZ bin indices iz,
+    #:          frozenset of reco-momentum bin indices ie or None=all). ENG:411-415
+    _UPMU_BKG_SHAPE_SPEC = {
+        "upmu_stop_bkg_horiz_lowp":  (16, frozenset({8, 9}), frozenset({0})),
+        "upmu_stop_bkg_horiz_highp": (16, frozenset({8, 9}), frozenset({1, 2})),
+        "upmu_nonshow_bkg_horiz":    (17, frozenset({9}), None),
+    }
+
+    def _upmu_bkg_shape_mask(self, experiment, name):
+        r"""Per-event boolean mask for a UBS dial's (sample, iz, ie) cell set."""
+        sid, iz_set, ie_set = self._UPMU_BKG_SHAPE_SPEC[name]
+        in_sample = experiment.Sample == sid
+        mask = in_sample.copy()
+        if not np.any(in_sample):
+            return mask
+        cz_edges = experiment.CTBins[sid]
+        e_edges = experiment.EnergyBins[sid]
+        iz = self._reco_bin_index(experiment.CosZReco, cz_edges)
+        mask &= np.isin(iz, list(iz_set))
+        if ie_set is not None:
+            ie = self._reco_bin_index(experiment.EReco, e_edges)
+            mask &= np.isin(ie, list(ie_set))
+        return mask
+
+    def _upmu_bkg_shape_weight(self, experiment, name, x, diff=False):
+        if self._unphysical_value(x):
+            return 0 if diff else 1e-3
+        mask = self._upmu_bkg_shape_mask(experiment, name)
+        w = np.zeros(experiment.NumberOfEvents) if diff \
+            else np.ones(experiment.NumberOfEvents)
+        w[mask] = 1.0 if diff else x
+        return w
+
+    def upmu_stop_bkg_horiz_lowp(self, experiment, x):
+        r"""Up-mu stopping bkg, horizon-localized, low momentum (sample 16, iz{8,9}, ie{0})."""
+        return self._upmu_bkg_shape_weight(experiment, "upmu_stop_bkg_horiz_lowp", x)
+
+    def diff_upmu_stop_bkg_horiz_lowp(self, experiment, x):
+        return self._upmu_bkg_shape_weight(experiment, "upmu_stop_bkg_horiz_lowp", x, diff=True)
+
+    def upmu_stop_bkg_horiz_highp(self, experiment, x):
+        r"""Up-mu stopping bkg, horizon-localized, high momentum (sample 16, iz{8,9}, ie{1,2})."""
+        return self._upmu_bkg_shape_weight(experiment, "upmu_stop_bkg_horiz_highp", x)
+
+    def diff_upmu_stop_bkg_horiz_highp(self, experiment, x):
+        return self._upmu_bkg_shape_weight(experiment, "upmu_stop_bkg_horiz_highp", x, diff=True)
+
+    def upmu_nonshow_bkg_horiz(self, experiment, x):
+        r"""Up-mu non-showering bkg, horizon-localized (sample 17, iz{9}, all momentum)."""
+        return self._upmu_bkg_shape_weight(experiment, "upmu_nonshow_bkg_horiz", x)
+
+    def diff_upmu_nonshow_bkg_horiz(self, experiment, x):
+        return self._upmu_bkg_shape_weight(experiment, "upmu_nonshow_bkg_horiz", x, diff=True)
+
+    # ---- up/down energy-scale (UDE, ENG:440-445, 977-1000, 1542-1555) --------
+    # Anti-symmetric per-era normalization of up-going (reco-cosZ<0) vs
+    # down-going (reco-cosZ>=0) FC+PC events: up *= (1+d), down *= (1-d).
+    # W-type signed NORM (NOT a migration; ENG:360-364). nominal d=0 (exact
+    # no-op). Excludes up-mu samples {16,17,18} (all up-going) and the single-
+    # reco-zenith FC samples whose CTBins is z1bins (nz=1, straddle cz=0). The
+    # binned convention is iz<nz//2 up / iz>=nz//2 down on the z10bins grids,
+    # whose central edge is cz=0 -> equivalently CosZReco<0 up, >=0 down.
+    _UDE_EXCLUDE_SAMPLES = frozenset({16, 17, 18})
+
+    def _ude_sign(self, experiment):
+        r"""Signed up/down mask: +1 up-going (cz<0), -1 down-going (cz>=0), 0 on
+        excluded samples (up-mu + single-reco-zenith z1bins FC samples)."""
+        sign = np.zeros(experiment.NumberOfEvents)
+        for sid in experiment.Samples:
+            if int(sid) in self._UDE_EXCLUDE_SAMPLES:
+                continue
+            # z1bins (single reco-cosZ bin) samples straddle cz=0 -> excluded.
+            if experiment.CTBins[sid].size - 1 != 10:
+                continue
+            in_s = experiment.Sample == sid
+            sign[in_s & (experiment.CosZReco < 0.0)] = 1.0
+            sign[in_s & (experiment.CosZReco >= 0.0)] = -1.0
+        return sign
+
+    def _updown_escale_era(self, experiment, d, era, diff=False):
+        r"""Per-era up/down energy-scale. w = 1 + d*sign on the era's FC+PC bins,
+        1 elsewhere; diff twin returns dw/dd = sign on the era, 0 elsewhere.
+        `era` is the SKPhase int (45 selects SKPhase>=4)."""
+        if self._unphysical_value(d, unphys_low=-9999999):
+            return 0 if diff else 1e-3
+        sign = self._ude_sign(experiment)
+        if era == 45:
+            era_mask = experiment.SKPhase >= 4
+        else:
+            era_mask = experiment.SKPhase == era
+        if diff:
+            w = np.zeros(experiment.NumberOfEvents)
+            w[era_mask] = sign[era_mask]
+            return w
+        w = np.ones(experiment.NumberOfEvents)
+        w[era_mask] = 1.0 + d * sign[era_mask]
+        return w
+
+    def updown_escale_sk1(self, experiment, x):
+        r"""Up/down energy-scale asymmetry, SK-I. up*=(1+x), down*=(1-x); nominal 0."""
+        return self._updown_escale_era(experiment, x, 1)
+
+    def diff_updown_escale_sk1(self, experiment, x):
+        return self._updown_escale_era(experiment, x, 1, diff=True)
+
+    def updown_escale_sk2(self, experiment, x):
+        r"""Up/down energy-scale asymmetry, SK-II. up*=(1+x), down*=(1-x); nominal 0."""
+        return self._updown_escale_era(experiment, x, 2)
+
+    def diff_updown_escale_sk2(self, experiment, x):
+        return self._updown_escale_era(experiment, x, 2, diff=True)
+
+    def updown_escale_sk3(self, experiment, x):
+        r"""Up/down energy-scale asymmetry, SK-III. up*=(1+x), down*=(1-x); nominal 0."""
+        return self._updown_escale_era(experiment, x, 3)
+
+    def diff_updown_escale_sk3(self, experiment, x):
+        return self._updown_escale_era(experiment, x, 3, diff=True)
+
+    def updown_escale_sk45(self, experiment, x):
+        r"""Up/down energy-scale asymmetry, SK-IV+V. up*=(1+x), down*=(1-x); nominal 0."""
+        return self._updown_escale_era(experiment, x, 45)
+
+    def diff_updown_escale_sk45(self, experiment, x):
+        return self._updown_escale_era(experiment, x, 45, diff=True)
