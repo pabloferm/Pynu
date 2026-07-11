@@ -1420,3 +1420,101 @@ class PyNuFit:
                 "nuisance": [float(v) for v in theta],
             }, f)
         return path
+
+    def BuildBinnedResponse(self, exp_name=None, out_path=None,
+                            n_etrue=200, n_cztrue=40):
+        """Build the SK binned forward-model response from this object's own
+        event MC (native port of ``build_sk_response.py`` — the standalone
+        script stays byte-untouched for cluster SLURM submissions).
+
+        One MC pass THROUGH the live ``exp_name`` experiment, so every convention
+        (NC w_no fix, NORM, WMC, CC-mask encoding, the DIS |Mode|>25*CC quirk) is
+        inherited, never re-implemented; class signatures come from evaluating
+        the actual ``WaterXSection`` tunes at x=2. Caches the sparse-response dict
+        on ``self.BinnedResponse[exp_name]`` and returns it. With ``out_path``,
+        also writes an npz byte-compatible with the ``SKBinnedEngine`` loader
+        (plus the additive schema_version / dial-manifest-hash keys the engine
+        checks only when present).
+
+        SLURM fan-out convention: the response is a single per-experiment
+        artifact — one node builds it, the submission script stages the npz for
+        the fitter fan-out. This method is that per-node kernel.
+
+        Artifact schema (npz keys): classes / xsec_tune_names; the R / Rp / Rm /
+        S2 sparse COO quintuples (k,e,z,b,era,v); n_era; e_edges / z_edges /
+        n_bins; observed; sample_table; sample_event_counts; meta; and the
+        additive schema_version [+ dial_manifest, dial_manifest_hash].
+
+        Args:
+          exp_name: which experiment to build for (default: the single
+            experiment, matching the standalone script's ``keys()[0]``).
+          out_path: optional npz output path.
+          n_etrue, n_cztrue: true-grid density (production 200x40 default; the
+            engine's production response uses 400x40 — pass n_etrue=400 to match).
+        """
+        from .binned.builder import build_response
+        if exp_name is None:
+            exp_name = next(iter(self.Experiments))
+        manifest = list(getattr(self.Analysis, "NuisanceList", []))
+        resp = build_response(
+            self, exp_name, out_path=out_path,
+            n_etrue=n_etrue, n_cztrue=n_cztrue,
+            dial_manifest=manifest or None)
+        if getattr(self, "BinnedResponse", None) is None:
+            self.BinnedResponse = {}
+        self.BinnedResponse[exp_name] = resp
+        return resp
+
+    def BuildOscTensors(self, dm231, s23, exp_name=None, dcp_nodes=None,
+                        s13=None, n_etrue=200, n_cztrue=40, avg_scale=None,
+                        out_path=None):
+        """Build the oscillated-flux tensor Phi[n_dcp, 2, 3, nE, nZ] at
+        (``dm231``, ``s23``) from this object's live oscillation handler (native
+        port of ``build_osc_tensors.py`` — the standalone script stays
+        byte-untouched for cluster SLURM submissions).
+
+        Runs against the production ``AtmosphericOscillations`` object so
+        propagation, units, flux init, and the Dm231_bar->Dm231 convention are
+        inherited. The osc object's per-event coordinate arrays, ``Parameters``,
+        and cache are snapshotted before the build and restored afterwards (even
+        on a mid-build exception), so a subsequent event-engine call on this same
+        PyNuFit object is byte-unaffected.
+
+        ``avg_scale`` is consumed from the XML ``<osc_averaging>`` field when
+        available (see below); ``PYNU_OSC_AVG_SCALE`` in the environment still
+        overrides, matching the AtmOsc ctor's back-compat rule. The default
+        pulls the declaration off an active ``<BinnedEngine>`` block if present.
+
+        SLURM fan-out convention: the (dm231, s23) grid is decomposed into one
+        task per node; each node calls this once and writes ``osc_tensor_<i>_<j>``
+        — this method is that per-node tensor kernel.
+
+        Returns ``(phi, meta)``; ``meta`` carries the grid edges, the dcp node
+        array, and the averaging actually applied.
+
+        Args:
+          dm231, s23: node oscillation parameters.
+          exp_name: which experiment (default: the single experiment).
+          dcp_nodes: iterable of dCP node values (radians); None -> single dcp=0.
+          s13: optional Sin2Theta13 override.
+          n_etrue, n_cztrue: true-grid density (must match the response build).
+          avg_scale: fast-oscillation averaging selector; None -> the active
+            <BinnedEngine> <osc_averaging> declaration (or the osc object's
+            current setting) is used.
+          out_path: optional npz output path (schema-compatible tensor loader).
+        """
+        from .binned.builder import build_tensors
+        if exp_name is None:
+            exp_name = next(iter(self.Experiments))
+        if avg_scale is None:
+            # default: honour an active <BinnedEngine> <osc_averaging> declaration
+            adapters = getattr(self, "BinnedAdapters", None) or {}
+            ad = adapters.get(exp_name)
+            if ad is not None:
+                decl = getattr(ad.config, "osc_averaging", "off")
+                if str(decl).strip().lower() not in ("off", "", "none"):
+                    avg_scale = decl
+        return build_tensors(
+            self, exp_name, dm231, s23, dcp_nodes=dcp_nodes, s13=s13,
+            n_etrue=n_etrue, n_cztrue=n_cztrue, avg_scale=avg_scale,
+            out_path=out_path)
