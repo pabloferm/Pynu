@@ -44,6 +44,11 @@ class BinnedEngineAdapter:
         self.S23 = None
         self._spec = None
         self._phi_cache = None      # 1-slot ((i, j) -> phi) cache for the node path
+        # ---- modular-path staged state. None until the modular method
+        # vocabulary is used; the packaged fit_point path never touches
+        # these, so the convenience path is unchanged. ----
+        self._staged_phi = None     # dCP slice selected by apply_physics()
+        self._staged_theta = None   # nuisance vector staged by stage_nuisance()
 
     # ---- nuisance-spec resolution ----
     def _resolve_spec(self):
@@ -161,6 +166,75 @@ class BinnedEngineAdapter:
         ``(chi2, best_dcp_index, theta, nit, converged)``."""
         phi = self.phi(dm231, s23)
         return self.engine.fit_point(phi, x0=x0, free_mask=free_mask)
+
+    # ---- modular method-vocabulary state-holder ----
+    # These back the PyNuFit modular methods (StartNuisance / ApplyPhysicsWeights
+    # / ApplyNuisanceWeights / SetExpectedWeights / SetBinnedExpectedEvents /
+    # SetBinnedMCVariance) so a worker can drive the binned engine through the
+    # same call sequence as the event engine. The engine kernels are unchanged;
+    # this is purely staging + a call into engine.expectation / poisson_chi2.
+    def start_nuisance(self):
+        """Reset the staged nuisance vector (cheap; mirrors the event engine's
+        per-event weight-array reset)."""
+        self._staged_theta = None
+
+    def apply_physics(self, dm231, s23, dcp_index):
+        """Select the oscillation tensor slice for (dm231, s23) at a single dCP
+        node. Stores the (2,3,nE,nZ) slice the engine expectation consumes.
+        The worker profiles dCP by looping ``dcp_index`` (same structure as the
+        event engine's worker-level node scan)."""
+        phi = self.phi(dm231, s23)
+        self._staged_phi = phi[dcp_index].astype(float)
+        return self._staged_phi
+
+    def stage_nuisance(self, theta):
+        """Stage the nuisance vector for the next contraction."""
+        self._staged_theta = np.asarray(theta, dtype=float)
+        return self._staged_theta
+
+    @property
+    def n_dcp(self):
+        """Number of dCP nodes in the staged tensor grid (for the worker loop)."""
+        return int(self.phi(self.DM[0], self.S23[0]).shape[0])
+
+    def _require_staged(self):
+        if self._staged_phi is None:
+            raise RuntimeError("binned modular path: apply_physics() must run "
+                               "before the expectation is contracted")
+        if self._staged_theta is None:
+            raise RuntimeError("binned modular path: stage_nuisance() must run "
+                               "before the expectation is contracted")
+
+    def expected_binned(self):
+        """Contract the response to the FewEntries-filtered expectation for the
+        staged (phi, theta) — exactly ``n_nu[few]`` inside ``engine.chi2``."""
+        self._require_staged()
+        n_nu, _ = self.engine.expectation(self._staged_phi, self._staged_theta)
+        return n_nu[self.engine.few]
+
+    def mc_variance_binned(self):
+        """FewEntries-filtered MC variance ``var[few]`` for the staged point
+        (used only by the BB likelihood; pure Poisson ignores it)."""
+        self._require_staged()
+        _, var = self.engine.expectation(self._staged_phi, self._staged_theta)
+        return var[self.engine.few]
+
+    def observed_binned(self):
+        """The engine's FewEntries-filtered observation vector ``obs_f`` — the
+        modular likelihood's observation for this experiment."""
+        return self.engine.obs_f
+
+    def chi2_and_grad_binned(self):
+        """(f, g) at the staged (phi, theta) via the engine's analytic kernel —
+        the modular gradient path. Bit-identical to a direct
+        ``engine.chi2_and_grad(phi_slice, theta)``."""
+        self._require_staged()
+        return self.engine.chi2_and_grad(self._staged_phi, self._staged_theta)
+
+    def chi2_binned(self):
+        """chi2 at the staged (phi, theta) via the engine kernel (parity ref)."""
+        self._require_staged()
+        return float(self.engine.chi2(self._staged_phi, self._staged_theta))
 
     # ---- XML nuisance cross-check ----
     def crosscheck_xml_nuisances(self, analysis):

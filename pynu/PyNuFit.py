@@ -65,6 +65,14 @@ class PyNuFit:
         self.SetUpExperiments()
         self.SetUpPhysicsTunes()
 
+        """ Per-dial tune-block owner map, built ONCE from the tune classes'
+        own method inventories. Zero
+        per-iteration cost; ApplyWeights/GetDiffLogWeights dispatch by this map
+        so a flat-order XML (all dials under one <NeutrinoSource>) routes each
+        dial to the class that actually owns its method, and existing 3-block
+        XMLs route identically to the legacy block scheme. """
+        self.DialOwnerMap = self._build_dial_owner_map()
+
         """ Compute Observation """
         self.ComputeBinnedObservation()
 
@@ -152,11 +160,112 @@ class PyNuFit:
                 exp, self.Analysis.SCENARIO, self.Analysis.Flavors, set_all=True
             )
 
+    # infrastructure methods on the tune classes that are NOT dials (shared
+    # base-class helpers); excluded when inventorying method names.
+    _NON_DIAL_TUNE_METHODS = frozenset({
+        "Get", "cache_method", "Tune",
+    })
+
+    def _tune_dial_names(self, tune_obj):
+        """The set of dial method names a tune class exposes: public, callable,
+        not a ``diff_`` gradient twin, not a base-class helper. This is the same
+        lookup ``PhysicsTunes.Get`` performs (``__getattribute__(name)``), so a
+        name in this set is exactly a name ``get_flux/get_xsection/get_detector``
+        can evaluate."""
+        if tune_obj is None:
+            return set()
+        names = set()
+        for n in dir(tune_obj):
+            if n.startswith("_") or n.startswith("diff_"):
+                continue
+            if n in self._NON_DIAL_TUNE_METHODS:
+                continue
+            if callable(getattr(tune_obj, n, None)):
+                names.add(n)
+        return names
+
+    def _build_dial_owner_map(self):
+        """Return ``{dial_name: block}`` where block is one of
+        ``'Flux'/'XSection'/'Detector'`` (``'Osc'`` dials are handled by the
+        oscillation path and are not in this map). Built from the tune classes'
+        method inventories so a new dial auto-registers to whichever class owns
+        its method — no hardcoded name list.
+
+        Regression contract: for a legacy 3-block XML every ACTIVE nuisance is
+        declared under the block whose tune class owns it, so dispatching by
+        this map yields the identical (block -> get_* method) outcome as the old
+        ``exp.Definition[source]`` scheme. A dial that no tune class owns is
+        omitted (dispatch then falls back to the XML block, preserving the exact
+        legacy behaviour for e.g. ``muon_norm``/``Osc`` entries).
+
+        A dial owned by two different blocks (across the loaded experiments)
+        is a genuine ambiguity and raises — it cannot happen for the SK tune
+        set (verified: the only Flux/XSec/Det method-name overlaps are the
+        excluded base helpers)."""
+        block_of = {}
+        for name, pt in self.physics_tunes.items():
+            for block, attr in (("Flux", "FluxTunes"),
+                                 ("XSection", "XSectionTunes"),
+                                 ("Detector", "DetectorTunes")):
+                tune_obj = getattr(pt, attr, None)
+                for dial in self._tune_dial_names(tune_obj):
+                    prev = block_of.get(dial)
+                    if prev is not None and prev != block:
+                        raise ValueError(
+                            f"dial {dial!r} is owned by both {prev!r} and "
+                            f"{block!r} across the loaded experiments; the "
+                            "owner-lookup routing needs a unique owner")
+                    block_of[dial] = block
+        return block_of
+
+    def _dial_block(self, tune, source, exp):
+        """Resolve the tune-block for one dial. Prefers the owner-lookup map
+        (built from tune-class method inventories); falls back to the legacy
+        ``exp.Definition[source]`` for anything the map does not own (Osc dials,
+        muon_norm, or any dial without a matching tune method). For a legacy
+        3-block XML both agree by construction, so this is a behaviour-preserving
+        generalisation."""
+        blk = self.DialOwnerMap.get(tune) if getattr(self, "DialOwnerMap", None) \
+            else None
+        if blk is not None:
+            return blk
+        return exp.Definition[source]
+
+    def _binned_active(self):
+        """True when a <BinnedEngine> block is active (mirrors FitModel:395)."""
+        return bool(getattr(self, "BinnedAdapters", None))
+
+    def _the_binned_adapter(self):
+        """The single active binned adapter (phase-1: exactly one binned
+        experiment). Also returns its experiment name so the modular methods
+        key ``self.Expectation``/``self.MCVariance``/``self.Observation`` under
+        the same name the event path uses."""
+        if len(self.BinnedAdapters) != 1:
+            raise NotImplementedError(
+                "binned engine modular path supports exactly one binned "
+                f"experiment (got {len(self.BinnedAdapters)})")
+        name, adapter = next(iter(self.BinnedAdapters.items()))
+        return name, adapter
+
+    # dCP node the modular ApplyPhysicsWeights/contraction currently targets;
+    # the worker profiles dCP by setting this before each objective (default 0).
+    _binned_dcp_node = 0
+
+    def SetBinnedDcpNode(self, dcp_index):
+        """Select the dCP node the modular binned path contracts at (worker-level
+        dCP profile scan, same structure as the event engine's node loop)."""
+        self._binned_dcp_node = int(dcp_index)
+
     def StartPhysics(self):
         for exp in self.Experiments.values():
             exp.StartPhysicsWeights()
 
     def StartNuisance(self):
+        # Binned modular path: reset the adapter's staged nuisance vector.
+        if self._binned_active():
+            _, adapter = self._the_binned_adapter()
+            adapter.start_nuisance()
+            return
         for exp in self.Experiments.values():
             exp.StartNuisanceWeights()
 
@@ -167,18 +276,133 @@ class PyNuFit:
             self.Observation[name] = exp.GetObservedBinned()
 
     def SetExpectedWeights(self):
+        # Binned modular path: cell_weights x detector_factors are assembled
+        # inside the engine contraction (SetBinnedExpectedEvents), so this stage
+        # is a no-op — the staged (phi, theta) already fully determine the
+        # expectation. Kept in the method vocabulary for call-sequence parity.
+        if self._binned_active():
+            return
         for name, exp in self.Experiments.items():
             exp.SetExpectedWeight()
 
+    # active energy_scale era dials (event-side histogram-transfer operator).
+    _ESCALE_ERA_DIALS = ("energy_scale_sk1", "energy_scale_sk2",
+                         "energy_scale_sk3", "energy_scale_sk45")
+
+    def _event_escale_active(self):
+        """The 4 energy_scale era dials active in this analysis (event path)."""
+        nl = getattr(self.Analysis, "NuisanceList", [])
+        return [d for d in self._ESCALE_ERA_DIALS if d in nl]
+
     def SetBinnedExpectedEvents(self):
         self.Expectation = {}
+        # Binned modular path: contract the response for the staged point into
+        # the FewEntries-filtered expectation, keyed by the binned experiment.
+        if self._binned_active():
+            name, adapter = self._the_binned_adapter()
+            self.Expectation[name] = adapter.expected_binned()
+            return
+        escale = self._event_escale_active()
         for name, exp in self.Experiments.items():
-            exp.SetExpectedBinned()
-            self.Expectation[name] = exp.GetExpectedBinned()
+            if escale and self._exp_supports_escale(exp):
+                # Event-side energy_scale = the binned histogram-transfer operator
+                # (escale_operator.py), applied POST-binning, PRE-FewEntries — the
+                # weight-emulation is RETIRED (era wrappers return identity). This
+                # replaces exp.SetExpectedBinned's escale-less bin/FewEntries pair
+                # with: bin -> migrate -> RemoveFewEntries, matching the binned
+                # engine's ordering (rate migrated before the FewEntries mask).
+                exp.SetExpectedWeight()  # already called by SetExpectedWeights;
+                                         # harmless idempotent re-eval
+                hist = exp.BinMC(exp.ExpectedWeight)
+                hist = self._apply_event_escale(exp, hist, var=False)
+                exp.ExpectedBinned = hist[exp.FewEntries] \
+                    if getattr(exp, "FewEntries", None) is not None else hist
+                self.Expectation[name] = exp.ExpectedBinned
+            else:
+                exp.SetExpectedBinned()
+                self.Expectation[name] = exp.GetExpectedBinned()
+
+    def _exp_supports_escale(self, exp):
+        """The event experiment exposes the geometry the histogram operator needs
+        (per-sample E/cz bin edges + a per-event bin/era map). SK does; other
+        experiments do not (and never carry energy_scale_sk* dials)."""
+        return (hasattr(exp, "EnergyBins") and hasattr(exp, "CTBins")
+                and hasattr(exp, "Samples") and hasattr(exp, "Bin")
+                and hasattr(exp, "SKPhase"))
+
+    def _escale_operator_for(self, exp):
+        """Build (once, cached on exp) the EScaleHistogramOperator for an event
+        experiment from its flat 930-bin geometry: sample_table from the per-
+        sample (E, cz) bin-edge sizes in Samples order, and per-bin era from the
+        MC SKPhase reduced to the sk45-lumped era index. Byte-matches the binned
+        engine's geometry because both key the same 930-bin `bin_number` scheme."""
+        cached = getattr(exp, "_escale_op", None)
+        if cached is not None:
+            return cached
+        from .binned.escale_operator import (EScaleHistogramOperator,
+                                             ERA_TAGS)
+        import numpy as _np
+        # sample_table: offset accumulates over Samples order; ne=#E bins,
+        # nz=#cz bins per sample (edges-1). Mirrors BinIt_MC_2D's concatenation.
+        sample_table = {}
+        off = 0
+        for s in exp.Samples:
+            ne_ = int(exp.EnergyBins[s].size - 1)
+            nz = int(exp.CTBins[s].size - 1)
+            sample_table[int(s)] = (off, ne_, nz)
+            off += ne_ * nz
+        n_bins = off
+        # per-bin era: reduce SKPhase to the era index (sk1..sk3 -> 0..2, >=4 ->3),
+        # taking the modal era of the events in each bin (bins are single-era in
+        # the SK MC by construction; mode is a safe reducer).
+        era_of_phase = {1: 0, 2: 1, 3: 2}
+        ev_era = _np.array([era_of_phase.get(int(p), 3) for p in exp.SKPhase])
+        bin_era = _np.zeros(n_bins, dtype=_np.int64)
+        binidx = _np.asarray(exp.Bin)
+        for b in range(n_bins):
+            m = binidx == b
+            if _np.any(m):
+                vals = ev_era[m]
+                bin_era[b] = _np.bincount(vals).argmax()
+        op = EScaleHistogramOperator(sample_table, n_bins, bin_era)
+        op._era_tags = ERA_TAGS
+        exp._escale_op = op
+        return op
+
+    def _apply_event_escale(self, exp, hist, var=False):
+        """Apply the energy_scale histogram transfer to a full (pre-FewEntries)
+        binned expectation ``hist`` for one SK event experiment, one delta per
+        era from the current nuisance vector. No-op when x==1 for every era."""
+        import numpy as _np
+        op = self._escale_operator_for(exp)
+        nl = self.Analysis.NuisanceList
+        theta = self._current_nuisance_vector()
+        deltas = _np.array([
+            theta[nl.index(f"energy_scale_{op._era_tags[e]}")] - 1.0
+            if f"energy_scale_{op._era_tags[e]}" in nl else 0.0
+            for e in range(op.n_era)])
+        if not _np.any(deltas):
+            return hist
+        return op.migrate(hist, deltas, var=var)
+
+    def _current_nuisance_vector(self):
+        """The nuisance vector currently applied. During a fit the minimizer
+        supplies theta to ApplyNuisanceWeights; we cache it there. Falls back to
+        the nominal vector (used for the pre-fit nominal expectation)."""
+        v = getattr(self, "_last_nuisance_vector", None)
+        if v is not None:
+            return v
+        return self.Analysis.NuisNominalList
 
     def SetBinnedMCVariance(self):
         """Compute binned MC variance for Barlow-Beeston likelihood."""
         self.MCVariance = {}
+        # Binned modular path: var[few] from the engine contraction (BB only;
+        # pure Poisson ignores it but the vector is provided for parity).
+        if self._binned_active():
+            name, adapter = self._the_binned_adapter()
+            self.MCVariance[name] = adapter.mc_variance_binned()
+            return
         for name, exp in self.Experiments.items():
             # Check if experiment supports MC variance (e.g., ORCA)
             if hasattr(exp, 'GetMCVariance'):
@@ -230,6 +454,25 @@ class PyNuFit:
                         weights * self.Experiments[exp].ExpectedWeight
                     )[self.Experiments[exp].FewEntries]
                 }
+        # Event-side energy_scale gradient: the per-event weight-emulation is
+        # retired (dW/W == 0 above), so the histogram operator supplies dE/ddelta
+        # = migrate_derivative(N, era) on the current pre-migration binned
+        # expectation N (the same linear operator applied to gradient histograms,
+        # migration held fixed at first order — binned-engine convention).
+        escale = self._event_escale_active()
+        if escale:
+            for name, exp in self.Experiments.items():
+                if not self._exp_supports_escale(exp):
+                    continue
+                op = self._escale_operator_for(exp)
+                N = exp.BinMC(exp.ExpectedWeight)     # pre-migration binned rate
+                few = getattr(exp, "FewEntries", None)
+                for e in range(op.n_era):
+                    dial = f"energy_scale_{op._era_tags[e]}"
+                    if dial not in self.Analysis.NuisanceList:
+                        continue
+                    dE = op.migrate_derivative(N, e)
+                    dEdx[dial] = {name: dE[few] if few is not None else dE}
         return dEdx
 
     def ApplyFixedWeights(self):  # Nuisance parameters
@@ -250,11 +493,28 @@ class PyNuFit:
     def ApplyPhysicsWeights(self, point):  # Physics parameters
         if self.verbosity:
             print("Applying Physics Point Weights")
+        # Binned modular path: select the oscillation tensor slice for this grid
+        # point's (Dm231, Sin2Theta23) at the currently-targeted dCP node. The
+        # worker profiles dCP by SetBinnedDcpNode() before each objective.
+        if self._binned_active():
+            _, adapter = self._the_binned_adapter()
+            dm231 = self._binned_phys_value(point, "Dm231")
+            s23 = self._binned_phys_value(point, "Sin2Theta23")
+            adapter.apply_physics(dm231, s23, self._binned_dcp_node)
+            return
         self.ApplyWeights("Physics", vector=self.Analysis.FullPhysicsGrid[point])
 
     def ApplyNuisanceWeights(self, vector):  # Physics parameters
         if self.verbosity:
             print("Applying Nuisance Weights")
+        # Binned modular path: stage theta for the response contraction.
+        if self._binned_active():
+            _, adapter = self._the_binned_adapter()
+            adapter.stage_nuisance(vector)
+            return
+        # cache the current theta so the event-side energy_scale histogram
+        # operator (SetBinnedExpectedEvents) can read its per-era deltas.
+        self._last_nuisance_vector = vector
         self.ApplyWeights("Nuisance", vector=vector)
 
     # Tag can be either 'Nominal' or 'Variable'
@@ -298,8 +558,13 @@ class PyNuFit:
         for name, exp in self.Experiments.items():
             for source in labels:
                 if source in exp.Definition.keys():
-                    tune_block = exp.Definition[source]
                     for tune in labels[source]:
+                        # Per-dial owner lookup (routing decision (b)): resolve
+                        # the tune-block from the tune-class method inventory,
+                        # falling back to the legacy exp.Definition[source] for
+                        # anything the map does not own (Osc dials). Identical to
+                        # the old block scheme for legacy 3-block XMLs.
+                        tune_block = self._dial_block(tune, source, exp)
                         if vector is not None:
                             idx = v_id.index(tune)
                             value = vector[idx]
@@ -336,8 +601,9 @@ class PyNuFit:
         for source, nuisance_list in self.Analysis.Nuisance.items():
             for name, exp in self.Experiments.items():
                 if source in exp.Definition.keys():
-                    tune_block = exp.Definition[source]
                     for tune in self.Analysis.Nuisance[source]:
+                        # per-dial owner lookup (see ApplyWeights)
+                        tune_block = self._dial_block(tune, source, exp)
                         dWoverW[tune] = {name: 0}
                         idx = self.Analysis.NuisanceList.index(tune)
                         if tune_block == "Detector":
@@ -364,7 +630,19 @@ class PyNuFit:
         return dWoverW
 
     def set_likelihood(self, mode):
-        if mode == "BinnedLogLikelihoodRatio":
+        if mode == "PoissonLikelihood":
+            # Binned modular path: pure-Poisson LLH whose statistics kernel is
+            # the engine's poisson_chi2 (design §2.4). Observation is the
+            # engine's FewEntries-filtered obs_f, keyed by the binned experiment.
+            name, adapter = self._the_binned_adapter()
+            self.LLH = ft.PoissonLikelihood(
+                {name: adapter.observed_binned()},
+                self.Analysis.NuisNominalList,
+                self.Analysis.NuisSigmaList,
+                self.Analysis.NuisDistributionList,
+            )
+            self.LLH.set_engine(adapter.engine)
+        elif mode == "BinnedLogLikelihoodRatio":
             self.LLH = ft.BinnedLogLikelihoodRatio(
                 self.Observation,
                 self.Analysis.NuisNominalList,
@@ -1021,6 +1299,7 @@ class PyNuFit:
     _MODE_TO_LIKELIHOOD = {
         "BinnedLogLikelihoodRatio": "poisson",
         "BarlowBeestonLikelihood": "bb",
+        "PoissonLikelihood": "poisson",
     }
 
     def _setup_binned_engines(self, analysis_file):

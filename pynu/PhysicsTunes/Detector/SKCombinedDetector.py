@@ -55,94 +55,117 @@ class SuperK_Combined(Tune):
         return np.sum(W[mask1]) / np.sum(W[mask0])
 
     def energy_scale(self, experiment, x):
-        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.energy_scale`."""
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.energy_scale`.
+
+        Minimal bin-cut bugfix, keeping the existing weight-emulation approach.
+        Fixes: (1) bin membership is half-open [ebins[i], ebins[i+1]) — the
+        pre-fix `(EReco>=lo)*(EReco>=hi)` selected everything above the UPPER
+        edge; (2) the loop now runs over BINS (ebins.size-1), so ebins[i+1]
+        never overruns; (3) the acceptor-bin index (ebins[i+2] up / ebins[i-1]
+        down) is bounds-guarded; (4) empty-acceptor divides are guarded. This
+        body is DEAD REFERENCE only — the active era wrappers below return
+        identity and the histogram-level operator owns the transfer (see the
+        block comment below).
+        """
         escale = np.ones(experiment.NumberOfEvents)
         for sample in experiment.Samples:
             ebins = experiment.EnergyBins[sample]
-            if len(ebins)>1:
-                for i in range(ebins.size):
-                    if i==0 and x<0:
-                        pass # do nothing if lowest bin and shift is negative
-                    elif (i==ebins.size-1) and (x>0):
-                        pass # do nothing if highest bin and shift is positive
-                    else: # energy migration
-                        bin_cut = (experiment.EReco >= ebins[i]) * (experiment.EReco >= ebins[i+1]) # select events with energy in bin
-                        events_in_bin = np.sum(bin_cut)
-                        escale[bin_cut] = 1 + x
-                        if x>0: # shifts energy upwards and so does the event migration
-                            bin_cut_above = (experiment.EReco >= ebins[i+1]) * (experiment.EReco >= ebins[i+2]) # select events with energy in bin
-                            events_in_bin_above = np.sum(bin_cut_above)
-                            escale[bin_cut_above] = 1 - x * events_in_bin / events_in_bin_above
-                        elif x<=0: # shifts energy upwards and so does the event migration
-                            bin_cut_below = (experiment.EReco >= ebins[i-1]) * (experiment.EReco >= ebins[i]) # select events with energy in bin
-                            events_in_bin_below = np.sum(bin_cut_below)
-                            escale[bin_cut_below] = 1 - x * events_in_bin / events_in_bin_below
+            nb = ebins.size - 1                       # number of reco-E bins
+            if nb < 1:
+                continue
+            for i in range(nb):
+                if i == 0 and x < 0:
+                    continue  # lowest bin, downward shift: nothing below to fill
+                if i == nb - 1 and x > 0:
+                    continue  # highest bin, upward shift: nothing above to fill
+                bin_cut = (experiment.EReco >= ebins[i]) & (experiment.EReco < ebins[i+1])
+                events_in_bin = np.sum(bin_cut)
+                escale[bin_cut] = 1 + x
+                if x > 0 and i + 2 <= ebins.size - 1:   # acceptor bin above exists
+                    bin_cut_above = ((experiment.EReco >= ebins[i+1])
+                                     & (experiment.EReco < ebins[i+2]))
+                    n_above = np.sum(bin_cut_above)
+                    if n_above > 0:
+                        escale[bin_cut_above] = 1 - x * events_in_bin / n_above
+                elif x <= 0 and i - 1 >= 0:             # acceptor bin below exists
+                    bin_cut_below = ((experiment.EReco >= ebins[i-1])
+                                     & (experiment.EReco < ebins[i]))
+                    n_below = np.sum(bin_cut_below)
+                    if n_below > 0:
+                        escale[bin_cut_below] = 1 - x * events_in_bin / n_below
         return escale
-            
+
     def diff_energy_scale(self, experiment, x):
-        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_energy_scale`."""
+        """See `pynu.PhysicsTunes.Detector.SKDetector.SuperK.diff_energy_scale`.
+
+        Same minimal bin-cut bugfix as `energy_scale`; same DEAD-REFERENCE status."""
         escale = np.zeros(experiment.NumberOfEvents)
         for sample in experiment.Samples:
             ebins = experiment.EnergyBins[sample]
-            if len(ebins)>1:
-                for i in range(ebins.size):
-                    if i==0 and x<0:
-                        pass # do nothing if lowest bin and shift is negative
-                    elif (i==ebins.size-1) and (x>0):
-                        pass # do nothing if highest bin and shift is positive
-                    else: # energy migration
-                        bin_cut = (experiment.EReco >= ebins[i]) * (experiment.EReco >= ebins[i+1]) # select events with energy in bin
-                        events_in_bin = np.sum(bin_cut)
-                        escale[bin_cut] = 1
-                        if x>0: # shifts energy upwards and so does the event migration
-                            bin_cut_above = (experiment.EReco >= ebins[i+1]) * (experiment.EReco >= ebins[i+2]) # select events with energy in bin
-                            events_in_bin_above = np.sum(bin_cut_above)
-                            escale[bin_cut_above] = events_in_bin / events_in_bin_above
-                        elif x<=0: # shifts energy upwards and so does the event migration
-                            bin_cut_below = (experiment.EReco >= ebins[i-1]) * (experiment.EReco >= ebins[i]) # select events with energy in bin
-                            events_in_bin_below = np.sum(bin_cut_below)
-                            escale[bin_cut_below] = events_in_bin / events_in_bin_below
+            nb = ebins.size - 1
+            if nb < 1:
+                continue
+            for i in range(nb):
+                if i == 0 and x < 0:
+                    continue
+                if i == nb - 1 and x > 0:
+                    continue
+                bin_cut = (experiment.EReco >= ebins[i]) & (experiment.EReco < ebins[i+1])
+                events_in_bin = np.sum(bin_cut)
+                escale[bin_cut] = 1
+                # compensation weight is 1 - x*n_src/n_acc, so its derivative is
+                # -n_src/n_acc (the pre-fix diff was missing this minus sign, so
+                # the analytic gradient had the WRONG SIGN on the acceptor bin).
+                if x > 0 and i + 2 <= ebins.size - 1:
+                    bin_cut_above = ((experiment.EReco >= ebins[i+1])
+                                     & (experiment.EReco < ebins[i+2]))
+                    n_above = np.sum(bin_cut_above)
+                    if n_above > 0:
+                        escale[bin_cut_above] = -events_in_bin / n_above
+                elif x <= 0 and i - 1 >= 0:
+                    bin_cut_below = ((experiment.EReco >= ebins[i-1])
+                                     & (experiment.EReco < ebins[i]))
+                    n_below = np.sum(bin_cut_below)
+                    if n_below > 0:
+                        escale[bin_cut_below] = -events_in_bin / n_below
         return escale
 
+    # ---- energy_scale era wrappers: per-event weight-emulation RETIRED --------
+    # The event side adopts the SAME histogram-level transfer as the binned
+    # engine (pynu/binned/escale_operator.py, transcribed from
+    # sk_binned_engine._escale_migrate), applied POST-binning to the binned
+    # expectation. The per-event weight-emulation above (energy_scale /
+    # diff_energy_scale) can NEVER bit-match the binned histogram transfer on the
+    # quantized SK public MC (one EReco value per bin -> no sub-bin structure to
+    # reweight), so it is retired: the era wrappers now return IDENTITY (weight 1,
+    # diff 0) so they contribute nothing to the per-event weight product, and the
+    # histogram operator owns the transfer at SetBinnedExpectedEvents time.
+    #
+    # The base energy_scale / diff_energy_scale bodies above are kept as DEAD
+    # reference (still importable, no longer routed to by the active wrappers).
     def energy_scale_sk1(self, experiment, x):
-        w = self.energy_scale(experiment, x)
-        w[experiment.SKPhase != 1] = 1
-        return w
+        return np.ones(experiment.NumberOfEvents)
 
     def diff_energy_scale_sk1(self, experiment, x):
-        w = self.diff_energy_scale(experiment, x)
-        w[experiment.SKPhase != 1] = 0
-        return w
+        return np.zeros(experiment.NumberOfEvents)
 
     def energy_scale_sk2(self, experiment, x):
-        w = self.energy_scale(experiment, x)
-        w[experiment.SKPhase != 2] = 1
-        return w
+        return np.ones(experiment.NumberOfEvents)
 
     def diff_energy_scale_sk2(self, experiment, x):
-        w = self.diff_energy_scale(experiment, x)
-        w[experiment.SKPhase != 2] = 0
-        return w
+        return np.zeros(experiment.NumberOfEvents)
 
     def energy_scale_sk3(self, experiment, x):
-        w = self.energy_scale(experiment, x)
-        w[experiment.SKPhase != 3] = 1
-        return w
+        return np.ones(experiment.NumberOfEvents)
 
     def diff_energy_scale_sk3(self, experiment, x):
-        w = self.diff_energy_scale(experiment, x)
-        w[experiment.SKPhase != 3] = 0
-        return w
+        return np.zeros(experiment.NumberOfEvents)
 
     def energy_scale_sk45(self, experiment, x):
-        w = self.energy_scale(experiment, x)
-        w[experiment.SKPhase < 4] = 1
-        return w
+        return np.ones(experiment.NumberOfEvents)
 
     def diff_energy_scale_sk45(self, experiment, x):
-        w = self.diff_energy_scale(experiment, x)
-        w[experiment.SKPhase < 4] = 0
-        return w
+        return np.zeros(experiment.NumberOfEvents)
 
     def fiducial_volume(self, experiment, x):
         r"""Method changing the efficiency of the fiducial volume cut.
