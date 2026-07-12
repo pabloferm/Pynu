@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<!--
+  SK2023_Atm_datafit_octsyst_base.xml -- nuisance ACTIVATION MANIFEST for the "octsyst_base" binned systematics
+  spec (45 dials). Track S / Phase E3.
+
+  Consumed by sk_binned_engine.resolve_nuisance_spec via the manifest resolver
+  (SPEC_MANIFESTS registry) and the path-XML branch (_parse_xml_active regex):
+  activates the nuisance blocks below in document order. Order is byte-identical
+  to the (now-shadow) string-dispatch resolve_nuisance_spec("octsyst_base") -- it was
+  generated FROM that resolution, so it cannot drift.
+
+  Dial (nominal, sigma) VALUES are NOT here: they are XML-authoritative from the
+  full-131 value XML (SK2023_Atm_datafit_r2_fude_ccqe_full.xml, Phase E2) with
+  CANONICAL_DIALS as the hard-fail shadow; dials outside the full-131 fall back
+  to CANONICAL_DIALS until E4 bakes their descriptors. This is an ACTIVATION
+  manifest only (status flags, no value/box/prior content).
+-->
+<data>
+    <nuisance name='normalization_below1GeV'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='normalization_above1GeV'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='tilt'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='nunubar_ratio'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='flavor_ratio'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='zenith_up'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='zenith_down'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='XSecNuTau'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='NCoverCC'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='NCHad'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='AxialMass'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='DIS'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CC_2p2h'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CC_2p2hNuBarNu'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CC_2p2hMuE'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CCQE'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CCQENuBarNu'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CCQEMuE'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CC1Pi_Pi0Pi'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CC1Pi_NuBarNuE'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CC1Pi_NuBarNuMu'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CC1PiProduction'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='CohPiProduction'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='fcpc_separation'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='pc_reduction'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='mge_nonubkg'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='fc_reduction'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='fiducial_volume'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='subgev_2ring_pi0'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='subgev_1ring_pi0'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='multiring_nunubar_separation'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='multiring_emu_separation'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='multiring_eother_separation'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='pc_stopthru_separation'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='pi0_ring_separation'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='e_ring_separation'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='mu_ring_separation'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='singlering_pid'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='multiring_pid'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='neutron_tagging_subgev'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='neutron_tagging_multigev'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='upmu_shower_separation'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='upmu_stop_bkg'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='upmu_showering_bkg'>
+        <status> 1 </status>
+    </nuisance>
+    <nuisance name='upmu_nonshowering_bkg'>
+        <status> 1 </status>
+    </nuisance>
+</data>
