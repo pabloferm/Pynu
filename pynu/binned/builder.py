@@ -117,8 +117,37 @@ def _reco_bin_index(exp, scale=1.0):
     return idx, offsets, off
 
 
+def _geometry_selectors(offsets, n_bins):
+    """Per-bin GEOMETRY selectors bakeable into the response npz (Phase E4).
+    Pure function of the reco binning (offsets = {sample: (off, ne, nz)}), so a
+    baked copy must equal masks.assemble_masks's descriptor output bit-for-bit
+    (the engine asserts this at load). Returns {sel_<attr>: array}.
+
+      sel_fcmg_bin_mask   : FC multi-GeV samples (REL_NORM_FCMG_SAMPLES).
+      sel_decay_e_bin_mask: SK I-III sub-GeV decay-e samples (DECAY_E_SAMPLES).
+      sel_ude_sign        : +1 up-going / -1 down-going / 0 excluded (up/down
+                            energy-scale signed mask; z10bins FC+PC only).
+    """
+    from .sk_binned_engine import (REL_NORM_FCMG_SAMPLES, DECAY_E_SAMPLES,
+                                    UPDOWN_ESCALE_EXCLUDE)
+    bin_sample = np.empty(n_bins, dtype=int)
+    for s, (off, ne, nz) in offsets.items():
+        bin_sample[off:off + ne * nz] = int(s)
+    fcmg = np.isin(bin_sample, list(REL_NORM_FCMG_SAMPLES))
+    decay_e = np.isin(bin_sample, list(DECAY_E_SAMPLES))
+    ude = np.zeros(n_bins)
+    for s, (off, ne_, nz) in offsets.items():
+        if int(s) in UPDOWN_ESCALE_EXCLUDE or nz != 10:
+            continue
+        for ie in range(ne_):
+            for iz in range(nz):
+                ude[off + ie * nz + iz] = 1.0 if iz < nz // 2 else -1.0
+    return {"sel_fcmg_bin_mask": fcmg, "sel_decay_e_bin_mask": decay_e,
+            "sel_ude_sign": ude}
+
+
 def build_response(pynufit, exp_name, out_path=None, n_etrue=200, n_cztrue=40,
-                   dial_manifest=None):
+                   dial_manifest=None, bake_selectors=False):
     """Build the SK binned response from the event MC of ``pynufit``'s
     ``exp_name`` experiment. Returns the sparse-response dict (the exact set of
     arrays the npz schema stores). If ``out_path`` is given, also writes an npz
@@ -245,6 +274,12 @@ def build_response(pynufit, exp_name, out_path=None, n_etrue=200, n_cztrue=40,
         h = hashlib.sha256("\n".join(manifest).encode("utf-8")).hexdigest()
         resp["dial_manifest_hash"] = np.array(h)
         resp["dial_manifest"] = np.array(manifest)
+
+    # ---- baked per-bin geometry selectors (Phase E4, additive, OFF by default).
+    #      The engine ignores absent keys (today's responses); when present it
+    #      uses them AND asserts byte-equality with masks.assemble_masks.
+    if bake_selectors:
+        resp.update(_geometry_selectors(offsets, n_bins))
 
     if out_path is not None:
         np.savez_compressed(out_path, **resp)
