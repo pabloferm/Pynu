@@ -476,6 +476,128 @@ DIR_SMEAR_BOX = (0.0, 1.0)         # one-sided s in [0,1] (positivity of A=(1-s)
 CANONICAL_DIALS[DIR_SMEAR_NAME] = (0.0, DIR_SMEAR_SIGMA)   # nominal 0 = exact no-op
 
 
+# ---- XML dial-value authority (Track S, Phase E2) ---------------------------
+# Dial (nominal, sigma) values are READ FROM XML at load, NOT from the
+# CANONICAL_DIALS code table. Two value XMLs are merged, together covering every
+# dial across all 26 named specs:
+#   1. DIAL_VALUE_XML       — the production 131-dial value XML (kept pristine:
+#                             exactly the 131 in the R2FUDECCQE seed order).
+#   2. DIAL_VALUE_XML_EXTRA — a supplementary value XML for the 30 non-production
+#                             dials some specs resolve (base-name detector/flux
+#                             stems used by the non-era specs + the optional
+#                             diagnostic dials: barr_zenith, decay_e_tagging,
+#                             dir_smear, nmig_*, ntag_subgev_low/high p,
+#                             xsec_{1,2}p2h/ccqe_subgev_nue). Values transcribed
+#                             from the tables (the E2 authority handoff).
+# CANONICAL_DIALS is DEMOTED to a hard-fail validation shadow: any dial present
+# in BOTH an XML and CANONICAL_DIALS must carry byte-identical values, or the load
+# raises (the shadow can never silently diverge). CANONICAL_DIALS is deleted at
+# E6, per SCOPE_native_binned_in_pynu_2026-07-11.md §4.
+import os as _os
+
+_ENGINE_DIR = _os.path.dirname(_os.path.abspath(__file__))
+_REPO_ROOT = _os.path.abspath(_os.path.join(_ENGINE_DIR, "..", ".."))
+DIAL_VALUE_XML = _os.path.join(
+    _REPO_ROOT, "analysis", "AnalysisFiles",
+    "SK2023_Atm_datafit_r2_fude_ccqe_full.xml")
+DIAL_VALUE_XML_EXTRA = _os.path.join(
+    _REPO_ROOT, "analysis", "AnalysisFiles",
+    "SK2023_Atm_datafit_binned_extra_dials.xml")
+
+
+def _load_xml_dial_values(path):
+    """Parse {name: (nominal, sigma)} from a Pynu nuisance XML (all <nuisance>
+    blocks, document order irrelevant here — this is a value lookup, not an order
+    source). Returns {} if the file is absent (keeps the engine importable in a
+    stripped checkout; the shadow cross-check then has nothing to compare and the
+    values fall back to CANONICAL_DIALS, i.e. the pre-E2 behavior)."""
+    import xml.etree.ElementTree as _ET
+    if not _os.path.exists(path):
+        return {}
+    root = _ET.parse(path).getroot()
+    vals = {}
+    for nu in root.iter("nuisance"):
+        name = nu.attrib["name"]
+        vals[name] = (float(nu.find("nominal").text),
+                      float(nu.find("sigma").text))
+    return vals
+
+
+def _merge_dial_value_xmls():
+    """Merge the production + supplementary value XMLs. The supplementary file
+    MUST NOT redeclare any production-131 dial (that would create a second
+    authority for a production value); a name overlap is a hard error."""
+    prod = _load_xml_dial_values(DIAL_VALUE_XML)
+    extra = _load_xml_dial_values(DIAL_VALUE_XML_EXTRA)
+    overlap = set(prod) & set(extra)
+    if overlap:
+        raise ValueError(
+            f"supplementary value XML {DIAL_VALUE_XML_EXTRA} redeclares "
+            f"production dials {sorted(overlap)} — it must cover ONLY the "
+            "non-production dials (the full-131 XML is the sole authority for "
+            "the production set)")
+    merged = dict(prod)
+    merged.update(extra)
+    return merged
+
+
+XML_DIAL_VALUES = _merge_dial_value_xmls()
+
+
+def _xml_document_order(path):
+    """Ordered list of <nuisance> names in document order (the semantic θ order)."""
+    import xml.etree.ElementTree as _ET
+    if not _os.path.exists(path):
+        return []
+    return [nu.attrib["name"]
+            for nu in _ET.parse(path).getroot().iter("nuisance")]
+
+
+def _assert_production_theta_order():
+    """Loud θ-order assert (SCOPE §5 risk 2 / design §2.1): every production seed
+    npz encodes the R2FUDECCQE dial order, so the production value XML MUST load
+    in exactly that document order. Checked at import against the R2FUDECCQE
+    activation manifest; a divergence is a hard error (a silently reordered value
+    XML would corrupt every seeded fit). No-op if either file is absent."""
+    prod_order = _xml_document_order(DIAL_VALUE_XML)
+    if not prod_order:
+        return
+    manifest = _os.path.join(_ENGINE_DIR,
+                             "SK2023_Atm_datafit_r2_fude_ccqe.xml")
+    if not _os.path.exists(manifest):
+        return
+    seed_order = _parse_xml_active(manifest)
+    if prod_order != seed_order:
+        i = next((k for k, (a, b) in enumerate(zip(prod_order, seed_order))
+                  if a != b), min(len(prod_order), len(seed_order)))
+        raise ValueError(
+            "production value-XML θ-order diverged from the R2FUDECCQE seed "
+            f"manifest at index {i}: value-XML="
+            f"{prod_order[i] if i < len(prod_order) else '<end>'} vs seed="
+            f"{seed_order[i] if i < len(seed_order) else '<end>'} "
+            f"({DIAL_VALUE_XML} vs {manifest}). Production seed npzs encode the "
+            "R2FUDECCQE order — a reordered value XML corrupts every seeded fit.")
+
+
+def _dial_value(name):
+    """(nominal, sigma) for a dial, XML-authoritative with CANONICAL_DIALS as a
+    hard-fail shadow. Value comes from the XML when the dial is covered there;
+    otherwise from CANONICAL_DIALS. If a dial is in BOTH, the two MUST agree
+    byte-for-byte or this raises (the shadow catches any code/XML drift)."""
+    xv = XML_DIAL_VALUES.get(name)
+    cv = CANONICAL_DIALS.get(name)
+    if xv is not None and cv is not None and xv != cv:
+        raise ValueError(
+            f"dial {name!r} value mismatch: XML {xv} != CANONICAL_DIALS {cv} "
+            "(authority is the value XMLs); reconcile the XML and the code table "
+            "— CANONICAL_DIALS is a hard-fail shadow during the E2->E6 port")
+    if xv is not None:
+        return xv
+    if cv is not None:
+        return cv
+    raise KeyError(f"no value for dial {name!r} in XML or CANONICAL_DIALS")
+
+
 def _parse_xml_active(path):
     """Active (status==1) nuisance names from a Pynu XML, in document order."""
     import re
@@ -489,8 +611,14 @@ def _parse_xml_active(path):
     return names
 
 
-def resolve_nuisance_spec(spec):
-    """Return (names, nominal, sigma) for a nuisance-set selector.
+def _resolve_names_stringdispatch(spec):
+    """The legacy string-dispatch spec -> ordered dial-name resolver.
+
+    Track S / Phase E3: this is now the hard-fail SHADOW behind the manifest
+    resolver (resolve_nuisance_spec). It is kept, and cross-checked byte-for-byte
+    against the manifest, so any manifest/dispatch drift raises; the string
+    dispatch is deleted at E6 alongside CANONICAL_DIALS (per SCOPE §4). Returns
+    the ordered name list only (values are built by resolve_nuisance_spec).
 
     spec:
       None / 'barr'  -> production 41-vector (barr_zenith active) — DEFAULT,
@@ -695,13 +823,111 @@ def resolve_nuisance_spec(spec):
         names = list(spec)
     else:
         raise ValueError(f"unknown nuisance_spec {spec!r}")
-    missing = [n for n in names if n not in CANONICAL_DIALS]
+    return names
+
+
+# ---- Phase E3: XML activation-manifest resolver ------------------------------
+# Every named spec is materialized as an activation manifest (an ordered list of
+# <nuisance name='..'><status>1</status></nuisance> blocks) in pynu/binned/. The
+# resolver reads the manifest for a named spec instead of running the string
+# dispatch; the string dispatch is retained as a hard-fail SHADOW (the two are
+# cross-checked byte-for-byte at resolve time — the compat-regression guard —
+# and it is deleted at E6). `.xml` paths and explicit name lists bypass the
+# registry (they are already declarative). Aliases map to the same manifest.
+#
+# <replaces> semantics: the R3/R2NTS manifests already carry the ntag splice
+# (neutron_tagging_subgev -> ntag_subgev_lowp/_highp at the original position)
+# baked into their document order; the manifest header records the provenance.
+_MANIFEST_DIR = _os.path.dirname(_os.path.abspath(__file__))
+SPEC_MANIFESTS = {
+    "barr": "SK2023_Atm_datafit_barr.xml",
+    "updown": "SK2023_Atm_datafit_updown.xml",
+    "both": "SK2023_Atm_datafit_both.xml",
+    "phased": "SK2023_Atm_datafit_phased.xml",
+    "phased_prod": "SK2023_Atm_datafit_phased_prod.xml",
+    "phased_full": "SK2023_Atm_datafit_phased_full.xml",
+    "R1": "SK2023_Atm_datafit_R1.xml",
+    "pfm_base": "SK2023_Atm_datafit_R1.xml",
+    "R2": "SK2023_Atm_datafit_R2.xml",
+    "ladder_r2": "SK2023_Atm_datafit_R2.xml",
+    "R3": "SK2023_Atm_datafit_R3.xml",
+    "ladder_r3": "SK2023_Atm_datafit_R3.xml",
+    "R2NTS": "SK2023_Atm_datafit_R2NTS.xml",
+    "ladder_r2_ntagsplit": "SK2023_Atm_datafit_R2NTS.xml",
+    "R2HV": "SK2023_Atm_datafit_R2HV.xml",
+    "ladder_r2_horizvert": "SK2023_Atm_datafit_R2HV.xml",
+    "R2UBS": "SK2023_Atm_datafit_R2UBS.xml",
+    "ladder_r2_upmu_bkg_shape": "SK2023_Atm_datafit_R2UBS.xml",
+    "R2UDE": "SK2023_Atm_datafit_R2UDE.xml",
+    "ladder_r2_updown_escale": "SK2023_Atm_datafit_R2UDE.xml",
+    "R2DS": "SK2023_Atm_datafit_R2DS.xml",
+    "ladder_r2_dirsmear": "SK2023_Atm_datafit_R2DS.xml",
+    "R2FUDECCQE": "SK2023_Atm_datafit_r2_fude_ccqe.xml",
+    "r2_fude_ccqe": "SK2023_Atm_datafit_r2_fude_ccqe.xml",
+    "ladder_r2_fude_ccqe": "SK2023_Atm_datafit_r2_fude_ccqe.xml",
+    "R2FUDECCQE_NMIG": "SK2023_Atm_datafit_r2_fude_ccqe_nmig.xml",
+    "r2_fude_ccqe_nmig": "SK2023_Atm_datafit_r2_fude_ccqe_nmig.xml",
+    "R2FUDECCQE_NMIG_PINNED": "SK2023_Atm_datafit_r2_fude_ccqe_nmig_pinned.xml",
+    "r2_fude_ccqe_nmig_pinned": "SK2023_Atm_datafit_r2_fude_ccqe_nmig_pinned.xml",
+    "R2FUDECCQE_DCYE": "SK2023_Atm_datafit_r2_fude_ccqe_dcye.xml",
+    "r2_fude_ccqe_dcye": "SK2023_Atm_datafit_r2_fude_ccqe_dcye.xml",
+    "R2FUDECCQE_NMIG_DCYE": "SK2023_Atm_datafit_r2_fude_ccqe_nmig_dcye.xml",
+    "r2_fude_ccqe_nmig_dcye": "SK2023_Atm_datafit_r2_fude_ccqe_nmig_dcye.xml",
+    "octsyst_base": "SK2023_Atm_datafit_octsyst_base.xml",
+    "octsyst_flux": "SK2023_Atm_datafit_octsyst_flux.xml",
+    "octsyst_ntag": "SK2023_Atm_datafit_octsyst_ntag.xml",
+    "octsyst_both": "SK2023_Atm_datafit_octsyst_both.xml",
+    "octsyst_fluxband": "SK2023_Atm_datafit_octsyst_fluxband.xml",
+    "octsyst_xsec": "SK2023_Atm_datafit_octsyst_xsec.xml",
+    "octsyst_max": "SK2023_Atm_datafit_octsyst_max.xml",
+}
+
+# Response-compatibility contract (Phase E3): specs whose mechanisms require a
+# particular engine configuration. The ntag momentum-split (R3/R2NTS) needs
+# migration_mode='weighted' (per-bin band rates); SKBinnedEngine.__init__ already
+# raises today's message when it isn't — this registry lets a caller pre-check.
+SPEC_REQUIRES_WEIGHTED = frozenset({
+    "R3", "ladder_r3", "R2NTS", "ladder_r2_ntagsplit",
+    "octsyst_ntag", "octsyst_both", "octsyst_fluxband", "octsyst_xsec",
+    "octsyst_max",
+})
+
+
+def resolve_nuisance_spec(spec):
+    """Return (names, nominal, sigma) for a nuisance-set selector.
+
+    Named specs resolve through the XML activation-manifest registry
+    (SPEC_MANIFESTS); the legacy string dispatch is cross-checked as a hard-fail
+    shadow (Phase E3). `.xml` paths and explicit name lists resolve directly.
+    Values are XML-authoritative (Phase E2) with CANONICAL_DIALS the hard-fail
+    value shadow.
+    """
+    manifest = SPEC_MANIFESTS.get(spec) if isinstance(spec, str) else None
+    if manifest is not None:
+        names = _parse_xml_active(_os.path.join(_MANIFEST_DIR, manifest))
+        # compat-regression guard: the manifest MUST reproduce the legacy
+        # string-dispatch order byte-for-byte, or a manifest edit has drifted.
+        shadow = _resolve_names_stringdispatch(spec)
+        if names != shadow:
+            raise ValueError(
+                f"manifest {manifest!r} for spec {spec!r} diverged from the "
+                f"string-dispatch shadow (first diff: "
+                f"{next((f'{i}: {a}!={b}' for i, (a, b) in enumerate(zip(names, shadow)) if a != b), 'length')})")
+    else:
+        # `.xml` path, explicit list, or None (== 'barr', handled by dispatch)
+        names = _resolve_names_stringdispatch(spec)
+
+    missing = [n for n in names
+               if n not in CANONICAL_DIALS and n not in XML_DIAL_VALUES]
     if missing:
         raise ValueError(f"nuisance_spec has unsupported dials {missing} "
                          "(only the 41 baseline dials + zenith_up/zenith_down "
                          "are available without a response rebuild)")
-    nominal = np.array([CANONICAL_DIALS[n][0] for n in names])
-    sigma = np.array([CANONICAL_DIALS[n][1] for n in names])
+    # values are XML-authoritative (Phase E2); CANONICAL_DIALS is the hard-fail
+    # shadow (_dial_value raises on any XML-vs-code divergence).
+    vals = [_dial_value(n) for n in names]
+    nominal = np.array([v[0] for v in vals])
+    sigma = np.array([v[1] for v in vals])
     return names, nominal, sigma
 
 
@@ -856,12 +1082,6 @@ class SKBinnedEngine:
         for s, (off, ne, nz) in self.sample_table.items():
             self.bin_sample[off:off + ne * nz] = int(s)
         self.samples = np.unique(self.bin_sample)
-        # FC multi-GeV per-bin mask for the optional rel_norm_fcmg dial
-        self.fcmg_bin_mask = np.isin(self.bin_sample, list(REL_NORM_FCMG_SAMPLES))
-        # neutron-migration donor/acceptor sample pairs (per-dial) and the
-        # decay-e per-bin sample mask.
-        self.neutron_mig_pairs = dict(NEUTRON_MIG_PAIRS)
-        self.decay_e_bin_mask = np.isin(self.bin_sample, list(DECAY_E_SAMPLES))
 
         # ---- SK era partition (phased response). Absent -> single era 0, which
         #      collapses every per-era path to the legacy single-era behaviour.
@@ -896,182 +1116,52 @@ class SKBinnedEngine:
                 raise ValueError(f"solar_mix_f needs {self.n_era} per-era values;"
                                  f" got shape {self.solar_mix_f.shape}")
 
-        # ---- energy-scale bin-level migration geometry (reco-E adjacency) -----
-        # Built only when energy_scale dials are active. es_below[b] = the bin one
-        # reco-E step lower in the same (sample, reco-cz) column (-1 at ie=0);
-        # es_has_above[b] = 1 if b can spill upward (ie < ne-1). Geometry only =>
-        # works with the quantized MC; no response rebuild, no Rp/Rm.
-        if self.active_energy_scale:
-            if len(self.active_energy_scale) != self.n_era:
-                raise ValueError("energy_scale needs one dial per era "
-                                 f"(n_era={self.n_era}); got {self.active_energy_scale}")
-            self.es_below = np.full(self.n_bins, -1, dtype=np.int64)
-            self.es_has_above = np.zeros(self.n_bins)
-            for s, (off, ne_, nz) in self.sample_table.items():
-                for ie in range(ne_):
-                    base = off + ie * nz
-                    if ie > 0:
-                        self.es_below[base:base + nz] = np.arange(base, base + nz) - nz
-                    if ie < ne_ - 1:
-                        self.es_has_above[base:base + nz] = 1.0
-            self.es_has_below = (self.es_below >= 0).astype(float)
-            self._es_idx = [self.nuisance_names.index(f"energy_scale_{ERA_TAGS[e]}")
-                            for e in range(self.n_era)]
-
-        # ---- OPTIONAL absorber masks (built only when the dials are active) ----
-        # (1) flux-ratio per-class flavor/sign selectors (band E<1 GeV applied
-        #     at fit time via self.e_below1, like the AxialMass A_ke factor).
-        if self.active_flux_ratios:
-            self._fr_leg = {
-                "nuebar": (self.cls_pdg == -12), "nue": (self.cls_pdg == 12),
-                "e": (np.abs(self.cls_pdg) == 12), "mu": (np.abs(self.cls_pdg) == 14),
-                "numubar": (self.cls_pdg == -14), "numu": (self.cls_pdg == 14),
-            }
-            # back-compat aliases used by older code paths
-            self.fr_is_nuebar = self._fr_leg["nuebar"]
-            self.fr_is_nue = self._fr_leg["nue"]
-            self.fr_is_e = self._fr_leg["e"]
-            self.fr_is_mu = self._fr_leg["mu"]
-        # (2) momentum-resolved sub-GeV neutron-tag per-bin band masks. Within a
-        #     sample bin = off + ie*nz + iz (build_sk_response.reco_bin_index),
-        #     so the reco-momentum index is ie = (bin-off)//nz; ie<NTAG_PSPLIT is
-        #     the low band. Donor {20,22}=0-neutron, acceptor {21,23}=1-neutron.
-        if self.ntag_split:
-            def _band(sample_ids, low):
-                mk = np.zeros(self.n_bins, dtype=bool)
-                for s in sample_ids:
-                    key = str(s) if str(s) in self.sample_table else s
-                    off, ne, nz = self.sample_table[key]
-                    idx = np.arange(off, off + ne * nz)
-                    ie = (idx - off) // nz
-                    sel = ie < NTAG_PSPLIT if low else ie >= NTAG_PSPLIT
-                    mk[idx[sel]] = True
-                return mk
-            # band dial -> (donor per-bin mask, acceptor per-bin mask)
-            self.ntag_bands = {
-                "ntag_subgev_lowp": (_band([20, 22], True), _band([21, 23], True)),
-                "ntag_subgev_highp": (_band([20, 22], False), _band([21, 23], False)),
-            }
-        # (3) up-mu background zenith x momentum SHAPE per-bin masks. Bin index =
-        #     off + ie*nz + iz (build_sk_response.reco_bin_index); reco-momentum ie,
-        #     reco-cosZ iz. Horizon-nearest iz = nz-1 for the up-mu z10bins_up grid.
-        if self.active_upmu_bkg:
-            self.upmu_bkg_masks = {}
-            for name in self.active_upmu_bkg:
-                sid, iz_set, ie_set = UPMU_BKG_SHAPE_SPEC[name]
-                key = str(sid) if str(sid) in self.sample_table else sid
-                off, ne, nz = self.sample_table[key]
-                mk = np.zeros(self.n_bins, dtype=bool)
-                for ie in range(ne):
-                    if ie_set is not None and ie not in ie_set:
-                        continue
-                    for iz in iz_set:
-                        if 0 <= iz < nz:
-                            mk[off + ie * nz + iz] = True
-                self.upmu_bkg_masks[name] = mk
-
-        # (4) up/down energy-scale SIGNED per-bin mask (SK Up/Down Energy Scale,
-        #     thesis 6011-6018): +1 on up-going (cz<0) bins, -1 on down-going
-        #     (cz>=0), 0 on excluded samples. FC+PC z10bins samples only -- the
-        #     z10bins edge index 5 == cz=0 so iz<nz//2 is up-going; up-mu {16,17,18}
-        #     (all up-going) + single-reco-zenith FC {1,2,5,6} (nz=1, straddle cz=0)
-        #     get factor 1. Era-INDEPENDENT geometry; the per-era dial VALUE is
-        #     routed to detector_factors via _era_theta. The signed mask lets one
-        #     dial scale up *=(1+d) and down *=(1-d) with the gradient sign built in.
-        if self.active_ude:
-            if set(self.active_ude) != set(UPDOWN_ESCALE_NAMES):
-                raise ValueError("up/down energy-scale needs all "
-                                 f"{len(ERA_TAGS)} era dials {UPDOWN_ESCALE_NAMES}; "
-                                 f"got {self.active_ude}")
-            if self.n_era != len(ERA_TAGS):
-                raise ValueError("up/down energy-scale dials need the phased "
-                                 f"{len(ERA_TAGS)}-era response (n_era={self.n_era})")
-            self.ude_sign = np.zeros(self.n_bins)
-            for s, (off, ne_, nz) in self.sample_table.items():
-                if int(s) in UPDOWN_ESCALE_EXCLUDE or nz != 10:
-                    continue
-                for ie in range(ne_):
-                    for iz in range(nz):
-                        self.ude_sign[off + ie * nz + iz] = \
-                            1.0 if iz < nz // 2 else -1.0
-
-        # (5) direction-smearing reco-cz confusion matrices. Loaded LAZILY and only
-        #     when the dir_smear dial is active -- ALL existing paths are untouched.
-        #     Per sample a nz x nz matrix M[sample] (reco-cz confusion, IE-independent);
-        #     the migration applies the same matrix to every reco-momentum row of the
-        #     sample. Precompute per-sample (off, ne, nz, M) blocks, SKIPPING identity
-        #     (z1bins) samples so they are bit-unchanged at any s.
-        self._ds_blocks = []
-        if self.active_dir_smear:
-            if self._dirsmear_matrix_path is None:
-                raise ValueError("dir_smear dial active but no dirsmear_matrix given "
-                                 "(pass dirsmear_matrix=<confusion_*.npz path>)")
-            dz = np.load(self._dirsmear_matrix_path, allow_pickle=True)
-            self.dirsmear_meta = (json.loads(str(dz["manifest"]))
-                                  if "manifest" in dz.files else {})
-            for s, (off, ne_, nz) in self.sample_table.items():
-                M = np.asarray(dz[f"M_{int(s)}"], dtype=float)
-                if M.shape != (nz, nz):
-                    raise ValueError(f"dirsmear M_{s} shape {M.shape} != ({nz},{nz})")
-                if np.allclose(M, np.eye(nz), atol=0, rtol=0):
-                    continue                       # identity (z1bins) -> inert, skip
-                self._ds_blocks.append((int(off), int(ne_), int(nz), M))
-
-        # FewEntries mask from the unfiltered data vector (Experiment.SetObservedBinned)
-        self.few = self.observed > MIN_ENTRIES
-        self.obs_f = self.observed[self.few]
-
-        # static flux-tune cell masks
-        self.e_below1 = self.e_c < 1.0
-        self.e_above1 = self.e_c > 1.0
-        self.barr_env = 0.07 / (1.0 + (self.e_c / 0.5) ** 2)     # _barr_zenith_envelope
-        self.tanh3z = np.tanh(3.0 * self.z_c)
-        self.tanhz2 = np.tanh(self.z_c) ** 2          # zenith_up/down envelope
-        # H/V flux-ratio shape: mean-zero over cosz, +0.5 horizontal, -1.0 vertical
-        self.horizvert_shape = 0.5 * (1.0 - 3.0 * self.z_c ** 2)
-        self.log10e = np.log10(self.e_c)
-        # K/pi high-E flux ramp: 0 below KPI_E0, rising as log10(E/KPI_E0) above (nE,)
-        self.kpi_shape = np.maximum(0.0, np.log10(self.e_c / KPI_E0))
-
-        # energy bands (true E_nu) for the SK 3-band flux ratios
-        self.e_bands = {"sub": (self.e_c < 1.0).astype(float),
-                        "mid": ((self.e_c >= 1.0) & (self.e_c < 10.0)).astype(float),
-                        "high": (self.e_c >= 10.0).astype(float)}
-        # resolve each active flux-ratio dial -> (band envelope (nE,), heavy (n_cls,),
-        # light (n_cls,)) so cell_weights/gradient iterate ONE generic registry.
-        self.fr_resolved = {}
-        for nm in self.active_flux_ratios:
-            band, hv, lt = FLUX_RATIO_SPEC[nm]
-            self.fr_resolved[nm] = (self.e_bands[band],
-                                    self._fr_leg[hv], self._fr_leg[lt])
-        # optional sub-GeV xsec masks (CCQE / 2p2h class via the baked mask bits)
-        if self.active_xsec_extra or self.active_multigev_ccqe:
-            self.ccqe_cls = self.cls_bits[:, MASK_TUNES.index("CCQE")]   # (n_cls,)
-            self.ccqe_nue_cls = self.ccqe_cls & (self.cls_flavor == 0)   # nu_e+nu-bar_e CCQE(=1p1h)
-            # multi-GeV CCQE flavor-norm masks: nu_mu+nu-bar_mu CCQE class
-            # + the E_true>=1.33 GeV complement of the sub-GeV shape region. Built
-            # here (unused, hence output-inert) for any active_xsec_extra spec.
-            self.ccqe_numu_cls = self.ccqe_cls & (self.cls_flavor == 1)  # nu_mu+nu-bar_mu CCQE
-            self.e_multigev = self.e_c >= CCQE_SHAPE_SUBGEV_E            # (nE,) complement of <1.33
-            # sub-GeV-localized CCQE shape: mean-zero log-E tilt confined to E_true<1.33 GeV
-            # (0 above; centred over the sub-GeV cells => ~rate-neutral SHAPE, pivot-free).
-            self.ccqe_shape_subgev = np.where(self.e_c < CCQE_SHAPE_SUBGEV_E,
-                                              np.log(self.e_c), 0.0)            # (nE,)
-            _sub = self.e_c < CCQE_SHAPE_SUBGEV_E
-            self.ccqe_shape_subgev[_sub] -= self.ccqe_shape_subgev[_sub].mean()
-            # 2p2h nu_e class (thesis split); zeros if the response predates 2p2h
-            if "CC_2p2h" in MASK_TUNES:
-                twop2h = self.cls_bits[:, MASK_TUNES.index("CC_2p2h")]
-                self.twop2h_nue_cls = twop2h & (self.cls_flavor == 0)
-            else:
-                self.twop2h_nue_cls = np.zeros(self.n_cls, dtype=bool)
+        # ---- Track S / Phase E4: per-dial mask & selector assembly lives in the
+        # native pynu.binned.masks module (descriptor-driven). assemble_masks sets
+        # every mask/selector attribute this __init__ used to build inline
+        # (energy-scale reco-E adjacency, flux-ratio legs, ntag bands, up-mu masks,
+        # the up/down signed mask, dirsmear blocks, static flux fields, xsec class
+        # masks, FewEntries) — ZERO numerical change. When the response npz carries
+        # baked geometry selectors (`sel_*` keys) they are used AND asserted
+        # byte-equal to the descriptor assembly; today's responses have none, so
+        # the descriptor path is authoritative (exactly as before). `z` is passed
+        # for that baked-selector check.
+        _masks.assemble_masks(self, z)
 
     # ---------------- weight fields ----------------
+    def _tune_objects(self):
+        """Lazily-constructed real PhysicsTunes instances (AtmoFlux + WaterXSection)
+        that source the flux/xsec per-dial factors for cell_weights (Track S,
+        Phase E5a). Cached on first use; import is local so the module has no
+        hard dependency on the tune classes at import time (keeps the frozen /
+        stripped-checkout import path clean)."""
+        tp = getattr(self, "_tune_pair", None)
+        if tp is None:
+            from ..PhysicsTunes.Flux.AtmoFlux import AtmosphericFlux
+            from ..PhysicsTunes.CrossSection.WaterXSection import WaterXSection
+            tp = (AtmosphericFlux(), WaterXSection())
+            self._tune_pair = tp
+        return tp
+
     def cell_weights(self, phi, theta):
         """W[k, cE, cZ] for nuisance vector theta and physics tensor phi[2,3,nE,nZ].
 
         NC classes get phi = 1 (SuperK_2023.UpdatePhysicsWeights NC override).
+
+        Track S / Phase E5a: the flux/xsec per-dial factors are sourced from the
+        REAL AtmoFlux/WaterXSection methods via the GridExperiment shim
+        (grid_experiment.cell_weights_via_tunes), reassembled with THIS method's
+        exact axis-factored association so the result is byte-identical to the
+        former hand-inlined product (E1 kernel-parity preserved; verified across
+        all 26 specs). The legacy inlined path is retained below as
+        _cell_weights_inlined (the byte-parity reference / fallback).
         """
+        flux, xsec = self._tune_objects()
+        return _grid.cell_weights_via_tunes(self, phi, theta, flux, xsec)
+
+    def _cell_weights_inlined(self, phi, theta):
+        """Legacy hand-inlined cell weights (pre-E5a). Kept as the byte-parity
+        reference for the E5a gate; not on the live path. ZERO behaviour change."""
         t = dict(zip(self.nuisance_names, theta))
 
         # physics: gather per class, NC -> 1
@@ -1168,67 +1258,43 @@ class SKBinnedEngine:
         return W
 
     # ---------------- contractions ----------------
+    # Structural kernels below delegate to pynu.binned.engine_core (Track S,
+    # Phase E1). Each engine_core function takes the engine instance and is a
+    # verbatim move of the former in-class body; ZERO numerical change.
     def contract(self, W):
         """n_pre[b] = R contracted with cell weights W."""
-        return np.bincount(self.Rb, weights=self.Rv * W.ravel()[self.R_widx],
-                           minlength=self.n_bins)
+        return _core.contract(self, W)
 
     def contract_var(self, Wsq):
         """sum of BaseWeight^2 * W^2 per bin (pre-detector)."""
-        return np.bincount(self.S2b, weights=self.S2v * Wsq.ravel()[self.S2_widx],
-                           minlength=self.n_bins)
+        return _core.contract_var(self, Wsq)
 
     def contract_era(self, W):
         """n_pre[era, b] = R contracted with cell weights W, split by SK era.
         Sums over era to contract(W) exactly (era is a disjoint partition)."""
-        return np.bincount(self.R_eb, weights=self.Rv * W.ravel()[self.R_widx],
-                           minlength=self.n_era * self.n_bins
-                           ).reshape(self.n_era, self.n_bins)
+        return _core.contract_era(self, W)
 
     def contract_var_era(self, Wsq):
         """Per-era pre-detector BaseWeight^2 * W^2 sum (era, b)."""
-        return np.bincount(self.S2_eb, weights=self.S2v * Wsq.ravel()[self.S2_widx],
-                           minlength=self.n_era * self.n_bins
-                           ).reshape(self.n_era, self.n_bins)
+        return _core.contract_var_era(self, Wsq)
 
     def _escale_migrate(self, arr_e, deltas, var=False):
         """Per-era energy-scale reco-E migration of a (n_era, n_bins) array.
         Linear, rate-conserving within each (sample, reco-cz) column:
           N'(ie) = N(ie) + d*( N(ie-1)*[ie>0] - N(ie)*[ie<ne-1] ).
         var=True propagates BB variances (independent-bin squared coefficients)."""
-        out = np.empty_like(arr_e)
-        for e in range(self.n_era):
-            d = deltas[e]
-            N = arr_e[e]
-            below = np.where(self.es_below >= 0, N[self.es_below], 0.0)   # N(ie-1)
-            if not var:
-                out[e] = N + d * (below * self.es_has_below - N * self.es_has_above)
-            else:
-                c_self = 1.0 - d * self.es_has_above
-                c_below = d * self.es_has_below
-                out[e] = c_self * c_self * N + c_below * c_below * below
-        return out
+        return _core.escale_migrate(self, arr_e, deltas, var=var)
 
     def _dir_smear_apply(self, vec, s):
         """Apply the reco-cz migration operator A = I + s*(M - I) to a (n_bins,)
         vector, block-diagonal per sample x reco-momentum row. E'_i = sum_j A[i,j] E_j;
         at s=1, E' = M @ E per zenith row. Identity (z1bins) samples are untouched."""
-        out = vec.copy()
-        for off, ne_, nz, M in self._ds_blocks:
-            blk = vec[off:off + ne_ * nz].reshape(ne_, nz)
-            sm = blk @ M.T                          # (M @ E_row) for every ie row
-            out[off:off + ne_ * nz] = (blk + s * (sm - blk)).ravel()
-        return out
+        return _core.dir_smear_apply(self, vec, s)
 
     def _dir_smear_apply_T(self, vec, s):
         """Apply A^T = I + s*(M^T - I) block-diagonally (used to pull the likelihood
         residual back through the smearing for the OTHER dials' gradient)."""
-        out = vec.copy()
-        for off, ne_, nz, M in self._ds_blocks:
-            blk = vec[off:off + ne_ * nz].reshape(ne_, nz)
-            smT = blk @ M                           # (M^T @ r_row) = r_row @ M
-            out[off:off + ne_ * nz] = (blk + s * (smT - blk)).ravel()
-        return out
+        return _core.dir_smear_apply_T(self, vec, s)
 
     def _era_theta(self, t, e):
         """Per-era view of the nuisance dict: era-split detector stems take their
@@ -1237,39 +1303,23 @@ class SKBinnedEngine:
         The up/down energy-scale set is era-split too, but its dials are not in
         DET_ERA_STEMS, so it is routed here into the base key 'updown_escale' that
         detector_factors reads (mirrors the DET_ERA_STEMS remap)."""
-        if not self.det_split_stems and not self.active_ude:
-            return t
-        te = dict(t)
-        tag = ERA_TAGS[e]
-        for stem in self.det_split_stems:
-            te[stem] = t[f"{stem}_{tag}"]
-        if self.active_ude:
-            te["updown_escale"] = t[f"updown_escale_{tag}"]
-        return te
+        return _core.era_theta(self, t, e)
 
     # ---------------- detector factors ----------------
     def sample_rates(self, n_phys):
-        """Weighted physics rate per sample (BaseWeight*PhysicsWeight sums)."""
-        r = {}
-        for s in self.samples:
-            r[int(s)] = float(n_phys[self.bin_sample == s].sum())
-        return r
+        """Weighted physics rate per sample (BaseWeight*PhysicsWeight sums).
+        Track S / Phase E5b: delegates to the native pynu.binned.detector kernel."""
+        return _det.sample_rates(self, n_phys)
 
     def detector_factors(self, t, rates, n_phys=None):
-        """Per-sample multiplicative factor D_s and its per-tune derivative
-        dD_s (with migration ratios r held fixed — matches the event engine's
-        analytic-gradient convention). Returns (D[s], {tune: dD[s]}).
+        """Per-sample detector factor D_s and per-tune d ln D. Track S / Phase E5b:
+        delegates to pynu.binned.detector.detector_factors (descriptor-driven
+        generic kernels, guards preserved verbatim; ZERO numerical change)."""
+        return _det.detector_factors(self, t, rates, n_phys=n_phys)
 
-        Transcribed tune-by-tune from SKCombinedDetector.SuperK_Combined.
-
-        ``t`` is a {base_detector_name: value} dict. In legacy (single-era) mode
-        the caller passes ``dict(zip(nuisance_names, theta))``; in phased mode it
-        passes a per-era view that maps each base stem to that era's dial value,
-        so this body is reused verbatim per era.
-
-        n_phys (per-bin physics rate) is required only when the sub-GeV
-        neutron-tag momentum split is active (per-bin band migration ratios).
-        """
+    def _detector_factors_inlined(self, t, rates, n_phys=None):
+        """Legacy hand-inlined detector factors (pre-E5b). Byte-parity reference;
+        not on the live path."""
         S = {int(s): 1.0 for s in self.samples}
         dS = {n: {int(s): 0.0 for s in self.samples} for n in DET_NAMES}
 
@@ -1560,126 +1610,23 @@ class SKBinnedEngine:
         use per-era rates). For a single-era response (n_era=1) this reduces
         exactly to the legacy n_pre * D path.
         """
-        t = dict(zip(self.nuisance_names, theta))
-        if self.solar_mix_f is None:
-            W = self.cell_weights(phi, theta)
-            Wd = None
-            n_pre_e = self.contract_era(W)             # (n_era, n_bins)
-            var_e = self.contract_var_era(W * W)       # (n_era, n_bins)
-        else:
-            # solar-mix pair: phi = (phi_solmin, phi_solmax). W is affine in phi
-            # (NC classes constant), so W_era = W_a + f_era*(W_b - W_a) exactly.
-            f = self.solar_mix_f[:, None]
-            W = self.cell_weights(phi[0], theta)
-            Wd = self.cell_weights(phi[1], theta) - W
-            n_pre_e = self.contract_era(W) + f * self.contract_era(Wd)
-            # var uses W_era^2: exact quadratic expansion in f.
-            var_e = (self.contract_var_era(W * W)
-                     + 2.0 * f * self.contract_var_era(W * Wd)
-                     + f * f * self.contract_var_era(Wd * Wd))
-        # energy-scale: bin-level reco-E migration of the pre-detector rates (so
-        # detector factors ride on top). Linear + rate-conserving; no-op at x=1.
-        n_pre0_es = es_deltas = None
-        if self.active_energy_scale:
-            es_deltas = np.array([t[f"energy_scale_{ERA_TAGS[e]}"] - 1.0
-                                  for e in range(self.n_era)])
-            n_pre0_es = n_pre_e                      # unmigrated (for the gradient)
-            n_pre_e = self._escale_migrate(n_pre_e, es_deltas)
-            var_e = self._escale_migrate(var_e, es_deltas, var=True)
-        if self.migration_mode == "rawcount":
-            # migration ratios are physics-independent raw counts; no phys rates
-            nphys_e = [None] * self.n_era
-        elif self.solar_mix_f is None:
-            nphys_e = self.contract_era(self.cell_weights_physics_only(phi))
-        else:
-            Pa = self.cell_weights_physics_only(phi[0])
-            Pd = self.cell_weights_physics_only(phi[1]) - Pa
-            nphys_e = (self.contract_era(Pa)
-                       + self.solar_mix_f[:, None] * self.contract_era(Pd))
-
-        n_nu = np.zeros(self.n_bins)
-        var = np.zeros(self.n_bins)
-        parts_e = []
-        for e in range(self.n_era):
-            t_e = self._era_theta(t, e)
-            np_e = None if self.migration_mode == "rawcount" else nphys_e[e]
-            rates_e = None if np_e is None else self.sample_rates(np_e)
-            D_e, dlnD_e = self.detector_factors(t_e, rates_e, n_phys=np_e)
-            n_nu = n_nu + n_pre_e[e] * D_e
-            var = var + var_e[e] * D_e * D_e
-            if return_parts:
-                parts_e.append(dict(D=D_e, dlnD=dlnD_e, n_pre=n_pre_e[e],
-                                    rates=rates_e, n_phys=np_e))
-        # direction-smearing: reco-cz migration of the FINAL reco expectation
-        # E' = E + s*(M - I) @ E, applied POST-detector, POST-era-sum. M is era-common and
-        # the migration is linear, so M(sum_e D_e n_pre_e) = sum_e M(D_e n_pre_e); and for
-        # R2DS every active detector factor is per-sample-constant in zenith (and the
-        # energy-scale migration is on the orthogonal reco-E axis), so M commutes with D
-        # and this equals the per-era pre-detector application EXACTLY -- no ordering
-        # approximation for R2DS (a zenith-varying detector dial, e.g. UDE/UBS, would add
-        # one; R2DS excludes those). var is left unsmeared (production uses poisson; the
-        # analytic gradient holds it fixed like the BB beta). s=0 -> exact no-op (guarded).
-        ds_raw = None
-        if self.active_dir_smear:
-            s_ds = t[DIR_SMEAR_NAME]
-            ds_raw = n_nu                          # pre-smear reco expectation (for grad)
-            if s_ds != 0.0:
-                n_nu = self._dir_smear_apply(n_nu, s_ds)
-        if return_parts:
-            out = dict(W=W, n_pre_e=n_pre_e, var_e=var_e, parts_e=parts_e)
-            if ds_raw is not None:
-                out.update(dir_smear_raw=ds_raw, dir_smear_s=t[DIR_SMEAR_NAME])
-            if Wd is not None:
-                out["W_delta"] = Wd
-            if self.active_energy_scale:
-                out.update(n_pre0_es=n_pre0_es, es_deltas=es_deltas)
-            if self.n_era == 1:        # legacy keys for the single-era analytic grad
-                p0 = parts_e[0]
-                out.update(n_pre=n_pre_e[0], D=p0["D"], dlnD=p0["dlnD"],
-                           rates=p0["rates"], n_phys=p0["n_phys"])
-            return n_nu, var, out
-        return n_nu, var
+        return _core.expectation(self, phi, theta, return_parts=return_parts)
 
     def cell_weights_physics_only(self, phi):
-        P = phi[self.cls_type, self.cls_flavor]
-        return np.where(self.cls_cc[:, None, None] == 1, P, 1.0)
+        return _core.cell_weights_physics_only(self, phi)
 
     @staticmethod
     def bb_chi2(obs, n_mod, var):
         """BarlowBeestonLikelihood.stats_only (BB-lite, no muons)."""
-        tau = np.divide(var, n_mod ** 2, out=np.zeros_like(var), where=n_mod != 0)
-        b = n_mod * tau - 1.0
-        c = -obs * tau
-        beta = 0.5 * (-b + np.sqrt(np.maximum(0, b * b - 4 * c)))
-        beta = np.maximum(beta, 1e-9)
-        beta_E = np.maximum(beta * n_mod, 1e-9)
-        log_term = np.log(np.divide(obs, beta_E, out=np.ones_like(obs),
-                                    where=beta_E > 0))
-        log_term[obs == 0] = 0
-        poisson = np.sum(2 * (beta_E - obs + obs * log_term))
-        bb_pen = np.sum(np.divide((beta - 1) ** 2, tau, out=np.zeros_like(tau),
-                                  where=tau > 0))
-        return poisson + bb_pen, beta, tau
+        return _core.bb_chi2(obs, n_mod, var)
 
     @staticmethod
     def poisson_chi2(obs, n_mod):
         """Plain Poisson chi2 (event engine's no-MC-variance fallback form)."""
-        if np.any(n_mod <= 0):
-            return 9e9
-        log_term = np.log(np.divide(obs, n_mod, out=np.ones_like(obs),
-                                    where=n_mod > 0))
-        log_term[obs == 0] = 0
-        return float(2 * np.sum(n_mod - obs + obs * log_term))
+        return _core.poisson_chi2(obs, n_mod)
 
     def chi2(self, phi, theta):
-        n_nu, var = self.expectation(phi, theta)
-        if self.likelihood == "poisson":
-            stat = self.poisson_chi2(self.obs_f, n_nu[self.few])
-        else:
-            stat, _, _ = self.bb_chi2(self.obs_f, n_nu[self.few],
-                                      var[self.few])
-        pen = np.sum((theta - self.nominal) ** 2 / self.sigma ** 2)
-        return stat + pen
+        return _core.chi2(self, phi, theta)
 
     # ---------------- analytic gradient ----------------
     def chi2_and_grad(self, phi, theta):
@@ -1692,253 +1639,10 @@ class SKBinnedEngine:
         detector dials accumulate over eras. Reduces to the single-era gradient
         exactly when n_era==1.
         """
-        n_nu, var, parts = self.expectation(phi, theta, return_parts=True)
-        m = self.few
-        obs, E, V = self.obs_f, n_nu[m], var[m]
-        pen = np.sum((theta - self.nominal) ** 2 / self.sigma ** 2)
-        if self.likelihood == "poisson":
-            stat = self.poisson_chi2(obs, E)
-            if stat >= 9e9:                       # unphysical model region
-                return stat + pen, 2 * (theta - self.nominal) / self.sigma ** 2
-            f = stat + pen
-            resid = 2 * (1 - obs / np.maximum(E, 1e-9))          # dchi2/dE_b
-        else:
-            stat, beta, tau = self.bb_chi2(obs, E, V)
-            f = stat + pen
-            beta_E = np.maximum(beta * E, 1e-9)
-            resid = 2 * (1 - obs / beta_E) * beta                # dchi2/dE_b
-
-        g = 2 * (theta - self.nominal) / self.sigma ** 2         # penalty grad
-        t = dict(zip(self.nuisance_names, theta))
-        W = parts["W"]
-        parts_e = parts["parts_e"]
-        D_stack = np.stack([pe["D"] for pe in parts_e])          # (n_era, n_bins)
-        # energy-scale migration, held FIXED in the gradient (like migration r / BB
-        # beta): flux & xsec grads ride through it (it is linear in n_pre), and the
-        # dial's own grad is added below.
-        es_deltas = parts.get("es_deltas")                       # (n_era,) or None
-
-        # direction-smearing residual pullback: chi2 depends on E' = A @ E_raw
-        # (A = I + s*(M - I)), so for EVERY other dial dChi2/dp = sum_b resid_b (A dE)_b
-        # = sum_c (A^T resid)_c dE_c. When dir_smear is inactive or s=0 (A=I), acc(field)
-        # is `sum(resid * field[m])` bit-for-bit (the pre-dir_smear code path). When
-        # active, resid is pulled back through A^T over ALL bins (smearing leaks across
-        # the FewEntries boundary). The dir_smear dial's OWN gradient is added at the end.
-        ds_s = t[DIR_SMEAR_NAME] if self.active_dir_smear else 0.0
-        if self.active_dir_smear and ds_s != 0.0:
-            _resid_full = np.zeros(self.n_bins)
-            _resid_full[m] = resid
-            _resid_eff = self._dir_smear_apply_T(_resid_full, ds_s)
-
-            def acc(field):
-                return np.sum(_resid_eff * field)
-        else:
-            def acc(field):
-                return np.sum(resid * field[m])
-
-        # physics (flux/xsec) params live in the era-independent cell weights W:
-        # dE_b = sum_era D_era[b] * migrate(contract_era(W * dlnW/dp))[era][b].
-        def dE_phys(Wg):
-            ce = self.contract_era(Wg)
-            if es_deltas is not None:
-                ce = self._escale_migrate(ce, es_deltas)
-            return (D_stack * ce).sum(0)                         # (n_bins,)
-
-        # solar-mix aware dE for a d-ln-W field g: dW_era/dp = (W + f_era*Wd)*g
-        # (the dial fields are phi-independent). Wd is None on the single-phi path.
-        Wd = parts.get("W_delta")
-
-        def dE_W(gfield):
-            if Wd is None:
-                return dE_phys(W * gfield)
-            ce = self.contract_era(W * gfield) \
-                + self.solar_mix_f[:, None] * self.contract_era(Wd * gfield)
-            if es_deltas is not None:
-                ce = self._escale_migrate(ce, es_deltas)
-            return (D_stack * ce).sum(0)                         # (n_bins,)
-
-        # flux tunes: dW/W fields on cells -> dE_b = D * contract(W * g_field)
-        # iterate the ACTIVE flux dials (zenith block depends on nuisance_spec)
-        for name in self.flux_names:
-            gfield = self._flux_dlnw(name, t)                    # (n_cls,nE,nZ) or None
-            if gfield is None:
-                continue
-            dE = dE_W(gfield)
-            g[self.nuisance_names.index(name)] += acc(dE)
-
-        # xsec mask tunes: g = bit/x per class
-        for name in XSEC_VECTOR_NAMES:
-            i = self.nuisance_names.index(name)
-            if name == "AxialMass":
-                x = t[name]
-                num = 0.042 * 1.05 * self.log10e                 # d/dx of (1+0.042(x-1)1.05 log10E)
-                den = 1.0 + 0.042 * (x - 1.0) * 1.05 * self.log10e
-                gf = np.where(self.cls_cc[:, None] == 1, num / den, 0.0)
-                dE = dE_W(gf[:, :, None])
-            else:
-                x = t[name]
-                j = MASK_TUNES.index(name)
-                gcls = np.where(self.cls_bits[:, j], 1.0 / x, 0.0)
-                dE = dE_W(gcls[:, None, None])
-            g[i] += acc(dE)
-
-        # optional flux ratios: per-class d ln W / d r, per-dial energy band.
-        # heavy f_h=1+band(2r/(1+r)-1), light f_l=1+band(2/(1+r)-1). Generic over
-        # the resolved registry (sub-GeV absorbers + energy-banded extensions).
-        for name, (band, hv, lt) in self.fr_resolved.items():
-            i = self.nuisance_names.index(name)
-            r = t[name]
-            dh = 2.0 / (1.0 + r) ** 2           # d/dr [2r/(1+r)]
-            dl = -2.0 / (1.0 + r) ** 2          # d/dr [2/(1+r)]
-            fh = 1.0 + band * (2.0 * r / (1.0 + r) - 1.0)
-            fl = 1.0 + band * (2.0 / (1.0 + r) - 1.0)
-            gh = band * dh / fh                 # (nE,)
-            gl = band * dl / fl
-            gfield = np.where(hv[:, None], gh[None, :], 0.0) \
-                + np.where(lt[:, None], gl[None, :], 0.0)       # (n_cls,nE)
-            dE = dE_W(gfield[:, :, None])
-            g[i] += acc(dE)
-
-        # optional sub-GeV xsec dials: d ln W / d r.
-        if "xsec_ccqe_shape" in t and "xsec_ccqe_shape" in self.nuisance_names:
-            i = self.nuisance_names.index("xsec_ccqe_shape")
-            # W has CCQE *= E^(r-1); d ln/dr = ln(E) on CCQE cells.
-            gf = np.where(self.ccqe_cls[:, None], np.log(self.e_c)[None, :], 0.0)
-            dE = dE_W(gf[:, :, None])
-            g[i] += acc(dE)
-        # sub-GeV-localized CCQE shape: W has CCQE *= 1 + x*sh(E); d ln W/dx = sh/(1+x*sh).
-        if "xsec_ccqe_shape_subgev" in t and "xsec_ccqe_shape_subgev" in self.nuisance_names:
-            i = self.nuisance_names.index("xsec_ccqe_shape_subgev")
-            sh = self.ccqe_shape_subgev
-            fac = 1.0 + t["xsec_ccqe_shape_subgev"] * sh
-            dlnw = np.divide(sh, fac, out=np.zeros_like(sh), where=fac != 0)   # (nE,)
-            gf = np.where(self.ccqe_cls[:, None], dlnw[None, :], 0.0)
-            dE = dE_W(gf[:, :, None])
-            g[i] += acc(dE)
-        # sub-GeV nu_e norm dials (lumped surrogate + 1p1h/2p2h split): d ln W/d r
-        # = 1[e<1]/fac on the dial's class mask. Generic over SUBGEV_NUE_NORM.
-        for _dial, _mattr in SUBGEV_NUE_NORM.items():
-            if _dial in t and _dial in self.nuisance_names:
-                i = self.nuisance_names.index(_dial)
-                r = t[_dial]
-                fac = 1.0 + self.e_below1 * (r - 1.0)              # (nE,)
-                # d ln W / dr = 1[e<1] / fac; fac->0 as r->0 on sub-GeV cells
-                # (where W itself ->0, so those cells contribute 0) — guard the
-                # singular divide instead of emitting inf into the gradient.
-                dlnw = np.divide(self.e_below1, fac, out=np.zeros_like(fac),
-                                 where=fac != 0)
-                gf = np.where(getattr(self, _mattr)[:, None], dlnw[None, :], 0.0)
-                dE = dE_W(gf[:, :, None])
-                g[i] += acc(dE)
-        # multi-GeV CCQE flavor norms: d ln W/dr = 1[E>=1.33]/fac on the flavor mask
-        # (mirrors the sub-GeV nu_e norm gradient with the complementary energy mask).
-        for _dial, _mattr in MULTIGEV_CCQE_NORM.items():
-            if _dial in t and _dial in self.nuisance_names:
-                i = self.nuisance_names.index(_dial)
-                r = t[_dial]
-                fac = 1.0 + self.e_multigev * (r - 1.0)            # (nE,)
-                dlnw = np.divide(self.e_multigev, fac, out=np.zeros_like(fac),
-                                 where=fac != 0)
-                gf = np.where(getattr(self, _mattr)[:, None], dlnw[None, :], 0.0)
-                dE = dE_W(gf[:, :, None])
-                g[i] += acc(dE)
-
-        # detector tunes: dE_b = n_pre_era[b] * D_era[b] * dlnD_era[name][b]
-        # (migration r fixed). Era-split stems route to their per-era dial; era-
-        # independent detector dials (fiducial_volume, neutron-tag, ntag-split
-        # bands) accumulate over eras. Reduces to the single-era loop at n_era==1.
-        split_set = set(self.det_split_stems)
-        if self.active_ude:            # 'updown_escale' base -> updown_escale_<era>
-            split_set = split_set | {"updown_escale"}
-        name_set = set(self.nuisance_names)
-        for e in range(self.n_era):
-            pe = parts_e[e]
-            npD = pe["n_pre"] * pe["D"]
-            for name, d in pe["dlnD"].items():
-                if name in split_set:
-                    idx = self.nuisance_names.index(f"{name}_{ERA_TAGS[e]}")
-                elif name in name_set:
-                    idx = self.nuisance_names.index(name)
-                else:
-                    continue
-                g[idx] += acc(npD * d)
-
-        # energy-scale dials: dN'_e/dx_e = N(ie-1)*[ie>0] - N(ie)*[ie<ne-1] on the
-        # UNMIGRATED per-era rates (migration is linear in delta=x-1, so this is exact
-        # and delta-independent), propagated through the detector factor D_e.
-        if self.active_energy_scale:
-            n_pre0_es = parts["n_pre0_es"]
-            for e in range(self.n_era):
-                N = n_pre0_es[e]
-                below = np.where(self.es_below >= 0, N[self.es_below], 0.0)
-                dN = below * self.es_has_below - N * self.es_has_above
-                dE = parts_e[e]["D"] * dN
-                g[self._es_idx[e]] += acc(dE)
-
-        # direction-smearing OWN gradient: n_nu = E_raw + s*((M - I) @ E_raw), so
-        # dn_nu/ds = (M - I) @ E_raw (constant in s -> exact, delta-independent), and
-        # dChi2/ds = sum_few resid_b * ((M - I) @ E_raw)_b. E_raw is the pre-smear reco
-        # expectation captured in expectation(). Added even at s=0 (the gradient is
-        # nonzero there); the other dials' grads above are unchanged at s=0 (acc no-op).
-        if self.active_dir_smear:
-            e_raw = parts["dir_smear_raw"]
-            dE_ds = self._dir_smear_apply(e_raw, 1.0) - e_raw    # (M - I) @ E_raw
-            g[self.nuisance_names.index(DIR_SMEAR_NAME)] += np.sum(resid * dE_ds[m])
-
-        return f, g
+        return _core.chi2_and_grad(self, phi, theta)
 
     def _flux_dlnw(self, name, t):
-        if name == "normalization_below1GeV":
-            gf = np.where(self.e_below1, 1.0 / t[name], 0.0)
-            return np.broadcast_to(gf[None, :, None],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "normalization_above1GeV":
-            gf = np.where(self.e_above1, 1.0 / t[name], 0.0)
-            return np.broadcast_to(gf[None, :, None],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "tilt":
-            gf = np.log(self.e_c / 10.0)
-            return np.broadcast_to(gf[None, :, None],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "nunubar_ratio":
-            gcls = np.where(self.cls_pdg < 0, 1.0 / t[name], 0.0)
-            return np.broadcast_to(gcls[:, None, None],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "flavor_ratio":
-            gcls = np.where(np.abs(self.cls_pdg) == 12, 1.0 / t[name], 0.0)
-            return np.broadcast_to(gcls[:, None, None],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "barr_zenith":
-            x = t[name]
-            r = 1.0 + self.barr_env * x
-            gf = self.tanh3z[None, :] * (self.barr_env / r)[:, None]  # (nE,nZ)
-            return np.broadcast_to(gf[None, :, :],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "zenith_up":                          # w = 1 - x*tanh^2, z<0
-            w = 1.0 - t[name] * self.tanhz2
-            gf = np.where(self.z_c < 0, -self.tanhz2 / w, 0.0)        # (nZ,)
-            return np.broadcast_to(gf[None, None, :],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "zenith_down":                        # w = 1 - x*tanh^2, z>=0
-            w = 1.0 - t[name] * self.tanhz2
-            gf = np.where(self.z_c >= 0, -self.tanhz2 / w, 0.0)       # (nZ,)
-            return np.broadcast_to(gf[None, None, :],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "flux_horizvert":                 # w = 1 + x*g(cz), g=(1-3cz^2)/2
-            w = 1.0 + t[name] * self.horizvert_shape
-            gf = self.horizvert_shape / w                             # (nZ,)
-            return np.broadcast_to(gf[None, None, :],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "solar_activity":                     # w = 1 - x*A*exp(-E/L)
-            s = SOLAR_AMP * np.exp(-self.e_c / SOLAR_SCALE)           # (nE,)
-            gf = -s / (1.0 - t[name] * s)                            # d ln w / dx, (nE,)
-            return np.broadcast_to(gf[None, :, None],
-                                   (self.n_cls, self.nE, self.nZ))
-        if name == "kpi_ratio":                          # w = 1 + x*kpi_shape(E)
-            gf = self.kpi_shape / (1.0 + t[name] * self.kpi_shape)   # d ln w / dx, (nE,)
-            return np.broadcast_to(gf[None, :, None],
-                                   (self.n_cls, self.nE, self.nZ))
-        return None
+        return _core.flux_dlnw(self, name, t)
 
     # ---------------- per-point fit (production minimizer protocol) ----------------
     def fit_point(self, phi_dcp_stack, x0=None, n_dcp=None, free_mask=None,
@@ -1963,66 +1667,9 @@ class SKBinnedEngine:
         of the old scans' speed. False recovers the legacy cold-from-x0-per-node
         path EXACTLY (x_seed never leaves x0); kept as the validation baseline.
         """
-        nominal = self.nominal.copy()
-        if x0 is None:
-            x0 = nominal
-        lower = nominal - 10 * self.sigma
-        upper = nominal + 10 * self.sigma
-        lower[(nominal > 0) & (lower < 0.01)] = 0.01
-        # box bounds for optional dials (truncation limits): sub-GeV absorbers,
-        # energy-banded flux ratios ([0.3,1.7]), and sub-GeV xsec dials.
-        _box = dict(FLUX_RATIO_BOX)
-        _box.update({n: (0.3, 1.7) for n in FLUX_BAND_NAMES})
-        _box.update(XSEC_EXTRA_BOX)
-        _box.update(MULTIGEV_CCQE_BOX)           # multi-GeV CCQE flavor norms [0,3]
-        _box.update(NEUTRON_MIG_BOX_PINNED)      # H5 pinned: x in [0, 1+1/r] (trial unpinned)
-        _box[DIR_SMEAR_NAME] = DIR_SMEAR_BOX     # one-sided [0,1] (nominal-0 dial)
-        for name, (lo, hi) in _box.items():
-            if name in self.nuisance_names:
-                k = self.nuisance_names.index(name)
-                lower[k], upper[k] = lo, hi
-        if free_mask is not None:
-            fixed = ~np.asarray(free_mask, bool)
-            lower[fixed] = nominal[fixed]
-            upper[fixed] = nominal[fixed]
-            x0 = np.where(fixed, nominal, x0)
-        bounds = list(zip(lower, upper))
-
-        use_jac = True if jac is None else jac
-        if self.solar_mix_f is not None:
-            # solar-mix mode: phi_dcp_stack is the PAIR (stack_solmin, stack_solmax)
-            stack_a, stack_b = phi_dcp_stack
-            n = stack_a.shape[0] if n_dcp is None else n_dcp
-        else:
-            n = phi_dcp_stack.shape[0] if n_dcp is None else n_dcp
-        best = (np.inf, 0, x0, 0, False)
-        x_seed = x0                       # node 0 from x0; warm-chained thereafter
-        for di in range(n):
-            if self.solar_mix_f is not None:
-                phi = (stack_a[di].astype(float), stack_b[di].astype(float))
-            else:
-                phi = phi_dcp_stack[di].astype(float)
-            # tolerance scaling from stat-only chi2 at the current seed
-            n_nu, var = self.expectation(phi, x_seed)
-            if self.likelihood == "poisson":
-                chi2_stat = self.poisson_chi2(self.obs_f, n_nu[self.few])
-            else:
-                chi2_stat, _, _ = self.bb_chi2(self.obs_f, n_nu[self.few],
-                                               var[self.few])
-            tol = max(1e-5, np.sqrt(max(min(chi2_stat, 1e7), 0)) * 1e-5)
-            if use_jac:
-                res = minimize(lambda th: self.chi2_and_grad(phi, th), x_seed,
-                               method="L-BFGS-B", jac=True, bounds=bounds,
-                               options={"ftol": tol, "gtol": 1e-5, "maxiter": 200})
-            else:
-                res = minimize(lambda th: self.chi2(phi, th), x_seed,
-                               method="L-BFGS-B", bounds=bounds,
-                               options={"ftol": tol, "gtol": 1e-5, "maxiter": 200})
-            if res.fun < best[0]:
-                best = (res.fun, di, res.x.copy(), res.nit, res.success)
-            if dcp_warmchain:
-                x_seed = best[2]          # next node warm-starts from the best basin
-        return best
+        return _core.fit_point(self, phi_dcp_stack, x0=x0, n_dcp=n_dcp,
+                               free_mask=free_mask, jac=jac,
+                               dcp_warmchain=dcp_warmchain)
 
     # ---------------- per-bin diagnostics (pull extraction) ----------------
     def per_bin_report(self, phi, theta):
@@ -2041,36 +1688,21 @@ class SKBinnedEngine:
         Only valid for likelihood='bb' (the production form used by this
         diagnostic); raises otherwise.
         """
-        if self.likelihood != "bb":
-            raise ValueError("per_bin_report requires likelihood='bb'")
-        n_nu, var = self.expectation(phi, theta)
-        m = self.few
-        obs = self.obs_f
-        E = n_nu[m]
-        V = var[m]
-        stat, beta, tau = self.bb_chi2(obs, E, V)
-        beta_E = np.maximum(beta * E, 1e-9)
-        log_term = np.log(np.divide(obs, beta_E, out=np.ones_like(obs),
-                                    where=beta_E > 0))
-        log_term[obs == 0] = 0
-        poisson_b = 2.0 * (beta_E - obs + obs * log_term)
-        bbpen_b = np.divide((beta - 1.0) ** 2, tau,
-                            out=np.zeros_like(tau), where=tau > 0)
-        chi2_b = poisson_b + bbpen_b
-        pull = np.sign(obs - beta_E) * np.sqrt(np.maximum(chi2_b, 0.0))
-        sigma_eff = np.sqrt(np.maximum(E + V, 1e-300))
-        resid_std = (obs - E) / sigma_eff
-        return dict(
-            bin_index=np.nonzero(m)[0].astype(int),
-            sample=self.bin_sample[m].astype(int),
-            obs=obs.astype(float), model=E.astype(float),
-            beta=beta.astype(float), beta_model=beta_E.astype(float),
-            var=V.astype(float), sigma_mc=np.sqrt(V).astype(float),
-            tau=tau.astype(float),
-            chi2_bin=chi2_b.astype(float),
-            poisson_bin=poisson_b.astype(float),
-            bbpen_bin=bbpen_b.astype(float),
-            pull=pull.astype(float),
-            resid_std=resid_std.astype(float),
-            stat_total=float(stat),
-        )
+        return _core.per_bin_report(self, phi, theta)
+
+
+# --- Track S / Phase E2: loud θ-order assert at import (after resolve helpers
+# are defined). The production value XML must load in the R2FUDECCQE seed order.
+_assert_production_theta_order()
+
+# --- Track S / Phase E1: structural kernels live in engine_core (native module).
+# Imported at module bottom so engine_core's `from .sk_binned_engine import ...`
+# (dial tables/constants, all defined above) resolves without a circular import;
+# the SKBinnedEngine methods above delegate to `_core` at call time only.
+from . import engine_core as _core  # noqa: E402
+# --- Track S / Phase E4: mask/selector assembly (same bottom-import rationale).
+from . import masks as _masks  # noqa: E402
+# --- Track S / Phase E5a: GridExperiment cell-weight factor sourcing.
+from . import grid_experiment as _grid  # noqa: E402
+# --- Track S / Phase E5b: descriptor detector-factor kernels.
+from . import detector as _det  # noqa: E402
