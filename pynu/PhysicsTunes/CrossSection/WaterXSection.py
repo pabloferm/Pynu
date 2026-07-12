@@ -490,6 +490,79 @@ class WaterXSection(Tune):
         w[cls & (experiment.ETrue < 1.0)] = 1.0
         return w
 
+    def xsec_ccqe_subgev_nue(self, experiment, x):
+        r"""sub-GeV nu_e CCQE cross-section norm (lumped surrogate).
+
+        The lumped SUBGEV_NUE_NORM entry (class_mask_attr ``ccqe_nue_cls``): a
+        multiplicative norm on sub-GeV (E<1 GeV) CCQE nu_e+nu-bar_e events,
+        $w = 1 + \mathbb{1}[E<1]\,(x-1)$ on the CCQE nu_e class, 1 elsewhere.
+        Functionally identical to `xsec_1p1h_subgev_nue` (both key on
+        ``ccqe_nue_cls`` = CCQE & flavor==0; on the 2p2h MC CCQE == 1p1h) —
+        the difference is purely which spec activates it (this is the lumped
+        surrogate that ALSO stands in for missing 2p2h in old MC). nominal x=1
+        (exact no-op). Mirrors the SUBGEV_NUE_NORM path
+        sk_binned_engine.py cell_weights (fac = 1 + e_below1*(r-1) on the class
+        mask) / gradient (1[E<1]/fac). prior (1.0, 0.05), box (0.5,1.5).
+
+        Args:
+            x (float): Value of the tuning parameter (nominal 1).
+            experiment: Experiment class with per-event `ETrue`, `Mode`, `nuPDG`.
+
+        Returns:
+            Numpy.array with the per-event weights from this tune.
+        """
+        if self._unphysical_value(x):
+            return 1e-3
+        cls = self._ccqe_mask(experiment) & (np.abs(experiment.nuPDG) == 12)
+        w = np.ones(experiment.NumberOfEvents)
+        sel = cls & (experiment.ETrue < 1.0)
+        w[sel] = x
+        return w
+
+    def diff_xsec_ccqe_subgev_nue(self, experiment, x):
+        r"""Derivative of `xsec_ccqe_subgev_nue` w.r.t. x: 1 on the masked band, 0 else."""
+        if self._unphysical_value(x):
+            return 0
+        cls = self._ccqe_mask(experiment) & (np.abs(experiment.nuPDG) == 12)
+        w = np.zeros(experiment.NumberOfEvents)
+        w[cls & (experiment.ETrue < 1.0)] = 1.0
+        return w
+
+    def xsec_2p2h_subgev_nue(self, experiment, x):
+        r"""sub-GeV nu_e 2p2h cross-section norm (thesis 1p1h/2p2h split).
+
+        Multiplicative norm on sub-GeV (E<1 GeV) 2p2h nu_e+nu-bar_e events:
+        $w = 1 + \mathbb{1}[E<1]\,(x-1)$ on the 2p2h nu_e class, 1 elsewhere.
+        Same form as `xsec_1p1h_subgev_nue` but on the 2p2h class (|Mode|==2,
+        the WX.CC_2p2h convention) rather than CCQE(=1p1h) — the faithful split
+        of the lumped sub-GeV nu_e norm on the 2p2h MC. nominal x=1 (exact
+        no-op). Mirrors the SUBGEV_NUE_NORM path (class_mask_attr
+        ``twop2h_nue_cls`` = 2p2h & flavor==0), prior (1.0, 0.20), box (0.0,3.0).
+
+        Args:
+            x (float): Value of the tuning parameter (nominal 1).
+            experiment: Experiment class with per-event `ETrue`, `Mode`, `nuPDG`.
+
+        Returns:
+            Numpy.array with the per-event weights from this tune.
+        """
+        if self._unphysical_value(x):
+            return 1e-3
+        cls = (np.abs(experiment.Mode) == 2) & (np.abs(experiment.nuPDG) == 12)
+        w = np.ones(experiment.NumberOfEvents)
+        sel = cls & (experiment.ETrue < 1.0)
+        w[sel] = x
+        return w
+
+    def diff_xsec_2p2h_subgev_nue(self, experiment, x):
+        r"""Derivative of `xsec_2p2h_subgev_nue` w.r.t. x: 1 on the masked band, 0 else."""
+        if self._unphysical_value(x):
+            return 0
+        cls = (np.abs(experiment.Mode) == 2) & (np.abs(experiment.nuPDG) == 12)
+        w = np.zeros(experiment.NumberOfEvents)
+        w[cls & (experiment.ETrue < 1.0)] = 1.0
+        return w
+
     def _multigev_ccqe_norm(self, experiment, x, flavor_pdg):
         r"""Multi-GeV CCQE flavor norm on E_true>=1.33 GeV (ENG:1160-1168)."""
         if self._unphysical_value(x):
