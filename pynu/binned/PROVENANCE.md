@@ -35,6 +35,21 @@ So `pynu/binned/` ends with **zero vendored files**. The package is pure `json` 
 `numpy` / `scipy`; importing it needs no analysis data file (the value XMLs are
 package data and always present in an installed package).
 
+## Re-homing by functionality (Track S·F, 2026-07-13)
+
+The Track S·F re-homing (phases F1–F5, completed 2026-07-13) dissolved the
+siloed layout: the binned surface moved into the functional subdirectories of the
+pynu tree (config → `analysis_reader`, χ² kernels / `fit_point` / `TensorStore` /
+`BinnedBinding` / interpolator → `fitter`, detector + escale operator →
+`PhysicsTunes/Detector`, and the mode itself into
+`pynu/Experiments/BinnedExperiment.py`). "Binned" became a per-experiment mode
+via ordinary polymorphism rather than a parallel package. `pynu/binned/` was
+reduced to a **back-compat re-export shim** plus the modules that deliberately
+remain here (engine shell, kernels, masks, builder, grid bridge, value XMLs);
+every legacy `from pynu.binned import X` keeps working. Full deletion of the
+package is **deferred to a later cleanup pass** (O-3 ruling). See `README.md` for
+the relocation table and the current resident-module list.
+
 ## Snapshot hash history (for the record)
 
 These are the hashes of the last vendored snapshots, before the E1–E6 native

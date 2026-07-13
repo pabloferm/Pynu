@@ -135,6 +135,19 @@ Legacy seed knobs (`lump`, `xsec_tight_sigma`, `dirsmear_matrix`) are NOT
 supported: the worker hard-errors if a seed requests them (both unset in the
 production `r2_fude_ccqe*` seeds).
 
+## Module homes after Track S·F
+
+The binned surface no longer lives in a single `pynu/binned/` package. After the
+S·F re-homing it is distributed across the functional pynu subdirectories — the
+`<BinnedEngine>` config in `pynu/analysis_reader/`, the χ² kernels / `fit_point` /
+`TensorStore` / `BinnedBinding` / φ-interpolator in `pynu/fitter/`, the detector +
+energy-scale operator in `pynu/PhysicsTunes/Detector/`, and the mode itself as
+`pynu/Experiments/BinnedExperiment.py`. `pynu/binned/` remains as a back-compat
+re-export shim (plus the engine internals and builders that still reside there),
+so every `from pynu.binned import X` in this worker keeps resolving unchanged. For
+the full relocation table and the current resident-module list, see
+`pynu/binned/README.md`.
+
 ## How to submit
 
 ```bash

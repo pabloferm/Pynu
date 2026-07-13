@@ -1,67 +1,108 @@
-# `pynu.binned` — native SK binned-tensor likelihood engine
+# `pynu.binned` — back-compat shim + resident binned-engine modules
 
-An optional, default-OFF extension to `PyNuFit` that fits a Super-Kamiokande-style
-binned likelihood directly against pre-built oscillation tensors, instead of the
-event-level MC reweighting the rest of Pynu uses. Toggled per-experiment from an
-analysis XML (or programmatically); when off, none of this package's code runs and
-nothing about the existing event-level fit path changes.
+**This package is no longer the home of the binned forward model.** Its modules
+have been re-homed into the functional subdirectories of the pynu tree, where a
+reader looking for binned support finds it beside the event-mode code rather than
+in a side package. What remains here is a **back-compatibility shim** plus the
+modules that deliberately still live here.
 
-## Module set
+`from pynu.binned import X` keeps working for every name it used to export — the
+`__init__.py` is a PEP 562 lazy re-export surface that forwards to the new homes.
+Existing scripts import unchanged. New code should import from the functional
+homes directly (table below).
 
-| module | role |
+## Where things moved
+
+| What | New home |
 |---|---|
-| `sk_binned_engine.py` | the engine: response contraction, nuisance dials, analytic-gradient χ², `fit_point` (native; delegates to the descriptor modules below) |
-| `engine_core.py` | native structural/numerical kernels + `TensorStore` (φ lookup/caching) + `BinnedBinding` (config → engine+store holder, the `PyNuFit`-side surface) |
-| `masks.py` / `grid_experiment.py` / `detector.py` | native descriptor modules: mask/selector assembly, flux/xsec cell-weight sourcing from the real PhysicsTunes methods, detector-factor kernels |
-| `builder.py` | native builders for the engine's inputs: response npz + per-node oscillation tensors, built from a live `PyNuFit` object's own MC and physics tunes |
-| `../analysis_reader/binned_config.py` | `BinnedConfig` — the authoritative field list for the `<BinnedEngine>` XML block (S.F1: moved to `analysis_reader`; re-exported from `pynu.binned` for back-compat) |
-| `escale_operator.py` | histogram-level energy-scale transfer operator shared with the event path (see its module docstring) |
-| `interp_engine.py` | cubic-interpolation layer over the tensor grid (native) |
-| `SK2023_Atm_datafit_r2_fude_ccqe_full.xml`, `SK2023_Atm_datafit_binned_extra_dials.xml` | the two dial-VALUE XMLs (package data; the sole authority for dial nominal/σ — see below). The named-spec ACTIVATION manifests live in `analysis/AnalysisFiles/`. |
+| `<BinnedEngine>` XML config (`BinnedConfig`, `parse_binned_config`) | `pynu/analysis_reader/binned_config.py` |
+| χ² kernels (`poisson_chi2`, `bb_chi2`) | `pynu/fitter/binned_kernels.py` |
+| `fit_point`, `TensorStore`, `BinnedBinding` | `pynu/fitter/minimizer/binned_fit.py` |
+| φ-interpolation (`PhiInterpolator`, `detect_grid`, `JointSKFit`) | `pynu/fitter/inference/interp_engine.py` |
+| Detector factors (`detector.py`) | `pynu/PhysicsTunes/Detector/detector.py` |
+| Energy-scale operator (`escale_operator.py`) | `pynu/PhysicsTunes/Detector/escale_operator.py` |
+| The binned **mode** itself | `pynu/Experiments/BinnedExperiment.py` |
 
-The companion likelihood class is `pynu/fitter/PoissonLikelihood.py` — a
-pure-Poisson likelihood mirroring the `BarlowBeestonLikelihood` interface whose
-statistics term is the engine's own `poisson_chi2` kernel.
+## What still lives in `pynu/binned/`
 
-## Three ways to drive the engine
+| Module / data | Role |
+|---|---|
+| `__init__.py` | the back-compat re-export shim (PEP 562 lazy attributes) |
+| `sk_binned_engine.py` | the engine shell — response contraction, nuisance dials, analytic-gradient χ² |
+| `engine_core.py` | the Experiment-side numerical kernels (expectation / contraction / gradient) |
+| `masks.py` | mask / selector assembly |
+| `builder.py` | native builders for the engine's inputs (response npz + osc tensors), driven behind `PyNuFit.BuildBinnedResponse` / `PyNuFit.BuildOscTensors` |
+| `grid_experiment.py` | grid-coordinate bridge that sources flux/xsec cell weights from the real PhysicsTunes methods |
+| `SK2023_Atm_datafit_r2_fude_ccqe_full.xml`, `SK2023_Atm_datafit_binned_extra_dials.xml` | the two dial-VALUE XMLs (package data; the sole authority for dial nominal/σ) |
 
-1. **Standalone, direct import** — your own script imports `SKBinnedEngine` from
-   `sk_binned_engine.py`, constructs it, and calls `engine.fit_point(...)` in your
+These modules are the engine internals plus the two builders (`builder.py` stays
+behind the `PyNuFit.Build*` methods by design; `grid_experiment.py`'s final home
+is still open). The value XMLs will follow the engine's home whenever that
+settles. This package is scheduled for eventual deletion in a later cleanup pass
+once the resident modules relocate; until then it stays as the shim.
+
+## The two-mode model
+
+"Binned" is a **per-experiment mode**, not a parallel framework. An analysis XML
+that declares a `<BinnedEngine>` block on a `<NeutrinoExperiment>` causes PyNuFit
+to wrap that experiment in a `BinnedExperiment(Experiment)`
+(`pynu/Experiments/BinnedExperiment.py`) whose state is a pre-built response
+matrix (npz) plus oscillation tensors, instead of event arrays.
+`BinnedExperiment` implements the SAME base method vocabulary as the event-mode
+`Experiment` (`SetObservedBinned` / `SetExpectedBinned` /
+`StartNuisanceWeights` / `UpdatePhysicsWeights` / …), so PyNuFit's fit loops are
+mode-agnostic and a single fit can mix binned and event experiments. Mode
+selection happens at the **assemble** level, not per-dial at fit time:
+`SetExpectedBinned()` does one fused tensor contraction — there is deliberately
+no per-dial event-loop analogue (the fused kernel is the engine's speed).
+
+## Import-ordering constraint
+
+Reach the fitter/minimizer binned surface (`binned_fit`) through the
+`pynu.binned` entry point rather than importing `pynu.fitter.minimizer.binned_fit`
+first — the shim's re-export order is the circular-import guard. The destination
+`__init__`s are non-eager (they import nothing heavy), so toggling the binned mode
+OFF runs zero binned code and the surface imports cleanly in an environment
+without nuSQuIDS / nuflux.
+
+## Driving the engine
+
+Three equivalent drive paths (unchanged by the re-homing):
+
+1. **Standalone, direct import** — import `SKBinnedEngine` from
+   `sk_binned_engine.py`, construct it, and call `engine.fit_point(...)` in your
    own (Δm²₃₁, sin²θ₂₃) grid loop.
 2. **Through `PyNuFit`, packaged** — an analysis XML declares
-   `<BinnedEngine><status>1</status>...` on a `<NeutrinoExperiment>`, and
-   `PyNuFit.FitModel()` auto-routes to `FitModelBinned()`, which drives the identical
-   `SKBinnedEngine.fit_point()` through the `BinnedBinding`.
-3. **Through `PyNuFit`, modular** — the same method vocabulary the event engine
-   uses (`StartNuisance` / `ApplyPhysicsWeights` / `ApplyNuisanceWeights` /
-   `SetExpectedWeights` / `SetBinnedExpectedEvents`, plus `SetBinnedDcpNode` for the
-   δCP-node profile loop), with the staged (phi, theta) held on the `PyNuFit`
-   object and a `PoissonLikelihood`. This lets one worker loop drive event and
-   binned fits with the same call sequence. A full production-shaped worker built
-   on this path is `analysis/SK-binned-datafit/run_sk_binned_scan_row_worker.py`.
+   `<BinnedEngine><status>1</status>…` on a `<NeutrinoExperiment>` and
+   `PyNuFit.FitModel()` auto-routes to `FitModelBinned()`.
+3. **Through `PyNuFit`, modular** — the same base method vocabulary drives both
+   event and binned fits with the same call sequence; a full production-shaped
+   worker on this path is
+   `analysis/SK-binned-datafit/run_sk_binned_scan_row_worker.py`.
 
-All paths call the exact same engine kernels with the exact same numerics — the
-`BinnedBinding` adds no numerical behavior of its own — so results agree
-bit-for-bit given the same inputs.
+All paths call the exact same kernels with the exact same numerics, so results
+agree bit-for-bit given the same inputs.
 
-## Quickstart: through `PyNuFit`
+### Quickstart: through `PyNuFit`
 
 ```python
 from pynu.PyNuFit import PyNuFit
 
 pynufit = PyNuFit("path/to/your_analysis.xml")
 # If the XML's <NeutrinoExperiment> block for this experiment has a
-# <BinnedEngine><status>1</status>...</BinnedEngine> child, pynufit.BinnedEngines
-# is now non-empty and every subsequent pynufit.FitModel(point) call for that
-# experiment routes through the binned engine automatically.
+# <BinnedEngine><status>1</status>...</BinnedEngine> child, every subsequent
+# pynufit.FitModel(point) call for that experiment routes through the binned
+# engine automatically.
 chi2 = pynufit.FitModel({"Dm231": 2.5e-3, "Sin2Theta23": 0.55})
 ```
 
-Programmatic opt-in (no XML block needed) uses `pynufit.set_binned_engine(exp_name,
-BinnedConfig(...))`, which returns the loaded `BinnedBinding`.
+Programmatic opt-in (no XML block) uses `pynufit.set_binned_engine(exp_name,
+BinnedConfig(...), analysis_xml)`, which returns the loaded `BinnedExperiment`
+(its read-only surface is the former `BinnedBinding`).
 
-Minimal `<BinnedEngine>` block (all fields but `<response>`/`<tensors>` are optional
-and default as shown; see `analysis_reader/binned_config.py:BinnedConfig` for the authoritative field list):
+Minimal `<BinnedEngine>` block (all fields but `<response>`/`<tensors>` are
+optional and default as shown; the authoritative field list is
+`pynu/analysis_reader/binned_config.py:BinnedConfig`):
 
 ```xml
 <NeutrinoExperiment name="SuperK_2023">
@@ -79,17 +120,15 @@ and default as shown; see `analysis_reader/binned_config.py:BinnedConfig` for th
 </NeutrinoExperiment>
 ```
 
-**`<response>`/`<tensors>` are not committed to this repo.** They're multi-GB
-numpy caches you must build yourself (see "Building the response and tensor caches"
+**`<response>`/`<tensors>` are not committed to this repo.** They are multi-GB
+numpy caches you build yourself (see "Building the response and tensor caches"
 below) — point `$SK_BINNED_DIR` (or hardcode the paths) at wherever you put them.
-There is no default value or repo-relative fallback for this variable; if it's
-unset, XML parsing of `${SK_BINNED_DIR}/...` will leave the literal, unexpanded
-string and fail downstream.
+There is no default value or repo-relative fallback; if it is unset, XML parsing
+of `${SK_BINNED_DIR}/...` leaves the literal unexpanded string and fails
+downstream. A full worked reference config is
+`analysis/SuperK-datafit/SK2023_Atm_binned.xml`.
 
-A full worked production-scale example (not a quickstart, but a real reference config)
-is `analysis/SuperK-datafit/SK2023_Atm_binned.xml`.
-
-## Quickstart: standalone
+### Quickstart: standalone
 
 ```python
 from sk_binned_engine import SKBinnedEngine
@@ -105,7 +144,7 @@ phi = np.load("path/to/osc_tensors/osc_tensor_<i>_<j>.npz")["phi"]  # one grid n
 chi2, dcp_bf, nuisance_bf, n_evals, converged = eng.fit_point(phi, x0=None)
 ```
 
-Your own script owns the (Δm²₃₁, sin²θ₂₃) grid loop and the SLURM array mapping —
+Your own script owns the (Δm²₃₁, sin²θ₂₃) grid loop and the SLURM array mapping;
 `analysis/SK-binned-datafit/run_sk_binned_scan_row_worker.py` shows the full
 pattern (warm-chaining the nuisance seed across grid points, a restart-polish
 loop, δCP profiled per cell), driven through the modular path.
@@ -114,13 +153,13 @@ loop, δCP profiled per cell), driven through the modular path.
 
 `fit_point` profiles δCP over a fixed set of discrete tensor nodes (13 or 20,
 depending on how the tensor cache was built) and, at each node, minimizes only the
-nuisance-parameter vector via `scipy.optimize.minimize(method="L-BFGS-B")` using the
-engine's analytic gradient. **Oscillation parameters are never free inside
+nuisance-parameter vector via `scipy.optimize.minimize(method="L-BFGS-B")` using
+the engine's analytic gradient. **Oscillation parameters are never free inside
 `fit_point`** — Δm²₃₁/sin²θ₂₃ are fixed by which pre-built tensor you pass in, and
 δCP is a discrete profile scan, not a continuous fit variable. The (Δm²₃₁,
 sin²θ₂₃) grid loop lives entirely in the calling script (standalone) or in
-`PyNuFit`'s own point-by-point calling convention (framework path) — never inside the
-engine itself.
+`PyNuFit`'s own point-by-point calling convention (framework path) — never inside
+the engine itself.
 
 ## Nuisance dials: values come from the package value XMLs
 
@@ -178,10 +217,11 @@ drive path:
 
 ## Building the response and tensor caches
 
-`<tensors>` is a directory of `osc_tensor_<i>_<j>.npz` files, one oscillation tensor
-per (Δm²₃₁, sin²θ₂₃) grid node; `<response>` is a single `sk_response.npz` carrying
-the detector response/migration matrix and the observed data vector. Building these
-requires running the full event-level nuSQuIDS/MC pipeline once per grid node.
+`<tensors>` is a directory of `osc_tensor_<i>_<j>.npz` files, one oscillation
+tensor per (Δm²₃₁, sin²θ₂₃) grid node; `<response>` is a single `sk_response.npz`
+carrying the detector response/migration matrix and the observed data vector.
+Building these requires running the full event-level nuSQuIDS/MC pipeline once per
+grid node.
 
 There are two equivalent ways to build them:
 
@@ -191,7 +231,7 @@ There are two equivalent ways to build them:
    ```python
    pf = PyNuFit("path/to/your_analysis.xml")
    pf.BuildBinnedResponse(exp_name="SuperK_2023", out_path="sk_response.npz",
-                          n_etrue=400, n_cztrue=40)
+                          n_etrue=400, n_cztrue=80)
    pf.BuildOscTensors(2.5e-3, 0.55, exp_name="SuperK_2023",
                       dcp_nodes=np.linspace(0, 2*np.pi, 20, endpoint=False),
                       out_path="osc_tensor_000_000.npz")
@@ -215,18 +255,20 @@ There are two equivalent ways to build them:
 
 This repo also contains an older, separate, independently-built SK binned engine
 under `analysis/SuperK-datafit/sk_binned/` (see that directory and the top-level
-`README_datafit-SK.md`). It predates this package, is **not** interoperable with it
-(its `sk_response.npz` uses an incompatible file schema despite the shared filename —
-`allow_pickle=True` with JSON-blob keys, vs this engine's `allow_pickle=False`), and
-was deliberately kept unmerged rather than reconciled (see that commit's message).
-Don't point `$SK_BINNED_DIR` at that directory's build output — it will silently fail
-to load or misbehave. If you're not sure which one you're looking at: this package's
-engine lives at `pynu/binned/sk_binned_engine.py`, not under `analysis/`.
+`README_datafit-SK.md`). It predates this package, is **not** interoperable with
+it (its `sk_response.npz` uses an incompatible file schema despite the shared
+filename — `allow_pickle=True` with JSON-blob keys, vs this engine's
+`allow_pickle=False`), and was deliberately kept unmerged rather than reconciled
+(see that commit's message). Don't point `$SK_BINNED_DIR` at that directory's
+build output — it will silently fail to load or misbehave. If you're not sure
+which one you're looking at: this package's engine lives at
+`pynu/binned/sk_binned_engine.py`, not under `analysis/`.
 
 ## Provenance
 
-`pynu/binned/` is now native code (the Track S de-vendoring completed at E6):
-`sk_binned_engine.py`, `engine_core.py`, `interp_engine.py`, the descriptor
-modules, and the builders are owned by this repo, and the SK dial values ship as
-package-data value XMLs. `PROVENANCE.md` is the historical record of the former
-vendoring era (source commits + the snapshot hash history).
+`pynu/binned/` is native code (the Track S de-vendoring completed at E6; the
+Track S·F re-homing distributed the surface into the functional subdirectories at
+F1–F5). The engine shell, kernels, descriptor modules, and builders are owned by
+this repo, and the SK dial values ship as package-data value XMLs. `PROVENANCE.md`
+is the historical record of the former vendoring era (source commits + the
+snapshot hash history) and the S·F re-homing.
