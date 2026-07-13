@@ -309,7 +309,16 @@ class SuperK_2023(SuperK):
         self.ETrue = self.MC["pnu"]#[sample_condition]
         self.Weight = self.MC["inv_flux"]#[sample_condition]
         self.DecayE = self.MC["muedk"]
-        self.SKPhase = self.MC["sk_phase"][condition]
+        # SK run-period phase (sk_phase: 1..5 for SK-I..V) — required by the
+        # era-split detector systematics. Unfiltered like every sibling array
+        # in this override (`condition` was never defined in this scope — the
+        # base-class subscript does not apply here, and filtering only SKPhase
+        # would misalign it against EReco/ETrue/etc). Fall back to zeros if a
+        # given h5 lacks sk_phase (single-era treatment).
+        try:
+            self.SKPhase = self.MC["sk_phase"].astype(int)
+        except (KeyError, ValueError):
+            self.SKPhase = np.zeros(self.MC["itype"].size, dtype=int)
         # Finding 3 fix: apply weight_tune. The inline comment previously disabled it,
         # so WMC was weight_genMC only. weight_tune is present in the production *_x50*
         # MC; fall back to 1.0 if a given h5 lacks it (mirrors the Mode handling below).
