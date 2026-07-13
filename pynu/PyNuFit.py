@@ -282,6 +282,45 @@ class PyNuFit:
         _, exp = self._the_binned_engine()
         return exp.StagePhysicsPoint(dm231, s23, dcp_index)
 
+    def resolve_binned_grid_index(self, dm231, s23):
+        """The analysis-grid point index for an explicit (Dm231, Sin2Theta23), or
+        None when the XML physics grid does not cover it. When an index resolves,
+        physics staging can run through the standard ApplyPhysicsWeights(point)
+        path (PyNuFit resolves Dm231/Sin2Theta23 from FullPhysicsGrid); when it
+        does not, the caller falls back to StageBinnedPhysics. Track S·F / F5:
+        the grid-lookup half of worker deviation D4, now first-class."""
+        try:
+            pl = list(self.Analysis.PhysicsList)
+            i_dm, i_s = pl.index("Dm231"), pl.index("Sin2Theta23")
+            grid = np.asarray(self.Analysis.FullPhysicsGrid, float)
+            if grid.ndim != 2 or grid.shape[1] != len(pl):
+                return None
+            hit = np.nonzero(
+                np.isclose(grid[:, i_dm], dm231, rtol=1e-12, atol=0.0)
+                & np.isclose(grid[:, i_s], s23, rtol=1e-12, atol=0.0))[0]
+            if hit.size != 1:
+                return None
+            return int(hit[0])
+        except Exception:
+            return None
+
+    def StagePhysics(self, dm231, s23, dcp_index):
+        """Stage phi[dcp_index] at an explicit (Dm231, Sin2Theta23) with automatic
+        grid fallback (Track S·F / F5: dissolves worker deviation D4). When the
+        analysis XML declares a physics grid that covers (dm231, s23), this stages
+        through the standard ApplyPhysicsWeights(point) path (PyNuFit resolves the
+        point from FullPhysicsGrid); otherwise it stages through
+        StageBinnedPhysics — the explicit-(dm,s23) accessor, numerically identical
+        (both call BinnedExperiment.StagePhysicsPoint). Returns the resolved grid
+        index (or None if the fallback path was taken)."""
+        point_idx = self.resolve_binned_grid_index(dm231, s23)
+        if point_idx is not None:
+            self.SetBinnedDcpNode(dcp_index)
+            self.ApplyPhysicsWeights(point_idx)
+        else:
+            self.StageBinnedPhysics(dm231, s23, dcp_index)
+        return point_idx
+
     def StartPhysics(self):
         # Uniform over the fit experiments: BinnedExperiment.StartPhysicsWeights
         # is a no-op (physics = the staged phi slice), the event Manager resets
@@ -669,19 +708,27 @@ class PyNuFit:
         _, exp = self._the_binned_engine()
         return exp.chi2_and_grad()
 
-    def set_likelihood(self, mode):
+    def set_likelihood(self, mode, binned_priors=False):
         if mode == "PoissonLikelihood":
             # Binned modular path: pure-Poisson LLH whose statistics kernel is
             # the engine's poisson_chi2 (design §2.4). Observation is the
             # engine's FewEntries-filtered obs_f, keyed by the binned experiment.
             name, exp = self._the_binned_engine()
-            self.LLH = ft.PoissonLikelihood(
-                {name: exp.observed_binned()},
-                self.Analysis.NuisNominalList,
-                self.Analysis.NuisSigmaList,
-                self.Analysis.NuisDistributionList,
-            )
-            self.LLH.set_engine(exp.engine)
+            if binned_priors:
+                # Track S·F / F5 (dissolves worker deviation D3): source the
+                # priors from the binding's (post-override) nominal/sigma — which
+                # carry the seed's flux-ratio σ override — instead of the XML
+                # NuisSigmaList. Same class + set_engine wiring; the experiment
+                # builds it so the override lives in one place.
+                self.LLH = exp.poisson_likelihood()
+            else:
+                self.LLH = ft.PoissonLikelihood(
+                    {name: exp.observed_binned()},
+                    self.Analysis.NuisNominalList,
+                    self.Analysis.NuisSigmaList,
+                    self.Analysis.NuisDistributionList,
+                )
+                self.LLH.set_engine(exp.engine)
         elif mode == "BinnedLogLikelihoodRatio":
             self.LLH = ft.BinnedLogLikelihoodRatio(
                 self.Observation,

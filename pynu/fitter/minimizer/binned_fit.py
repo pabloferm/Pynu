@@ -42,6 +42,44 @@ from ...binned.sk_binned_engine import (
 )
 
 
+# ---------------- L-BFGS-B nuisance bounds (production box) ----------------
+def build_nuisance_bounds(nominal, sigma, names, free_mask=None):
+    """L-BFGS-B bounds for the binned nuisance vector — the single source of the
+    production box (Track S·F / F5: this is what worker deviation D2 transcribed).
+
+    ``nominal`` / ``sigma`` are the per-dial ±10σ default box; the named-dial
+    ``_box`` overrides are the truncation limits (sub-GeV absorbers, energy-banded
+    flux ratios [0.3,1.7], sub-GeV/multi-GeV xsec dials, the H5 pinned
+    neutron-migration box, the one-sided dir_smear [0,1]). ``free_mask`` (optional
+    boolean, one entry per dial) collapses False dials to their nominal so they
+    drop out of the fit exactly. Returns ``list(zip(lower, upper))`` — byte for
+    byte what ``fit_point`` built inline and what the scan worker transcribed.
+    """
+    nominal = np.asarray(nominal, float).copy()
+    sigma = np.asarray(sigma, float)
+    names = list(names)
+    lower = nominal - 10 * sigma
+    upper = nominal + 10 * sigma
+    lower[(nominal > 0) & (lower < 0.01)] = 0.01
+    # box bounds for optional dials (truncation limits): sub-GeV absorbers,
+    # energy-banded flux ratios ([0.3,1.7]), and sub-GeV xsec dials.
+    _box = dict(FLUX_RATIO_BOX)
+    _box.update({n: (0.3, 1.7) for n in FLUX_BAND_NAMES})
+    _box.update(XSEC_EXTRA_BOX)
+    _box.update(MULTIGEV_CCQE_BOX)           # multi-GeV CCQE flavor norms [0,3]
+    _box.update(NEUTRON_MIG_BOX_PINNED)      # H5 pinned: x in [0, 1+1/r] (trial unpinned)
+    _box[DIR_SMEAR_NAME] = DIR_SMEAR_BOX     # one-sided [0,1] (nominal-0 dial)
+    for name, (lo, hi) in _box.items():
+        if name in names:
+            k = names.index(name)
+            lower[k], upper[k] = lo, hi
+    if free_mask is not None:
+        fixed = ~np.asarray(free_mask, bool)
+        lower[fixed] = nominal[fixed]
+        upper[fixed] = nominal[fixed]
+    return list(zip(lower, upper))
+
+
 # ---------------- per-point fit (production minimizer protocol) ----------------
 def fit_point(eng, phi_dcp_stack, x0=None, n_dcp=None, free_mask=None,
               jac=None, dcp_warmchain=True):
@@ -68,27 +106,13 @@ def fit_point(eng, phi_dcp_stack, x0=None, n_dcp=None, free_mask=None,
     nominal = eng.nominal.copy()
     if x0 is None:
         x0 = nominal
-    lower = nominal - 10 * eng.sigma
-    upper = nominal + 10 * eng.sigma
-    lower[(nominal > 0) & (lower < 0.01)] = 0.01
-    # box bounds for optional dials (truncation limits): sub-GeV absorbers,
-    # energy-banded flux ratios ([0.3,1.7]), and sub-GeV xsec dials.
-    _box = dict(FLUX_RATIO_BOX)
-    _box.update({n: (0.3, 1.7) for n in FLUX_BAND_NAMES})
-    _box.update(XSEC_EXTRA_BOX)
-    _box.update(MULTIGEV_CCQE_BOX)           # multi-GeV CCQE flavor norms [0,3]
-    _box.update(NEUTRON_MIG_BOX_PINNED)      # H5 pinned: x in [0, 1+1/r] (trial unpinned)
-    _box[DIR_SMEAR_NAME] = DIR_SMEAR_BOX     # one-sided [0,1] (nominal-0 dial)
-    for name, (lo, hi) in _box.items():
-        if name in eng.nuisance_names:
-            k = eng.nuisance_names.index(name)
-            lower[k], upper[k] = lo, hi
+    # box bounds for the optional dials (truncation limits) — the single source
+    # (Track S·F / F5: dissolves worker deviation D2's transcription).
+    bounds = build_nuisance_bounds(nominal, eng.sigma, eng.nuisance_names,
+                                   free_mask=free_mask)
     if free_mask is not None:
         fixed = ~np.asarray(free_mask, bool)
-        lower[fixed] = nominal[fixed]
-        upper[fixed] = nominal[fixed]
         x0 = np.where(fixed, nominal, x0)
-    bounds = list(zip(lower, upper))
 
     use_jac = True if jac is None else jac
     if eng.solar_mix_f is not None:
@@ -305,6 +329,13 @@ class BinnedBinding:
 
     def phi(self, dm231, s23):
         return self.store.phi(dm231, s23)
+
+    def nuisance_bounds(self, free_mask=None):
+        """L-BFGS-B bounds for this binding's (post-override) nominal/sigma —
+        the production box, from the single source ``build_nuisance_bounds``.
+        Track S·F / F5: replaces the scan worker's transcription (deviation D2)."""
+        return build_nuisance_bounds(self.nominal, self.sigma,
+                                     self.nuisance_names, free_mask=free_mask)
 
     def observed_binned(self):
         """The engine's FewEntries-filtered observation vector ``obs_f``."""

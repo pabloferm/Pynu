@@ -210,6 +210,44 @@ class BinnedExperiment(Experiment):
     def phi(self, dm231, s23):
         return self.binding.phi(dm231, s23)
 
+    def override_prior_sigma(self, names, value):
+        """Override the Gaussian prior width (σ) for a set of nuisance dials in
+        place (Track S·F / F5: dissolves worker deviation D1). ``names`` is the
+        set of dial names to hit; only those present in this experiment's
+        ``nuisance_names`` are written, to ``value``. Writes ``binding.sigma``
+        (which IS ``engine.sigma``) so the fit's penalty term and the bounds
+        accessor both see the override — exactly the seed's flux_ratio_sigma
+        semantics the worker used to inline. Returns the list of dials hit."""
+        want = set(names)
+        hit = []
+        spec_names = list(self.nuisance_names)
+        for n in spec_names:
+            if n in want:
+                self.binding.sigma[spec_names.index(n)] = value
+                hit.append(n)
+        return hit
+
+    def nuisance_bounds(self, free_mask=None):
+        """L-BFGS-B bounds for the (post-override) nominal/sigma — the production
+        box, via the binding's single-source accessor (Track S·F / F5: dissolves
+        worker deviation D2's transcription)."""
+        return self.binding.nuisance_bounds(free_mask=free_mask)
+
+    def poisson_likelihood(self):
+        """Build the pure-Poisson likelihood from THIS experiment's (post-D1-
+        override) nominal/sigma + FewEntries-filtered observation, wired to the
+        engine kernel (Track S·F / F5: dissolves worker deviation D3). Same class
+        and set_engine wiring as ``PyNuFit.set_likelihood('PoissonLikelihood')``,
+        but sourcing the priors from the binding — which carry the seed's
+        flux-ratio σ override — instead of the XML NuisSigmaList."""
+        from ..fitter import PoissonLikelihood
+        n_dials = len(list(self.nuisance_names))
+        llh = PoissonLikelihood({self.name: self.observed_binned()},
+                                list(self.nominal), list(self.sigma),
+                                ["normal"] * n_dials)
+        llh.set_engine(self.engine)
+        return llh
+
     def observed_binned(self):
         return self.binding.observed_binned()
 

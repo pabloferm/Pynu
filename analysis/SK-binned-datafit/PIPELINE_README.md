@@ -13,7 +13,7 @@ paths can be compared cell-by-cell.
 
 | file | role |
 |---|---|
-| `run_sk_binned_scan_row_worker.py` | row worker: ONE `PyNuFit` object, modular method vocabulary, `ft.PoissonLikelihood`; the standalone `SKBinnedEngine.fit_point` scan protocol fit-for-fit |
+| `run_sk_binned_scan_row_worker.py` | row worker: ONE `PyNuFit` object, modular method vocabulary (incl. the S·F/F5 first-class `override_prior_sigma` / `nuisance_bounds` / `set_likelihood(binned_priors=True)` / `StagePhysics`), pure-Poisson LLH; the standalone `SKBinnedEngine.fit_point` scan protocol fit-for-fit |
 | `build_sk_binned_response.py` | thin CLI over the native `PyNuFit.BuildBinnedResponse` — builds the response npz (see "Building the inputs") |
 | `build_sk_osc_tensors.py` | thin CLI over the native `PyNuFit.BuildOscTensors` — builds one `osc_tensor_<i>_<j>.npz` node (see "Building the inputs") |
 | `submit_sk_binned_scan.sbatch` | SLURM array [0-39], task = arm_idx·20 + row; arms parameterized at top; all paths `--export`-overridable |
@@ -31,22 +31,22 @@ build them through the NATIVE, Gate-D-certified PyNuFit methods
 under `--build-missing`; the wrappers just make the build a standalone step.
 
 ```bash
-# 1) response (production 400x40 — pass --n-etrue 400, method default is 200):
+# 1) response (production 400×80 — pass --n-etrue 400, method default is 200):
 python build_sk_binned_response.py \
     --config SK2023_Atm_datafit_r2_fude_ccqe_full.xml \
-    --output sk_response.npz --n-etrue 400 --n-cztrue 40
+    --output sk_response.npz --n-etrue 400 --n-cztrue 80
 
 # 2) one osc-tensor node per (Δm², s²θ₂₃) grid cell (row=i, col=j):
 python build_sk_osc_tensors.py \
     --config SK2023_Atm_datafit_r2_fude_ccqe_full.xml \
     --dm231 2.5e-3 --s23 0.5 --row 10 --col 5 \
-    --outdir tensors/ --n-etrue 400 --n-cztrue 40
+    --outdir tensors/ --n-etrue 400 --n-cztrue 80
 #   -> tensors/osc_tensor_010_005.npz  (dCP axis linspace(0,2π,20,endpoint=False))
 ```
 
 Both need the SK MC + nuSQuIDS env (FASRC); local smoke is `--help` only
 (imports are deferred). `--n-etrue`/`--n-cztrue` MUST match between the response
-and every tensor node (production 400×40).
+and every tensor node (production 400×80).
 
 **Frozen-original convention.** The native builder methods have byte-parity
 reference twins — the standalone SLURM scripts
@@ -64,15 +64,18 @@ certified the two paths produce byte-identical artifacts) — so nobody
 | `PyNuFit(analysis_xml)` | the single object; full event-engine init (MC + nuSQuIDS) so the native builders can run on the same object |
 | `pf.BuildBinnedResponse(exp, out_path=…)` | native response build when the npz is absent (`--build-missing`); byte-compatible with `build_sk_response.py`. A prebuilt artifact = fast path (default) |
 | `pf.BuildOscTensors(dm, s23, dcp_nodes=…, out_path=…)` | native per-node tensor build for absent nodes of this row (`--build-missing`). dCP convention = `linspace(0, 2π, 20, endpoint=False)` |
-| `pf.set_binned_engine(exp, BinnedConfig(...), analysis_xml)` | programmatic `<BinnedEngine>` opt-in: response/tensors paths, `likelihood='poisson'`, `migration='weighted'`, `interp='nodes'`, `osc_averaging='4pi'`, `nuisance_spec=<arm>` — returns the loaded `BinnedBinding` |
+| `pf.set_binned_engine(exp, BinnedConfig(...), analysis_xml)` | programmatic `<BinnedEngine>` opt-in: response/tensors paths, `likelihood='poisson'`, `migration='weighted'`, `interp='nodes'`, `osc_averaging='4pi'`, `nuisance_spec=<arm>` — returns the `BinnedExperiment` (its read-only surface == the former `BinnedBinding`) |
+| `exp.override_prior_sigma(names, σ)` | seed `flux_ratio_sigma` prior override, in place on `binding.sigma` (== `engine.sigma`) — first-class (was deviation D1) |
+| `exp.nuisance_bounds()` | L-BFGS-B production box (nominal±10σ, 0.01 clip, box dials incl. the pinned neutron-migration box) — the single source shared with `SKBinnedEngine.fit_point` (was deviation D2) |
+| `pf.set_likelihood('PoissonLikelihood', binned_priors=True)` | pure-Poisson LLH from the binding's post-override nominal/σ + engine kernel — first-class (was deviation D3) |
 | `pf.SetBinnedDcpNode(di)` | worker-level δCP profile loop |
-| `pf.ApplyPhysicsWeights(point)` | stages the (Δm², s²θ₂₃, δCP-node) tensor slice — used when the analysis XML declares the scan grid (see D4 otherwise) |
-| `pf.StageBinnedPhysics(dm, s23, di)` | explicit-(dm,s23) staging accessor (D4 path) when the XML grid does not cover the scan |
+| `pf.StagePhysics(dm, s23, di)` | stages the (Δm², s²θ₂₃, δCP-node) tensor slice; uses `ApplyPhysicsWeights(point)` when the analysis XML grid covers (dm, s23), else the `StageBinnedPhysics` fallback — first-class grid staging with fallback (was deviation D4) |
+| `pf.resolve_binned_grid_index(dm, s23)` | grid-index lookup (or None) — the fallback half of the staging decision, also used for the staging-mode print |
 | `pf.StartNuisance()` | per-evaluation staged-θ reset |
 | `pf.ApplyNuisanceWeights(θ)` | stages θ on the PyNuFit object |
 | `pf.SetExpectedWeights()` | binned no-op, kept for call-sequence parity |
 | `pf.SetBinnedExpectedEvents()` | contracts the response → `pf.Expectation[exp]` (FewEntries-filtered) |
-| `ft.PoissonLikelihood.stats_only / stats_and_systematics` | ftol seeding + per-cell certification (see below) |
+| `pf.LLH.stats_only / stats_and_systematics` | ftol seeding + per-cell certification (see below) |
 
 **The L-BFGS-B (f,g) callable is `pf._binned_chi2_and_grad()`** (the PyNuFit-side
 surface holding the staged (phi, theta) those methods set). Rationale: the
@@ -109,14 +112,24 @@ The worker additionally hard-checks that the resolved dial list is byte-equal
 (names + order) to the seed json's `nuisance_names` — a spec/seed mismatch
 aborts before any fit.
 
-## Deviations — where the worker could NOT go through a PyNuFit method
+## Deviations — none (all dissolved into first-class methods, Track S·F / F5)
 
-| # | what | why no PyNuFit method | counterpart in the standalone path |
-|---|---|---|---|
-| D1 | seed `flux_ratio_sigma` (0.03 in the production seeds) written into `binding.sigma` (== `engine.sigma`) in place | no prior-override method exists | the standalone scan's seed prior-knob handling |
-| D2 | L-BFGS-B bounds transcribed from `sk_binned_engine.fit_point` box constants imported from `pynu.binned.sk_binned_engine` | the engine exposes no bounds-building API | `fit_point` internal |
-| D3 | `ft.PoissonLikelihood` constructed directly from the binding's post-override nominal/σ (then `set_engine`, `pf.LLH = llh`) instead of `pf.set_likelihood('PoissonLikelihood')` | `set_likelihood` reads the XML priors, which don't carry the D1 flux-ratio override → penalty would differ | same class, same `set_engine` wiring |
-| D4 | physics staging falls back to `pf.StageBinnedPhysics(dm, s23, di)` when the analysis XML doesn't declare the 20×20 grid | `ApplyPhysicsWeights(point)` resolves (Δm², s²θ₂₃) from the XML `FullPhysicsGrid`, which is not guaranteed to cover the scan | the explicit-(dm,s23) staging accessor — does the exact work `ApplyPhysicsWeights` does, numerically identical (Track S / E6 replaced the former `adapter.apply_physics`) |
+The worker previously carried four deviations (D1–D4) where a step could not go
+through a PyNuFit method. Track S·F / F5 dissolved every one into a first-class
+method on `PyNuFit` / `BinnedExperiment`; the worker now calls only the method
+vocabulary and holds **no** worker-side deviation. For provenance:
+
+| former | what it was | now owned by |
+|---|---|---|
+| D1 | seed `flux_ratio_sigma` written into `binding.sigma` (== `engine.sigma`) in place; no prior-override method existed | `BinnedExperiment.override_prior_sigma(names, σ)` |
+| D2 | L-BFGS-B bounds transcribed from the engine's box constants; the engine exposed no bounds-building API | `BinnedExperiment.nuisance_bounds()` → `BinnedBinding.nuisance_bounds()` → `fitter.minimizer.binned_fit.build_nuisance_bounds` (the single source `SKBinnedEngine.fit_point` also calls) |
+| D3 | `ft.PoissonLikelihood` constructed directly from the binding's post-override nominal/σ, because `set_likelihood` read the XML priors (which don't carry the D1 override) | `pf.set_likelihood('PoissonLikelihood', binned_priors=True)` → `BinnedExperiment.poisson_likelihood()` (sources the priors from the binding) |
+| D4 | physics staging fell back to `pf.StageBinnedPhysics` when the analysis XML didn't declare the scan grid | `pf.StagePhysics(dm, s23, di)` (grid staging via `ApplyPhysicsWeights` when the XML grid covers the cell, `StageBinnedPhysics` fallback otherwise; `pf.resolve_binned_grid_index` is the lookup) |
+
+The refactor is surface-only — every method preserves the exact numerics of the
+former inline code (the bounds box is literally the same source `fit_point` uses;
+the prior override writes the same array positions; the Poisson LLH is the same
+class/`set_engine` wiring), so the row fit tuple is bit-identical.
 
 Legacy seed knobs (`lump`, `xsec_tight_sigma`, `dirsmear_matrix`) are NOT
 supported: the worker hard-errors if a seed requests them (both unset in the
