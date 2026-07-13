@@ -3,12 +3,12 @@
 
 Mechanical extraction of the structural/numerical kernels out of
 ``sk_binned_engine.py`` — contraction, energy-scale migration, direction
-smearing, per-era theta view, expectation assembly, chi2 kernels, the analytic
-gradient assembly, the flux-gradient fields, the per-point fit protocol, and the
-per-bin diagnostics report. Each function takes the engine instance ``eng`` as
-its first argument (explicit state) and is called by a one-line delegate on
-``SKBinnedEngine``. ZERO numerical change: every guard, ordering, epsilon and
-comment is preserved verbatim from the moved code.
+smearing, per-era theta view, expectation assembly, the analytic gradient
+assembly, the flux-gradient fields, and the per-bin diagnostics report. Each
+function takes the engine instance ``eng`` as its first argument (explicit state)
+and is called by a one-line delegate on ``SKBinnedEngine``. ZERO numerical
+change: every guard, ordering, epsilon and comment is preserved verbatim from the
+moved code.
 
 This module deliberately does NOT own the dial tables, ``resolve_nuisance_spec``,
 ``__init__``, ``cell_weights``, or ``detector_factors`` — those remain on the
@@ -16,12 +16,15 @@ engine (their port is Phase E2–E5). The kernels here reference engine attribut
 (``eng.Rb``, ``eng.few``, ``eng.nuisance_names`` …) and call back into engine
 methods (``eng.cell_weights``, ``eng.detector_factors``, ``eng.expectation`` …)
 exactly as the original in-class code did through ``self``.
-"""
-import glob
-import os
 
+Track S·F / Phase F3: the two stateless χ² kernels (``poisson_chi2``,
+``bb_chi2``) re-homed to ``pynu.fitter.binned_kernels``; the per-point fit
+protocol (``fit_point``) + φ tensor lookup (``TensorStore``) + the loaded-triple
+holder (``BinnedBinding``) re-homed to ``pynu.fitter.minimizer.binned_fit``. All
+five are re-imported here (below) so the engine's delegates and the
+``pynu.binned`` back-compat re-exports keep resolving; ZERO numerical change.
+"""
 import numpy as np
-from scipy.optimize import minimize
 
 # module-level names the moved code references from the engine module's globals.
 from .sk_binned_engine import (
@@ -31,12 +34,6 @@ from .sk_binned_engine import (
     SUBGEV_NUE_NORM,
     MULTIGEV_CCQE_NORM,
     DIR_SMEAR_NAME,
-    FLUX_RATIO_BOX,
-    FLUX_BAND_NAMES,
-    XSEC_EXTRA_BOX,
-    MULTIGEV_CCQE_BOX,
-    NEUTRON_MIG_BOX_PINNED,
-    DIR_SMEAR_BOX,
     SOLAR_AMP,
     SOLAR_SCALE,
 )
@@ -223,33 +220,6 @@ def expectation(eng, phi, theta, return_parts=False):
 def cell_weights_physics_only(eng, phi):
     P = phi[eng.cls_type, eng.cls_flavor]
     return np.where(eng.cls_cc[:, None, None] == 1, P, 1.0)
-
-
-def bb_chi2(obs, n_mod, var):
-    """BarlowBeestonLikelihood.stats_only (BB-lite, no muons)."""
-    tau = np.divide(var, n_mod ** 2, out=np.zeros_like(var), where=n_mod != 0)
-    b = n_mod * tau - 1.0
-    c = -obs * tau
-    beta = 0.5 * (-b + np.sqrt(np.maximum(0, b * b - 4 * c)))
-    beta = np.maximum(beta, 1e-9)
-    beta_E = np.maximum(beta * n_mod, 1e-9)
-    log_term = np.log(np.divide(obs, beta_E, out=np.ones_like(obs),
-                                where=beta_E > 0))
-    log_term[obs == 0] = 0
-    poisson = np.sum(2 * (beta_E - obs + obs * log_term))
-    bb_pen = np.sum(np.divide((beta - 1) ** 2, tau, out=np.zeros_like(tau),
-                              where=tau > 0))
-    return poisson + bb_pen, beta, tau
-
-
-def poisson_chi2(obs, n_mod):
-    """Plain Poisson chi2 (event engine's no-MC-variance fallback form)."""
-    if np.any(n_mod <= 0):
-        return 9e9
-    log_term = np.log(np.divide(obs, n_mod, out=np.ones_like(obs),
-                                where=n_mod > 0))
-    log_term[obs == 0] = 0
-    return float(2 * np.sum(n_mod - obs + obs * log_term))
 
 
 def chi2(eng, phi, theta):
@@ -524,91 +494,6 @@ def flux_dlnw(eng, name, t):
     return None
 
 
-# ---------------- per-point fit (production minimizer protocol) ----------------
-def fit_point(eng, phi_dcp_stack, x0=None, n_dcp=None, free_mask=None,
-              jac=None, dcp_warmchain=True):
-    """dCP-profiled nuisance minimization (production per-point protocol).
-
-    phi_dcp_stack: phi[n_dcp, 2, 3, nE, nZ]. Returns the tuple
-    (chi2, best_dcp_index, nuisance, nit, converged).
-
-    jac: True/None (default) -> analytic gradient (era-aware); False ->
-    L-BFGS-B finite differences (kept as a cross-check path).
-
-    free_mask: optional boolean (41,) — parameters with False are FIXED
-    at nominal via collapsed bounds (ablation-ladder mechanism; penalty
-    contribution at nominal is identically zero, so fixed parameters
-    drop out of the chi2 exactly).
-
-    dcp_warmchain: if True (default), warm-start each dCP node from the best
-    converged solution so far (node 0 from x0). Adjacent dCP nodes share
-    nearly the same likelihood surface, so this reaches the same basin in
-    ~1 cold + (n-1) warm L-BFGS solves instead of n cold solves — the source
-    of the old scans' speed. False recovers the legacy cold-from-x0-per-node
-    path EXACTLY (x_seed never leaves x0); kept as the validation baseline.
-    """
-    nominal = eng.nominal.copy()
-    if x0 is None:
-        x0 = nominal
-    lower = nominal - 10 * eng.sigma
-    upper = nominal + 10 * eng.sigma
-    lower[(nominal > 0) & (lower < 0.01)] = 0.01
-    # box bounds for optional dials (truncation limits): sub-GeV absorbers,
-    # energy-banded flux ratios ([0.3,1.7]), and sub-GeV xsec dials.
-    _box = dict(FLUX_RATIO_BOX)
-    _box.update({n: (0.3, 1.7) for n in FLUX_BAND_NAMES})
-    _box.update(XSEC_EXTRA_BOX)
-    _box.update(MULTIGEV_CCQE_BOX)           # multi-GeV CCQE flavor norms [0,3]
-    _box.update(NEUTRON_MIG_BOX_PINNED)      # H5 pinned: x in [0, 1+1/r] (trial unpinned)
-    _box[DIR_SMEAR_NAME] = DIR_SMEAR_BOX     # one-sided [0,1] (nominal-0 dial)
-    for name, (lo, hi) in _box.items():
-        if name in eng.nuisance_names:
-            k = eng.nuisance_names.index(name)
-            lower[k], upper[k] = lo, hi
-    if free_mask is not None:
-        fixed = ~np.asarray(free_mask, bool)
-        lower[fixed] = nominal[fixed]
-        upper[fixed] = nominal[fixed]
-        x0 = np.where(fixed, nominal, x0)
-    bounds = list(zip(lower, upper))
-
-    use_jac = True if jac is None else jac
-    if eng.solar_mix_f is not None:
-        # solar-mix mode: phi_dcp_stack is the PAIR (stack_solmin, stack_solmax)
-        stack_a, stack_b = phi_dcp_stack
-        n = stack_a.shape[0] if n_dcp is None else n_dcp
-    else:
-        n = phi_dcp_stack.shape[0] if n_dcp is None else n_dcp
-    best = (np.inf, 0, x0, 0, False)
-    x_seed = x0                       # node 0 from x0; warm-chained thereafter
-    for di in range(n):
-        if eng.solar_mix_f is not None:
-            phi = (stack_a[di].astype(float), stack_b[di].astype(float))
-        else:
-            phi = phi_dcp_stack[di].astype(float)
-        # tolerance scaling from stat-only chi2 at the current seed
-        n_nu, var = eng.expectation(phi, x_seed)
-        if eng.likelihood == "poisson":
-            chi2_stat = eng.poisson_chi2(eng.obs_f, n_nu[eng.few])
-        else:
-            chi2_stat, _, _ = eng.bb_chi2(eng.obs_f, n_nu[eng.few],
-                                          var[eng.few])
-        tol = max(1e-5, np.sqrt(max(min(chi2_stat, 1e7), 0)) * 1e-5)
-        if use_jac:
-            res = minimize(lambda th: eng.chi2_and_grad(phi, th), x_seed,
-                           method="L-BFGS-B", jac=True, bounds=bounds,
-                           options={"ftol": tol, "gtol": 1e-5, "maxiter": 200})
-        else:
-            res = minimize(lambda th: eng.chi2(phi, th), x_seed,
-                           method="L-BFGS-B", bounds=bounds,
-                           options={"ftol": tol, "gtol": 1e-5, "maxiter": 200})
-        if res.fun < best[0]:
-            best = (res.fun, di, res.x.copy(), res.nit, res.success)
-        if dcp_warmchain:
-            x_seed = best[2]          # next node warm-starts from the best basin
-    return best
-
-
 # ---------------- per-bin diagnostics (pull extraction) ----------------
 def per_bin_report(eng, phi, theta):
     """Per-bin decomposition of the stat chi2 at (phi, theta), over the
@@ -662,199 +547,21 @@ def per_bin_report(eng, phi, theta):
 
 
 # --------------------------------------------------------------------------- #
-#  TensorStore — oscillation-tensor grid lookup / caching (Track S, Phase E6)
+#  Track S·F / Phase F3 — re-homed objects, re-imported for back-compat.
 # --------------------------------------------------------------------------- #
-# The φ[n_dcp, 2, 3, nE, nZ] oscillation tensors are built per (Δm², s²θ₂₃) grid
-# node (BuildOscTensors) and stored one npz per node. TensorStore reads the grid
-# axes and serves the tensor for a physics point — exact grid-node lookup by
-# default (a 1-slot cache so a per-cell restart-polish loop reads the npz once),
-# cubic interpolation opt-in. This is the φ lookup/caching that used to live in
-# ``adapter.py`` (BinnedEngineAdapter.load / _node_index / phi / n_dcp +
-# osc_averaging validation), moved here verbatim (ZERO behaviour change) so the
-# adapter can be deleted; the PyNuFit modular methods now hold their own staged
-# (phi, theta) state and drive the engine kernels directly.
-class TensorStore:
-    """(Δm², s²θ₂₃) -> φ tensor, from a directory of per-node osc_tensor npz files.
-
-    ``interp='nodes'`` (default): exact grid-node lookup (rtol 1e-9), 1-slot
-    cache. ``interp='cubic'``: PhiInterpolator over the node grid.
-    """
-
-    def __init__(self, tensors_dir, interp="nodes", osc_averaging="off"):
-        from .interp_engine import PhiInterpolator, detect_grid
-        self.tensors_dir = tensors_dir
-        self.interp = interp
-        self.osc_averaging = osc_averaging
-        self.DM, self.S23 = detect_grid(tensors_dir)
-        self._interp = None
-        self._phi_cache = None       # 1-slot ((i, j) -> phi) node cache
-        if interp == "cubic":
-            self._interp = PhiInterpolator(tensors_dir, cache_raw=False)
-        elif interp != "nodes":
-            raise ValueError(
-                f"unknown interp {interp!r} (expected 'nodes' or 'cubic')")
-        for w in self._validate_osc_averaging():
-            print(f"WARNING [binned osc_averaging]: {w}")
-
-    def _validate_osc_averaging(self):
-        """Warn-only cross-check of the ``osc_averaging`` declaration against
-        tensor-set metadata. Current builds embed no averaging key, so this only
-        records provenance; once a build embeds one (e.g. an 'osc_averaging'
-        array in the npz), a mismatch warns. Peeks at a single tensor."""
-        warns = []
-        decl = str(self.osc_averaging).strip().lower()
-        files = sorted(glob.glob(os.path.join(self.tensors_dir,
-                                              "osc_tensor_*_*.npz")))
-        meta = None
-        if files:
-            with np.load(files[0], allow_pickle=False) as z:
-                for key in ("osc_averaging", "avg_scale", "averaging"):
-                    if key in z.files:
-                        meta = str(z[key])
-                        break
-        if meta is None:
-            if decl not in ("off", "", "none"):
-                warns.append(
-                    f"declared '{decl}' but the tensor set carries no averaging "
-                    "metadata -> recorded as provenance only, unverified")
-        elif meta.strip().lower() != decl:
-            warns.append(f"declaration '{decl}' != tensor metadata '{meta}'")
-        return warns
-
-    def _node_index(self, axis, value, label):
-        """Exact grid-node index for ``value`` on ``axis`` (rtol 1e-9). Errors
-        with the nearest node + neighbours when the request is off-grid."""
-        axis = np.asarray(axis)
-        idx = int(np.argmin(np.abs(axis - value)))
-        if not np.isclose(axis[idx], value, rtol=1e-9, atol=0.0):
-            lo = max(0, idx - 1)
-            near = ", ".join(f"{a:.6g}" for a in axis[lo:idx + 2])
-            raise ValueError(
-                f"binned engine interp='nodes': {label}={value:.6g} is not a "
-                f"grid node (nearest {axis[idx]:.6g}; neighbours [{near}]). "
-                "Use physics-grid edges that match the tensor build, or set "
-                "interp='cubic'.")
-        return idx
-
-    def phi(self, dm231, s23):
-        """Oscillation tensor ``phi[n_dcp, 2, 3, nE, nZ]`` at (dm231, s23).
-
-        The node path caches the last-loaded (i, j) so a per-cell restart-polish
-        loop (repeated fits at the same node) reads the npz once, not once per
-        call. The cached array is returned as-is; callers copy per dCP slice
-        (``phi[di].astype(float)``) and never mutate it."""
-        if self.interp == "cubic":
-            return self._interp(dm231, s23)
-        i = self._node_index(self.DM, dm231, "Dm231")
-        j = self._node_index(self.S23, s23, "Sin2Theta23")
-        if self._phi_cache is not None and self._phi_cache[0] == (i, j):
-            return self._phi_cache[1]
-        p = os.path.join(self.tensors_dir, f"osc_tensor_{i:03d}_{j:03d}.npz")
-        arr = np.load(p)["phi"]
-        self._phi_cache = ((i, j), arr)
-        return arr
-
-    @property
-    def n_dcp(self):
-        """Number of dCP nodes in the tensor grid (for the worker loop)."""
-        return int(self.phi(self.DM[0], self.S23[0]).shape[0])
-
-
-# --------------------------------------------------------------------------- #
-#  BinnedBinding — engine + tensor store + config holder (Track S, Phase E6)
-# --------------------------------------------------------------------------- #
-# Replaces ``adapter.py``'s construction/holding role WITHOUT the staged-state
-# and φ-lookup logic (staged (phi, theta) now lives on PyNuFit's modular methods;
-# φ lookup is TensorStore above). A binding is the loaded (engine, store, config)
-# triple for ONE binned experiment; PyNuFit keeps ``{exp_name: BinnedBinding}``
-# in ``self.BinnedEngines`` and drives ``binding.engine`` / ``binding.store``
-# directly. The read-only accessors (nominal/sigma/nuisance_names/n_dcp/DM/S23/
-# observed/phi/chi2) preserve the exact surface the packaged fit path + the
-# scan worker used on the former adapter (ZERO numerical change).
-class BinnedBinding:
-    def __init__(self, engine, store, config):
-        self.engine = engine
-        self.store = store
-        self.config = config
-
-    @classmethod
-    def load(cls, config, analysis_xml=None):
-        """Build the engine (validates the nuisance spec against the response
-        build) + the TensorStore for a BinnedConfig. ``nuisance_spec='self'``
-        resolves to the analysis XML path."""
-        from .sk_binned_engine import SKBinnedEngine
-        spec = cls._resolve_spec(config, analysis_xml)
-        engine = SKBinnedEngine(
-            config.response,
-            migration_mode=config.migration,
-            likelihood=config.likelihood,
-            nuisance_spec=spec,
-        )
-        store = TensorStore(config.tensors, interp=config.interp,
-                            osc_averaging=config.osc_averaging)
-        return cls(engine, store, config)
-
-    @staticmethod
-    def _resolve_spec(config, analysis_xml):
-        """Map the config selector to what ``resolve_nuisance_spec`` accepts.
-
-        'self' -> the analysis XML path; any other string ('barr'/'R2'/... or an
-        explicit .xml path) or a list passes through; None/''/'barr' -> engine
-        default 41-vector (None)."""
-        spec = config.nuisance_spec
-        if spec == "self":
-            if not analysis_xml:
-                raise ValueError(
-                    "binned engine nuisance_spec='self' requires the analysis "
-                    "XML path (pass analysis_xml=...)")
-            return analysis_xml
-        if spec in ("", "barr", None):
-            return None
-        return spec
-
-    # ---- read-only passthroughs (former adapter surface) ----
-    @property
-    def DM(self):
-        return self.store.DM
-
-    @property
-    def S23(self):
-        return self.store.S23
-
-    @property
-    def n_dcp(self):
-        return self.store.n_dcp
-
-    @property
-    def nuisance_names(self):
-        return self.engine.nuisance_names
-
-    @property
-    def nominal(self):
-        return self.engine.nominal
-
-    @property
-    def sigma(self):
-        return self.engine.sigma
-
-    def phi(self, dm231, s23):
-        return self.store.phi(dm231, s23)
-
-    def observed_binned(self):
-        """The engine's FewEntries-filtered observation vector ``obs_f``."""
-        return self.engine.obs_f
-
-    def chi2(self, dm231, s23, theta, dcp_index=None):
-        """Binned chi2 at fixed nuisance vector ``theta``. ``dcp_index`` selects
-        a single dCP slice; None profiles (min) over all dCP nodes."""
-        phi = self.store.phi(dm231, s23)
-        if dcp_index is not None:
-            return float(self.engine.chi2(phi[dcp_index].astype(float), theta))
-        return float(min(self.engine.chi2(phi[d].astype(float), theta)
-                         for d in range(phi.shape[0])))
-
-    def fit_point(self, dm231, s23, x0=None, free_mask=None):
-        """dCP-profiled nuisance fit. Returns the engine tuple
-        ``(chi2, best_dcp_index, theta, nit, converged)``."""
-        phi = self.store.phi(dm231, s23)
-        return self.engine.fit_point(phi, x0=x0, free_mask=free_mask)
+# The χ² kernels moved to ``pynu.fitter.binned_kernels`` and the per-point fit
+# protocol + φ tensor store + loaded-triple holder moved to
+# ``pynu.fitter.minimizer.binned_fit`` (their functional homes). They are
+# re-imported here so ``SKBinnedEngine``'s delegates (``poisson_chi2``,
+# ``bb_chi2``, ``fit_point``) and the ``pynu.binned`` PEP 562 re-exports
+# (``TensorStore``, ``BinnedBinding``) keep resolving off ``engine_core``
+# unchanged. Bottom-of-module import: ``binned_fit`` imports the fit-time box
+# dicts from ``sk_binned_engine`` (defined above), so importing it here (after
+# this module is itself imported at the bottom of ``sk_binned_engine``) resolves
+# without a circular import. ZERO numerical change.
+from ..fitter.binned_kernels import bb_chi2, poisson_chi2   # noqa: E402,F401
+from ..fitter.minimizer.binned_fit import (                 # noqa: E402,F401
+    fit_point,
+    TensorStore,
+    BinnedBinding,
+)

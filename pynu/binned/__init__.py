@@ -30,16 +30,19 @@ __all__ = [
 # name -> defining submodule; imported on first attribute access only.
 # (S.F1) BinnedConfig / parse_binned_config moved to
 # ``pynu.analysis_reader.binned_config`` (their functional home) and are
-# re-exported here for back-compat via the same PEP 562 lazy map. Absolute
-# module paths ('pynu...') are used for symbols that live outside this package;
-# relative paths ('.mod') for in-package submodules.
+# re-exported here for back-compat via the same PEP 562 lazy map. (S.F3) the
+# φ interpolator moved to ``pynu.fitter.inference.interp_engine`` and the φ
+# tensor store + loaded-triple holder moved to
+# ``pynu.fitter.minimizer.binned_fit`` — all re-exported here for back-compat.
+# Absolute module paths ('pynu...') are used for symbols that live outside this
+# package; relative paths ('.mod') for in-package submodules.
 _LAZY = {
     "SKBinnedEngine": ".sk_binned_engine",
     "resolve_nuisance_spec": ".sk_binned_engine",
-    "PhiInterpolator": ".interp_engine",
-    "detect_grid": ".interp_engine",
-    "BinnedBinding": ".engine_core",
-    "TensorStore": ".engine_core",
+    "PhiInterpolator": "pynu.fitter.inference.interp_engine",
+    "detect_grid": "pynu.fitter.inference.interp_engine",
+    "BinnedBinding": "pynu.fitter.minimizer.binned_fit",
+    "TensorStore": "pynu.fitter.minimizer.binned_fit",
     "BinnedConfig": "pynu.analysis_reader.binned_config",
     "parse_binned_config": "pynu.analysis_reader.binned_config",
 }

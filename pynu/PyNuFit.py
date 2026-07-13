@@ -1355,7 +1355,7 @@ class PyNuFit:
         configs = parse_binned_config(analysis_file)
         if not configs:
             return {}
-        from .binned.engine_core import BinnedBinding
+        from .fitter.minimizer.binned_fit import BinnedBinding
         from .Experiments.BinnedExperiment import BinnedExperiment
         return {
             name: BinnedExperiment(
@@ -1371,7 +1371,7 @@ class PyNuFit:
         Returns the BinnedExperiment (its read-only surface — nominal / sigma /
         nuisance_names / n_dcp / DM / S23 / observed_binned / phi / chi2 /
         fit_point — matches the former BinnedBinding return exactly)."""
-        from .binned.engine_core import BinnedBinding
+        from .fitter.minimizer.binned_fit import BinnedBinding
         from .Experiments.BinnedExperiment import BinnedExperiment
         if getattr(self, "BinnedEngines", None) is None:
             self.BinnedEngines = {}
