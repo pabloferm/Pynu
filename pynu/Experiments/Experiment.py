@@ -2,8 +2,13 @@
 
 from .MCReader import reader
 import numpy as np
-import boost_histogram as bh
-from KDEpy import FFTKDE
+
+# boost_histogram / KDEpy are EVENT-mode binning deps, imported lazily inside the
+# methods that use them (SetBinner_1D/2D, set_KDE_1D) so a subclass that reuses
+# the base vocabulary WITHOUT event binning (e.g. Experiments.BinnedExperiment,
+# Track S·F) can import Experiment on a light env. Event-mode behaviour is
+# byte-identical: these are the same modules, bound at first-binning-call instead
+# of module import (F-C2 import isolation).
 
 
 class Experiment:
@@ -82,6 +87,7 @@ class Experiment:
                             )
 
     def set_KDE_1D(self):
+        from KDEpy import FFTKDE
         self.KDEer = []
         kde = FFTKDE(bw="silverman", kernel="gaussian")
         data = self.EReco[self.Sample == 0]
@@ -95,6 +101,7 @@ class Experiment:
         plt.show()
 
     def SetBinner_1D(self):  # 1D energy binning
+        import boost_histogram as bh
         self.Binner = [
             bh.Histogram(bh.axis.Variable(self.EnergyBins[s]))
             for s in range(self.NumberOfSamples)
@@ -102,6 +109,7 @@ class Experiment:
 
     """ Weird behaviour for un bin in one of the variables. Implement fall-back. Dictionary? """
     def SetBinner_2D(self):  # 2D energy binning
+        import boost_histogram as bh
         self.Binner = [
             bh.Histogram(
                 bh.axis.Variable(self.EnergyBins[s]), bh.axis.Variable(self.CTBins[s])

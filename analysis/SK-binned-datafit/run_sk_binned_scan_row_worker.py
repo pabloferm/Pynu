@@ -332,6 +332,12 @@ def main():
     ensure_artifacts(pf, exp_name, a, dm, row, s23_fine)
 
     # ---- programmatic <BinnedEngine> opt-in (PyNuFit.set_binned_engine) ----
+    # Track S·F / F2: set_binned_engine now returns a BinnedExperiment (an
+    # Experiment subclass wrapping the loaded binding). Its read-only surface
+    # (nuisance_names / DM / S23 / nominal / sigma / observed_binned / engine /
+    # n_dcp) is byte-identical to the former BinnedBinding — including the
+    # in-place binding.sigma prior override below (D1), since .sigma is the same
+    # engine.sigma array — so no call site changed.
     cfg = BinnedConfig(response=a.response, tensors=a.tensors,
                        likelihood="poisson", migration="weighted",
                        nuisance_spec=nuis_spec, interp="nodes",
