@@ -28,6 +28,15 @@ setup(
     ],
     packages=find_packages(exclude=("tests", "docs")),  # Packages to include
     include_package_data=True,  # Include data files as specified in MANIFEST.in
+    package_data={
+        # SK binned engine ships its dial-value XMLs as package data so a
+        # non-editable wheel carries the dial values (Track S / review N-2:
+        # CANONICAL_DIALS was removed at E6, so the XMLs are the sole authority).
+        "pynu.binned": [
+            "SK2023_Atm_datafit_r2_fude_ccqe_full.xml",
+            "SK2023_Atm_datafit_binned_extra_dials.xml",
+        ],
+    },
     install_requires=[
         # List of dependencies
         "boost_histogram>=1.4.0",

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SK2023_Atm_datafit_binned_extra_dials.xml
+
+  SUPPLEMENTARY dial-value source (Track S / Phase E2) for the binned-engine
+  dials NOT in the production 131-dial value XML
+  (SK2023_Atm_datafit_r2_fude_ccqe_full.xml) but resolved by some named spec.
+  Two families:
+    (a) base-name detector/flux stems (fcpc_separation, pc_reduction, etc.):
+        the production XML carries only their ERA-SPLIT copies
+        (stem_sk1 .. stem_sk45); the base-name form is used by the non-era
+        specs (barr / updown / both / octsyst_*). nominal 1.0, sigma from the
+        engine base SIGMA / DET_ERA value.
+    (b) optional / diagnostic dials outside the production set (barr_zenith,
+        decay_e_tagging, dir_smear, nmig_*, ntag_subgev_lowp / _highp,
+        xsec_1p1h/2p2h/ccqe_subgev_nue): variant-spec dials.
+
+  VALUES are transcribed verbatim from the engine dial tables (CANONICAL_DIALS),
+  i.e. the E2 authority handoff, not invented. The engine loads this file
+  ALONGSIDE the full-131 XML; together they cover every dial across all 26 named
+  specs, so CANONICAL_DIALS is a pure hard-fail shadow. box children record the
+  fit-time truncation limits (documentation; box authority stays in the
+  fit_point dicts until a later phase). This file NEVER redeclares a
+  production-131 dial (asserted at load: zero name overlap with the full XML).
+-->
+<data>
+<nuisance name='barr_zenith'>
+<status> 1 </status>
+<sigma> 1.0 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='decay_e_tagging'>
+<status> 1 </status>
+<sigma> 0.015 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='dir_smear'>
+<status> 1 </status>
+<sigma> 10.0 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.0 1.0 </box>
+</nuisance>
+<nuisance name='e_ring_separation'>
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='fc_reduction'>
+<status> 1 </status>
+<sigma> 0.003 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='fcpc_separation'>
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='mge_nonubkg'>
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='mu_ring_separation'>
+<status> 1 </status>
+<sigma> 0.03 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='multiring_emu_separation'>
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='multiring_eother_separation'>
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='multiring_nunubar_separation'>
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='multiring_pid'>
+<status> 1 </status>
+<sigma> 0.04 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='nmig_multigev_nuebar'>
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='nmig_multigev_nuebar_pinned'>
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.0 1.8748460942131424 </box>
+</nuisance>
+<nuisance name='nmig_subgev_nuebar'>
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='nmig_subgev_nuebar_pinned'>
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.0 1.3834044950684579 </box>
+</nuisance>
+<nuisance name='ntag_subgev_highp'>
+<status> 1 </status>
+<sigma> 0.12 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='ntag_subgev_lowp'>
+<status> 1 </status>
+<sigma> 0.12 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='pc_reduction'>
+<status> 1 </status>
+<sigma> 0.01 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='pc_stopthru_separation'>
+<status> 1 </status>
+<sigma> 0.25 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='pi0_ring_separation'>
+<status> 1 </status>
+<sigma> 0.02 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='singlering_pid'>
+<status> 1 </status>
+<sigma> 0.0035 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='subgev_1ring_pi0'>
+<status> 1 </status>
+<sigma> 0.25 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='subgev_2ring_pi0'>
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='upmu_nonshowering_bkg'>
+<status> 1 </status>
+<sigma> 0.24 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='upmu_shower_separation'>
+<status> 1 </status>
+<sigma> 0.04 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='upmu_showering_bkg'>
+<status> 1 </status>
+<sigma> 0.17 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='upmu_stop_bkg'>
+<status> 1 </status>
+<sigma> 0.17 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name='xsec_2p2h_subgev_nue'>
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.0 3.0 </box>
+</nuisance>
+<nuisance name='xsec_ccqe_subgev_nue'>
+<status> 1 </status>
+<sigma> 0.05 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+<box> 0.5 1.5 </box>
+</nuisance>
+</data>
