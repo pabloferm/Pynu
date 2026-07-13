@@ -18,12 +18,12 @@ the modular method vocabulary:
   pf.ApplyNuisanceWeights / pf.SetExpectedWeights / pf.SetBinnedExpectedEvents
   ft.PoissonLikelihood.stats_and_systematics     # objective certification per cell
 
-The per-evaluation (f, g) inside L-BFGS-B is `adapter.chi2_and_grad_binned()` —
+The per-evaluation (f, g) inside L-BFGS-B is `pf._binned_chi2_and_grad()` —
 the engine's own analytic kernel (bit-identical to a direct
-`engine.chi2_and_grad` call; see `pynu/binned/adapter.py`). Every converged cell
-is additionally re-evaluated through the full method vocabulary +
-PoissonLikelihood and must agree EXACTLY (diff == 0.0) or the task aborts — each
-row json is therefore self-certifying.
+`engine.chi2_and_grad` call; the staged (phi, theta) live on the PyNuFit object,
+Track S / E6). Every converged cell is additionally re-evaluated through the full
+method vocabulary + PoissonLikelihood and must agree EXACTLY (diff == 0.0) or the
+task aborts — each row json is therefore self-certifying.
 
 Bit-parity contract vs a standalone engine scan: identical seed (--gbest-list),
 identical bounds (transcribed from sk_binned_engine.fit_point:1828-1850),
@@ -38,18 +38,19 @@ PATHS. Mutually exclusive; a named spec that looks like a path (contains '/' or
 ends '.xml') is rejected.
 
 Deviations from pure-PyNuFit method calls (each listed in PIPELINE_README.md):
-  D1  seed flux_ratio_sigma prior override writes adapter.sigma in place
-      (no PyNuFit prior-override method exists).
+  D1  seed flux_ratio_sigma prior override writes binding.sigma in place
+      (== engine.sigma; no PyNuFit prior-override method exists).
   D2  L-BFGS-B bounds are transcribed from engine fit_point (module constants
       imported from pynu.binned.sk_binned_engine; no method returns them).
-  D3  ft.PoissonLikelihood is constructed directly from the adapter's
+  D3  ft.PoissonLikelihood is constructed directly from the binding's
       (post-override) nominal/sigma instead of pf.set_likelihood(), because
       set_likelihood reads the XML priors, which do not carry the seed's
       flux-ratio sigma override (same class, same set_engine wiring).
   D4  When the analysis XML does not declare the scan grid, physics staging
       falls back from pf.ApplyPhysicsWeights(point) to
-      adapter.apply_physics(dm, s23, dcp) — a verbatim delegation target
-      (PyNuFit.py:493-504), numerically identical.
+      pf.StageBinnedPhysics(dm, s23, dcp) — the explicit-(dm,s23) accessor that
+      does the exact staging ApplyPhysicsWeights does (PyNuFit.py), numerically
+      identical (Track S / E6 replaces the former adapter.apply_physics target).
 """
 import argparse
 import json
@@ -131,27 +132,27 @@ def resolve_row_point_indices(pf, dm, s23_grid):
         return None
 
 
-def stage_physics(pf, adapter, dm, s23, dcp_index, point_idx):
-    """Stage phi[dcp_index] at (dm, s23) — through PyNuFit when the XML grid
-    resolves the cell, else through the adapter (the exact delegation target of
-    ApplyPhysicsWeights; numerically identical)."""
-    pf.SetBinnedDcpNode(dcp_index)
+def stage_physics(pf, dm, s23, dcp_index, point_idx):
+    """Stage phi[dcp_index] at (dm, s23) — through PyNuFit's ApplyPhysicsWeights
+    when the XML grid resolves the cell, else through StageBinnedPhysics (the
+    explicit-(dm,s23) staging accessor; numerically identical)."""
     if point_idx is not None:
+        pf.SetBinnedDcpNode(dcp_index)
         pf.ApplyPhysicsWeights(point_idx)
     else:
-        adapter.apply_physics(dm, s23, dcp_index)
+        pf.StageBinnedPhysics(dm, s23, dcp_index)
 
 
 # --------------------------------------------------------------------------
 # the modular fit — SKBinnedEngine.fit_point protocol (:1806-1886, dcp_warmchain
 # default) driven through the method vocabulary. (f, g) per evaluation =
-# adapter.chi2_and_grad_binned() (the engine's analytic kernel).
+# pf._binned_chi2_and_grad() (the engine's analytic kernel).
 # --------------------------------------------------------------------------
-def modular_fit_point(pf, adapter, llh, dm, s23, x0, bounds, n_dcp, point_idx):
+def modular_fit_point(pf, llh, dm, s23, x0, bounds, n_dcp, point_idx):
     best = (np.inf, 0, np.asarray(x0, float), 0, False)
     x_seed = np.asarray(x0, float)
     for di in range(n_dcp):
-        stage_physics(pf, adapter, dm, s23, di, point_idx)
+        stage_physics(pf, dm, s23, di, point_idx)
         # ftol scaling from the stats-only chi2 at the current seed — through the
         # full vocabulary + PoissonLikelihood (engine fit_point:1866-1873 parity;
         # llh.stats_only delegates to the same engine poisson_chi2 kernel).
@@ -164,8 +165,8 @@ def modular_fit_point(pf, adapter, llh, dm, s23, x0, bounds, n_dcp, point_idx):
 
         def fg(theta):
             pf.StartNuisance()                     # per-evaluation reset
-            pf.ApplyNuisanceWeights(theta)         # stage theta on the adapter
-            return adapter.chi2_and_grad_binned()  # (f, g), engine analytic kernel
+            pf.ApplyNuisanceWeights(theta)         # stage theta on the engine
+            return pf._binned_chi2_and_grad()      # (f, g), engine analytic kernel
 
         res = minimize(fg, x_seed, method="L-BFGS-B", jac=True, bounds=bounds,
                        options={"ftol": tol, "gtol": 1e-5, "maxiter": 200})
@@ -175,10 +176,10 @@ def modular_fit_point(pf, adapter, llh, dm, s23, x0, bounds, n_dcp, point_idx):
     return best
 
 
-def modular_objective(pf, adapter, llh, dm, s23, dcp_index, theta, point_idx):
+def modular_objective(pf, llh, dm, s23, dcp_index, theta, point_idx):
     """The full modular objective (complete method-vocabulary sequence) — used
     to certify every converged cell."""
-    stage_physics(pf, adapter, dm, s23, dcp_index, point_idx)
+    stage_physics(pf, dm, s23, dcp_index, point_idx)
     pf.StartNuisance()
     pf.ApplyNuisanceWeights(theta)
     pf.SetExpectedWeights()
@@ -317,7 +318,7 @@ def main():
         sys.exit("seed requests xsec_tight_sigma — unsupported by the modular "
                  "worker (legacy knob of the standalone engine path)")
     if gb.get("dirsmear_matrix"):
-        sys.exit("seed requests dirsmear_matrix — the BinnedConfig adapter route "
+        sys.exit("seed requests dirsmear_matrix — the BinnedConfig binding route "
                  "has no dir-smear passthrough. Production r2_fude_ccqe* seeds "
                  "carry no such key.")
 
@@ -335,44 +336,44 @@ def main():
                        likelihood="poisson", migration="weighted",
                        nuisance_spec=nuis_spec, interp="nodes",
                        osc_averaging=a.osc_averaging)
-    adapter = pf.set_binned_engine(exp_name, cfg, analysis_xml=a.analysis_xml)
+    binding = pf.set_binned_engine(exp_name, cfg, analysis_xml=a.analysis_xml)
 
     # ---- validations (sanity floor) ----
-    if list(adapter.nuisance_names) != spec_names:
-        sys.exit(f"arm spec {nuis_spec!r} resolves to {len(adapter.nuisance_names)} "
+    if list(binding.nuisance_names) != spec_names:
+        sys.exit(f"arm spec {nuis_spec!r} resolves to {len(binding.nuisance_names)} "
                  f"dials != seed {gbpath} ({len(spec_names)}) or order differs — "
                  "seed and spec must be the SAME production arm")
-    if not (np.allclose(adapter.DM, dm_fine, rtol=1e-12, atol=0.0)
-            and np.allclose(adapter.S23, s23_fine, rtol=1e-12, atol=0.0)):
+    if not (np.allclose(binding.DM, dm_fine, rtol=1e-12, atol=0.0)
+            and np.allclose(binding.S23, s23_fine, rtol=1e-12, atol=0.0)):
         sys.exit("tensor grid axes != requested scan grid: the modular scan is "
                  "raw-nodes (interp='nodes'); build/point the tensors at the "
                  "exact production axes (dm 2.0e-3..3.2e-3 x20, s23 0.30..0.70 x20)")
 
     # ---- seed flux-ratio prior override (deviation D1) — before bounds/LLH.
     # The seed's flux_ratio_sigma (0.03 in the production seeds) replaces the
-    # engine sigma on all 9 flux-ratio dials.
+    # engine sigma on all 9 flux-ratio dials (binding.sigma IS engine.sigma).
     if gb.get("flux_ratio_sigma") is not None:
         for n in ALL_FLUX_RATIO_NAMES:
             if n in spec_names:
-                adapter.sigma[spec_names.index(n)] = gb["flux_ratio_sigma"]
+                binding.sigma[spec_names.index(n)] = gb["flux_ratio_sigma"]
         print(f"[task {a.task}] flux_ratio_sigma := {gb['flux_ratio_sigma']}")
 
-    # ---- PoissonLikelihood from the adapter's post-override vectors
+    # ---- PoissonLikelihood from the binding's post-override vectors
     # (deviation D3; same class + set_engine wiring as pf.set_likelihood) ----
     n_dials = len(spec_names)
-    llh = ft.PoissonLikelihood({exp_name: adapter.observed_binned()},
-                               list(adapter.nominal), list(adapter.sigma),
+    llh = ft.PoissonLikelihood({exp_name: binding.observed_binned()},
+                               list(binding.nominal), list(binding.sigma),
                                ["normal"] * n_dials)
-    llh.set_engine(adapter.engine)
+    llh.set_engine(binding.engine)
     pf.LLH = llh
 
-    bounds = build_bounds(spec_names, adapter.nominal, adapter.sigma)
-    n_dcp = int(adapter.n_dcp)
+    bounds = build_bounds(spec_names, binding.nominal, binding.sigma)
+    n_dcp = int(binding.n_dcp)
     point_idx_row = resolve_row_point_indices(pf, dm, s23_fine)
     print(f"[task {a.task}] n_dials={n_dials} n_dcp={n_dcp} physics staging: "
           + ("PyNuFit.ApplyPhysicsWeights (XML grid)" if point_idx_row
-             else "adapter.apply_physics (XML grid does not cover the scan; "
-                  "verbatim delegation target — deviation D4)"))
+             else "pf.StageBinnedPhysics (XML grid does not cover the scan; "
+                  "explicit-(dm,s23) staging accessor — deviation D4)"))
 
     # ---- row scan: fit_point protocol per cell, modular drive ----
     seed = theta0.copy()
@@ -380,10 +381,10 @@ def main():
     for j, s23 in enumerate(s23_fine):
         pidx = point_idx_row[j] if point_idx_row else None
         c, dcp, nu, _, _ = modular_fit_point(
-            pf, adapter, llh, dm, s23, seed, bounds, n_dcp, pidx)
+            pf, llh, dm, s23, seed, bounds, n_dcp, pidx)
         for _ in range(a.npolish):            # restart-polish resets the Hessian
             pc, pd, pn, _, _ = modular_fit_point(
-                pf, adapter, llh, dm, s23, nu, bounds, n_dcp, pidx)
+                pf, llh, dm, s23, nu, bounds, n_dcp, pidx)
             if pc < c - 1e-3:
                 c, dcp, nu = pc, pd, pn
             else:
@@ -391,7 +392,7 @@ def main():
         seed = nu                             # warm-chain along s23
         # per-cell certification: full vocabulary + PoissonLikelihood must equal
         # the kernel objective EXACTLY (self-certifying row).
-        f_mod = modular_objective(pf, adapter, llh, dm, s23, int(dcp), nu, pidx)
+        f_mod = modular_objective(pf, llh, dm, s23, int(dcp), nu, pidx)
         if abs(float(f_mod) - float(c)) != 0.0:
             raise RuntimeError(
                 f"modular-vocabulary certification FAILED at (row={row}, j={j}): "

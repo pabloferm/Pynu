@@ -7,12 +7,14 @@ the rest of pynu, so importing it cannot pull in the heavy event pipeline
 forward model when an analysis XML actually declares a ``<BinnedEngine>`` block.
 
 To keep "toggle-OFF = zero code executed" literally true, only the lightweight,
-stdlib-only config symbols load eagerly; the engine / interpolator / adapter load
+stdlib-only config symbols load eagerly; the engine / interpolator / binding load
 lazily (PEP 562) on first access. So a PyNuFit construction that merely checks a
 toggle-free XML (``parse_binned_config`` -> ``{}``) runs no forward-model code.
 
-``sk_binned_engine`` / ``interp_engine`` are verbatim vendored snapshots — see
-``PROVENANCE.md`` for source commits, sha256, and the resync protocol.
+The package is native (Track S de-vendoring complete at E6): the engine +
+kernels + descriptor modules are owned code, and the SK dial values ship as
+package-data value XMLs. ``PROVENANCE.md`` is the historical record of the former
+vendoring era.
 """
 from .config import BinnedConfig, parse_binned_config
 
@@ -23,7 +25,8 @@ __all__ = [
     "detect_grid",
     "BinnedConfig",
     "parse_binned_config",
-    "BinnedEngineAdapter",
+    "BinnedBinding",
+    "TensorStore",
 ]
 
 # name -> defining submodule; imported on first attribute access only.
@@ -32,7 +35,8 @@ _LAZY = {
     "resolve_nuisance_spec": ".sk_binned_engine",
     "PhiInterpolator": ".interp_engine",
     "detect_grid": ".interp_engine",
-    "BinnedEngineAdapter": ".adapter",
+    "BinnedBinding": ".engine_core",
+    "TensorStore": ".engine_core",
 }
 
 

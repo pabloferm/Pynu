@@ -10,7 +10,7 @@ The standalone scripts stay byte-untouched (cluster SLURM submissions call them
 unchanged); this is a purely additive second entry point. The two public
 functions take a constructed ``PyNuFit`` and an experiment name and return the
 artifacts in memory (optionally writing an npz byte-compatible with the schema
-the existing ``SKBinnedEngine`` / adapter already load):
+the existing ``SKBinnedEngine`` / TensorStore already load):
 
   * ``build_response(pynufit, exp_name, ...)`` — one MC pass through the live
     ``SuperK_2023`` experiment class, so every convention (NC w_no fix, NORM,
@@ -34,7 +34,7 @@ Three upgrades over the standalone scripts:
      explicit per-sample event-index map are baked into the npz as keys the
      current engine ignores (schema stays loadable).
   3. ``schema_version`` + dial-manifest hash — additive npz keys, checked at
-     engine load ONLY when present (the adapter already peeks for an
+     engine load ONLY when present (TensorStore already peeks for an
      ``osc_averaging`` key the same way).
 
 ★ STATE-RESTORE (the one architectural trap): ``build_tensors`` mutates the

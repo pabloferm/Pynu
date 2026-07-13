@@ -77,8 +77,12 @@ class PyNuFit:
         self.ComputeBinnedObservation()
 
         """ Optional native binned-tensor engine (default OFF: {} unless the XML
-        declares a <BinnedEngine> block; then one adapter per opted-in experiment) """
-        self.BinnedAdapters = self._setup_binned_engines(analysis_file)
+        declares a <BinnedEngine> block; then one BinnedBinding per opted-in
+        experiment). Staged (phi, theta) for the modular path live on self below. """
+        self.BinnedEngines = self._setup_binned_engines(analysis_file)
+        # modular-path staged state (Track S / E6: was the adapter's; now here).
+        self._binned_staged_phi = None      # dCP slice selected by ApplyPhysicsWeights
+        self._binned_staged_theta = None    # nuisance vector staged by ApplyNuisanceWeights
 
     def _parse_marginalization_config(self, analysis_file):
         """Parse marginalization parameters from XML config for profile scans."""
@@ -233,19 +237,29 @@ class PyNuFit:
 
     def _binned_active(self):
         """True when a <BinnedEngine> block is active (mirrors FitModel:395)."""
-        return bool(getattr(self, "BinnedAdapters", None))
+        return bool(getattr(self, "BinnedEngines", None))
 
-    def _the_binned_adapter(self):
-        """The single active binned adapter (phase-1: exactly one binned
+    def _the_binned_engine(self):
+        """The single active binned binding (phase-1: exactly one binned
         experiment). Also returns its experiment name so the modular methods
         key ``self.Expectation``/``self.MCVariance``/``self.Observation`` under
         the same name the event path uses."""
-        if len(self.BinnedAdapters) != 1:
+        if len(self.BinnedEngines) != 1:
             raise NotImplementedError(
                 "binned engine modular path supports exactly one binned "
-                f"experiment (got {len(self.BinnedAdapters)})")
-        name, adapter = next(iter(self.BinnedAdapters.items()))
-        return name, adapter
+                f"experiment (got {len(self.BinnedEngines)})")
+        name, binding = next(iter(self.BinnedEngines.items()))
+        return name, binding
+
+    def _require_binned_staged(self):
+        """Guard: ApplyPhysicsWeights + ApplyNuisanceWeights must have run before
+        the expectation is contracted (mirrors the former adapter guard)."""
+        if self._binned_staged_phi is None:
+            raise RuntimeError("binned modular path: ApplyPhysicsWeights() must "
+                               "run before the expectation is contracted")
+        if self._binned_staged_theta is None:
+            raise RuntimeError("binned modular path: ApplyNuisanceWeights() must "
+                               "run before the expectation is contracted")
 
     # dCP node the modular ApplyPhysicsWeights/contraction currently targets;
     # the worker profiles dCP by setting this before each objective (default 0).
@@ -256,15 +270,27 @@ class PyNuFit:
         dCP profile scan, same structure as the event engine's node loop)."""
         self._binned_dcp_node = int(dcp_index)
 
+    def StageBinnedPhysics(self, dm231, s23, dcp_index):
+        """Stage phi[dcp_index] at (dm231, s23) directly, bypassing the analysis
+        physics grid. The exact numerical work ApplyPhysicsWeights does on the
+        binned path, but keyed on explicit (dm231, s23) — used by a scan worker
+        whose grid the analysis XML does not declare (former adapter.apply_physics
+        delegation target; Track S / E6)."""
+        _, binding = self._the_binned_engine()
+        self._binned_dcp_node = int(dcp_index)
+        phi = binding.store.phi(dm231, s23)
+        self._binned_staged_phi = phi[int(dcp_index)].astype(float)
+        return self._binned_staged_phi
+
     def StartPhysics(self):
         for exp in self.Experiments.values():
             exp.StartPhysicsWeights()
 
     def StartNuisance(self):
-        # Binned modular path: reset the adapter's staged nuisance vector.
+        # Binned modular path: reset the staged nuisance vector (cheap; mirrors
+        # the event engine's per-event weight-array reset).
         if self._binned_active():
-            _, adapter = self._the_binned_adapter()
-            adapter.start_nuisance()
+            self._binned_staged_theta = None
             return
         for exp in self.Experiments.values():
             exp.StartNuisanceWeights()
@@ -299,8 +325,12 @@ class PyNuFit:
         # Binned modular path: contract the response for the staged point into
         # the FewEntries-filtered expectation, keyed by the binned experiment.
         if self._binned_active():
-            name, adapter = self._the_binned_adapter()
-            self.Expectation[name] = adapter.expected_binned()
+            name, binding = self._the_binned_engine()
+            self._require_binned_staged()
+            # exactly ``n_nu[few]`` inside engine.chi2 for the staged (phi, theta)
+            n_nu, _ = binding.engine.expectation(self._binned_staged_phi,
+                                                 self._binned_staged_theta)
+            self.Expectation[name] = n_nu[binding.engine.few]
             return
         escale = self._event_escale_active()
         for name, exp in self.Experiments.items():
@@ -400,8 +430,13 @@ class PyNuFit:
         # Binned modular path: var[few] from the engine contraction (BB only;
         # pure Poisson ignores it but the vector is provided for parity).
         if self._binned_active():
-            name, adapter = self._the_binned_adapter()
-            self.MCVariance[name] = adapter.mc_variance_binned()
+            name, binding = self._the_binned_engine()
+            self._require_binned_staged()
+            # var[few] from the engine contraction (BB only; pure Poisson ignores
+            # it but the vector is provided for parity).
+            _, var = binding.engine.expectation(self._binned_staged_phi,
+                                                self._binned_staged_theta)
+            self.MCVariance[name] = var[binding.engine.few]
             return
         for name, exp in self.Experiments.items():
             # Check if experiment supports MC variance (e.g., ORCA)
@@ -497,10 +532,13 @@ class PyNuFit:
         # point's (Dm231, Sin2Theta23) at the currently-targeted dCP node. The
         # worker profiles dCP by SetBinnedDcpNode() before each objective.
         if self._binned_active():
-            _, adapter = self._the_binned_adapter()
+            _, binding = self._the_binned_engine()
             dm231 = self._binned_phys_value(point, "Dm231")
             s23 = self._binned_phys_value(point, "Sin2Theta23")
-            adapter.apply_physics(dm231, s23, self._binned_dcp_node)
+            # select the oscillation tensor slice at the targeted dCP node; the
+            # worker profiles dCP by SetBinnedDcpNode() before each objective.
+            phi = binding.store.phi(dm231, s23)
+            self._binned_staged_phi = phi[self._binned_dcp_node].astype(float)
             return
         self.ApplyWeights("Physics", vector=self.Analysis.FullPhysicsGrid[point])
 
@@ -509,8 +547,7 @@ class PyNuFit:
             print("Applying Nuisance Weights")
         # Binned modular path: stage theta for the response contraction.
         if self._binned_active():
-            _, adapter = self._the_binned_adapter()
-            adapter.stage_nuisance(vector)
+            self._binned_staged_theta = np.asarray(vector, dtype=float)
             return
         # cache the current theta so the event-side energy_scale histogram
         # operator (SetBinnedExpectedEvents) can read its per-era deltas.
@@ -629,19 +666,29 @@ class PyNuFit:
                             ) / self.physics_tunes[name].get_xsection(tune, vector[idx])
         return dWoverW
 
+    def _binned_chi2_and_grad(self):
+        """(f, g) at the staged (phi, theta) via the engine's analytic kernel —
+        the modular gradient path. Bit-identical to a direct
+        ``engine.chi2_and_grad(phi_slice, theta)``. (Track S / E6: was the
+        adapter's chi2_and_grad_binned; the staged state now lives on self.)"""
+        _, binding = self._the_binned_engine()
+        self._require_binned_staged()
+        return binding.engine.chi2_and_grad(self._binned_staged_phi,
+                                            self._binned_staged_theta)
+
     def set_likelihood(self, mode):
         if mode == "PoissonLikelihood":
             # Binned modular path: pure-Poisson LLH whose statistics kernel is
             # the engine's poisson_chi2 (design §2.4). Observation is the
             # engine's FewEntries-filtered obs_f, keyed by the binned experiment.
-            name, adapter = self._the_binned_adapter()
+            name, binding = self._the_binned_engine()
             self.LLH = ft.PoissonLikelihood(
-                {name: adapter.observed_binned()},
+                {name: binding.observed_binned()},
                 self.Analysis.NuisNominalList,
                 self.Analysis.NuisSigmaList,
                 self.Analysis.NuisDistributionList,
             )
-            self.LLH.set_engine(adapter.engine)
+            self.LLH.set_engine(binding.engine)
         elif mode == "BinnedLogLikelihoodRatio":
             self.LLH = ft.BinnedLogLikelihoodRatio(
                 self.Observation,
@@ -669,8 +716,8 @@ class PyNuFit:
     ):
 
         # Native binned-tensor engine takes over when a <BinnedEngine> block is
-        # active (default-OFF: BinnedAdapters is {} -> falsy -> this guard is a no-op).
-        if getattr(self, "BinnedAdapters", None):
+        # active (default-OFF: BinnedEngines is {} -> falsy -> this guard is a no-op).
+        if getattr(self, "BinnedEngines", None):
             return self.FitModelBinned(point, mode=mode)
 
         if not self.Analysis.do_point(point):
@@ -1303,30 +1350,29 @@ class PyNuFit:
     }
 
     def _setup_binned_engines(self, analysis_file):
-        """Return {experiment_name: loaded BinnedEngineAdapter} for the XML's
-        enabled <BinnedEngine> blocks, or {} (the toggle-OFF default). Lazy: no
+        """Return {experiment_name: loaded BinnedBinding} for the XML's enabled
+        <BinnedEngine> blocks, or {} (the toggle-OFF default). Lazy: no
         pynu.binned forward-model code runs when the XML has no such block."""
         from .binned.config import parse_binned_config
         configs = parse_binned_config(analysis_file)
         if not configs:
             return {}
-        from .binned.adapter import BinnedEngineAdapter
+        from .binned.engine_core import BinnedBinding
         return {
-            name: BinnedEngineAdapter(cfg, analysis_xml=analysis_file).load()
+            name: BinnedBinding.load(cfg, analysis_xml=analysis_file)
             for name, cfg in configs.items()
         }
 
     def set_binned_engine(self, exp_name, config, analysis_xml=None):
-        """Programmatic opt-in (overrides XML): attach a loaded BinnedEngineAdapter
+        """Programmatic opt-in (overrides XML): attach a loaded BinnedBinding
         for `exp_name` from a BinnedConfig. Enables FitModelBinned for this fit.
         Pass analysis_xml when the config uses nuisance_spec='self'."""
-        from .binned.adapter import BinnedEngineAdapter
-        if getattr(self, "BinnedAdapters", None) is None:
-            self.BinnedAdapters = {}
-        self.BinnedAdapters[exp_name] = BinnedEngineAdapter(
-            config, analysis_xml=analysis_xml
-        ).load()
-        return self.BinnedAdapters[exp_name]
+        from .binned.engine_core import BinnedBinding
+        if getattr(self, "BinnedEngines", None) is None:
+            self.BinnedEngines = {}
+        self.BinnedEngines[exp_name] = BinnedBinding.load(
+            config, analysis_xml=analysis_xml)
+        return self.BinnedEngines[exp_name]
 
     def _binned_phys_value(self, point, name):
         """(Dm231, Sin2Theta23) etc. for a grid point: from FullPhysicsGrid via
@@ -1343,18 +1389,18 @@ class PyNuFit:
     def FitModelBinned(self, point, mode=None):
         """Binned-mode fit for one physics grid point. Resolves (Dm231,
         Sin2Theta23) from the analysis grid, runs the engine's dCP-profiled
-        L-BFGS-B fit via the adapter, writes the chi2 to the h5 output, and dumps
+        L-BFGS-B fit via the binding, writes the chi2 to the h5 output, and dumps
         the engine dial vector to a per-point sidecar JSON (engine dial names do
         not fit the h5 Nuisance Parameters/<source>/<par> hierarchy)."""
         if not self.Analysis.do_point(point):
             print(f"Skipping point {point}.")
             return False
 
-        if len(self.BinnedAdapters) != 1:
+        if len(self.BinnedEngines) != 1:
             raise NotImplementedError(
                 "binned engine phase 1 supports exactly one binned experiment "
-                f"(got {len(self.BinnedAdapters)}); mixed event+binned is phase 2")
-        adapter = next(iter(self.BinnedAdapters.values()))
+                f"(got {len(self.BinnedEngines)}); mixed event+binned is phase 2")
+        binding = next(iter(self.BinnedEngines.values()))
 
         # phase-1 physics scope: normal ordering, no CPT (Dm231_bar)
         if "Ordering" in self.Analysis.PhysicsList:
@@ -1371,21 +1417,18 @@ class PyNuFit:
         # likelihood: engine config authoritative; error on an explicit conflict
         if mode is not None:
             want = self._MODE_TO_LIKELIHOOD.get(mode)
-            if want is not None and want != adapter.config.likelihood:
+            if want is not None and want != binding.config.likelihood:
                 raise ValueError(
-                    f"binned engine likelihood {adapter.config.likelihood!r} "
+                    f"binned engine likelihood {binding.config.likelihood!r} "
                     f"conflicts with FitModel mode {mode!r} (={want!r}); make the "
                     "<BinnedEngine> <likelihood> and the fit mode agree")
 
         dm231 = self._binned_phys_value(point, "Dm231")
         s23 = self._binned_phys_value(point, "Sin2Theta23")
 
-        for msg in adapter.crosscheck_xml_nuisances(self.Analysis):
-            print(f"WARNING [binned nuisance cross-check]: {msg}")
-
         self.point = point
-        chi2_min, dcp_idx, theta, nit, conv = adapter.fit_point(dm231, s23)
-        chi2_stats = adapter.chi2(dm231, s23, adapter.nominal)
+        chi2_min, dcp_idx, theta, nit, conv = binding.fit_point(dm231, s23)
+        chi2_stats = binding.chi2(dm231, s23, binding.nominal)
         print(f"Binned point {point}: dm231={dm231:.6e} s23={s23:.4f} "
               f"chi2={chi2_min:.6f} (stats-only {chi2_stats:.6f}) "
               f"dcp_idx={dcp_idx} nit={nit} conv={conv}")
@@ -1393,11 +1436,11 @@ class PyNuFit:
         self.WriteToOutFile("Analysis", "Chi2 Stats. Only", chi2_stats)
         if self.Analysis.wSyst:
             self.WriteToOutFile("Analysis", "Chi2 Systs.", chi2_min)
-        self._dump_binned_sidecar(point, adapter, dm231, s23,
+        self._dump_binned_sidecar(point, binding, dm231, s23,
                                   chi2_min, dcp_idx, theta, nit, conv)
         return chi2_min
 
-    def _dump_binned_sidecar(self, point, adapter, dm231, s23,
+    def _dump_binned_sidecar(self, point, binding, dm231, s23,
                              chi2, dcp_idx, theta, nit, conv):
         """Per-point JSON next to the h5 output carrying the engine dial vector."""
         import json
@@ -1410,13 +1453,13 @@ class PyNuFit:
                 "dm231": float(dm231),
                 "sin2theta23": float(s23),
                 "chi2": float(chi2),
-                "chi2_stats_only": float(adapter.chi2(dm231, s23, adapter.nominal)),
+                "chi2_stats_only": float(binding.chi2(dm231, s23, binding.nominal)),
                 "best_dcp_index": int(dcp_idx),
                 "nit": int(nit),
                 "converged": bool(conv),
-                "likelihood": adapter.config.likelihood,
-                "osc_averaging": adapter.config.osc_averaging,
-                "nuisance_names": list(adapter.nuisance_names),
+                "likelihood": binding.config.likelihood,
+                "osc_averaging": binding.config.osc_averaging,
+                "nuisance_names": list(binding.nuisance_names),
                 "nuisance": [float(v) for v in theta],
             }, f)
         return path
@@ -1508,10 +1551,10 @@ class PyNuFit:
             exp_name = next(iter(self.Experiments))
         if avg_scale is None:
             # default: honour an active <BinnedEngine> <osc_averaging> declaration
-            adapters = getattr(self, "BinnedAdapters", None) or {}
-            ad = adapters.get(exp_name)
-            if ad is not None:
-                decl = getattr(ad.config, "osc_averaging", "off")
+            bindings = getattr(self, "BinnedEngines", None) or {}
+            b = bindings.get(exp_name)
+            if b is not None:
+                decl = getattr(b.config, "osc_averaging", "off")
                 if str(decl).strip().lower() not in ("off", "", "none"):
                     avg_scale = decl
         return build_tensors(
