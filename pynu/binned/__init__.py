@@ -25,6 +25,10 @@ __all__ = [
     "parse_binned_config",
     "BinnedBinding",
     "TensorStore",
+    "sample_rates",
+    "detector_factors",
+    "EScaleHistogramOperator",
+    "bin_era_from_sample_table",
 ]
 
 # name -> defining submodule; imported on first attribute access only.
@@ -34,8 +38,12 @@ __all__ = [
 # φ interpolator moved to ``pynu.fitter.inference.interp_engine`` and the φ
 # tensor store + loaded-triple holder moved to
 # ``pynu.fitter.minimizer.binned_fit`` — all re-exported here for back-compat.
-# Absolute module paths ('pynu...') are used for symbols that live outside this
-# package; relative paths ('.mod') for in-package submodules.
+# (S.F4) the descriptor detector-factor kernels moved to
+# ``pynu.PhysicsTunes.Detector.detector`` (beside SKCombinedDetector) and the
+# event-side energy-scale histogram-transfer operator moved to
+# ``pynu.PhysicsTunes.Detector.escale_operator`` — both re-exported here for
+# back-compat. Absolute module paths ('pynu...') are used for symbols that live
+# outside this package; relative paths ('.mod') for in-package submodules.
 _LAZY = {
     "SKBinnedEngine": ".sk_binned_engine",
     "resolve_nuisance_spec": ".sk_binned_engine",
@@ -45,6 +53,10 @@ _LAZY = {
     "TensorStore": "pynu.fitter.minimizer.binned_fit",
     "BinnedConfig": "pynu.analysis_reader.binned_config",
     "parse_binned_config": "pynu.analysis_reader.binned_config",
+    "sample_rates": "pynu.PhysicsTunes.Detector.detector",
+    "detector_factors": "pynu.PhysicsTunes.Detector.detector",
+    "EScaleHistogramOperator": "pynu.PhysicsTunes.Detector.escale_operator",
+    "bin_era_from_sample_table": "pynu.PhysicsTunes.Detector.escale_operator",
 }
 
 

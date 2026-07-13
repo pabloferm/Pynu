@@ -361,8 +361,8 @@ class PyNuFit:
         cached = getattr(exp, "_escale_op", None)
         if cached is not None:
             return cached
-        from .binned.escale_operator import (EScaleHistogramOperator,
-                                             ERA_TAGS)
+        from .PhysicsTunes.Detector.escale_operator import (EScaleHistogramOperator,
+                                                            ERA_TAGS)
         import numpy as _np
         # sample_table: offset accumulates over Samples order; ne=#E bins,
         # nz=#cz bins per sample (edges-1). Mirrors BinIt_MC_2D's concatenation.

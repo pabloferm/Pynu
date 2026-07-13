@@ -1075,4 +1075,5 @@ from . import masks as _masks  # noqa: E402
 # --- Track S / Phase E5a: GridExperiment cell-weight factor sourcing.
 from . import grid_experiment as _grid  # noqa: E402
 # --- Track S / Phase E5b: descriptor detector-factor kernels.
-from . import detector as _det  # noqa: E402
+# (S.F4) re-homed to pynu.PhysicsTunes.Detector.detector (beside SKCombinedDetector).
+from pynu.PhysicsTunes.Detector import detector as _det  # noqa: E402

@@ -21,7 +21,7 @@ updown-escale-signed-norm / neutron-prod-migration); the algebra is generic.
 """
 import numpy as np
 
-from .sk_binned_engine import (
+from pynu.binned.sk_binned_engine import (
     DET_NAMES,
     DECAY_E_NAME,
     _unphys,
