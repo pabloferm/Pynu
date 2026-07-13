@@ -14,7 +14,7 @@ nothing about the existing event-level fit path changes.
 | `engine_core.py` | native structural/numerical kernels + `TensorStore` (φ lookup/caching) + `BinnedBinding` (config → engine+store holder, the `PyNuFit`-side surface) |
 | `masks.py` / `grid_experiment.py` / `detector.py` | native descriptor modules: mask/selector assembly, flux/xsec cell-weight sourcing from the real PhysicsTunes methods, detector-factor kernels |
 | `builder.py` | native builders for the engine's inputs: response npz + per-node oscillation tensors, built from a live `PyNuFit` object's own MC and physics tunes |
-| `config.py` | `BinnedConfig` — the authoritative field list for the `<BinnedEngine>` XML block |
+| `../analysis_reader/binned_config.py` | `BinnedConfig` — the authoritative field list for the `<BinnedEngine>` XML block (S.F1: moved to `analysis_reader`; re-exported from `pynu.binned` for back-compat) |
 | `escale_operator.py` | histogram-level energy-scale transfer operator shared with the event path (see its module docstring) |
 | `interp_engine.py` | cubic-interpolation layer over the tensor grid (native) |
 | `SK2023_Atm_datafit_r2_fude_ccqe_full.xml`, `SK2023_Atm_datafit_binned_extra_dials.xml` | the two dial-VALUE XMLs (package data; the sole authority for dial nominal/σ — see below). The named-spec ACTIVATION manifests live in `analysis/AnalysisFiles/`. |
@@ -61,7 +61,7 @@ Programmatic opt-in (no XML block needed) uses `pynufit.set_binned_engine(exp_na
 BinnedConfig(...))`, which returns the loaded `BinnedBinding`.
 
 Minimal `<BinnedEngine>` block (all fields but `<response>`/`<tensors>` are optional
-and default as shown; see `config.py:BinnedConfig` for the authoritative field list):
+and default as shown; see `analysis_reader/binned_config.py:BinnedConfig` for the authoritative field list):
 
 ```xml
 <NeutrinoExperiment name="SuperK_2023">

@@ -70,7 +70,7 @@ if PYNU_DIR not in sys.path:
 
 from pynu import PyNuFit                                    # noqa: E402
 from pynu import fitter as ft                               # noqa: E402
-from pynu.binned.config import BinnedConfig                 # noqa: E402
+from pynu.binned import BinnedConfig                        # noqa: E402  (S.F1: re-export from analysis_reader.binned_config)
 # D2: bounds transcription needs the engine's box constants (module-level
 # constants of the vendored snapshot, sk_binned_engine.py:1836-1840 + the
 # pinned neutron-migration box).

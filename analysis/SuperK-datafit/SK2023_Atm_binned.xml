@@ -305,7 +305,7 @@ since SuperK_2023.MCVariables does not set DecayE).
     <!-- ===================================================================== -->
     <!-- Native binned-tensor engine opt-in (pynu.binned). Default-OFF: this    -->
     <!-- <BinnedEngine> block is INVISIBLE to ParseXML and is read only by      -->
-    <!-- pynu/binned/config.py:parse_binned_config. When status=1, FitModel     -->
+    <!-- pynu/analysis_reader/binned_config.py:parse_binned_config. status=1 →    -->
     <!-- routes to FitModelBinned, which fits each (Dm231, Sin2Theta23) grid    -->
     <!-- point with the engine's dCP-profiled L-BFGS-B minimizer on pre-built   -->
     <!-- oscillation tensors (no per-point nuSQuIDS in the fit loop).           -->

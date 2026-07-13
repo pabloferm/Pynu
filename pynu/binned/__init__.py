@@ -16,8 +16,6 @@ kernels + descriptor modules are owned code, and the SK dial values ship as
 package-data value XMLs. ``PROVENANCE.md`` is the historical record of the former
 vendoring era.
 """
-from .config import BinnedConfig, parse_binned_config
-
 __all__ = [
     "SKBinnedEngine",
     "resolve_nuisance_spec",
@@ -30,6 +28,11 @@ __all__ = [
 ]
 
 # name -> defining submodule; imported on first attribute access only.
+# (S.F1) BinnedConfig / parse_binned_config moved to
+# ``pynu.analysis_reader.binned_config`` (their functional home) and are
+# re-exported here for back-compat via the same PEP 562 lazy map. Absolute
+# module paths ('pynu...') are used for symbols that live outside this package;
+# relative paths ('.mod') for in-package submodules.
 _LAZY = {
     "SKBinnedEngine": ".sk_binned_engine",
     "resolve_nuisance_spec": ".sk_binned_engine",
@@ -37,6 +40,8 @@ _LAZY = {
     "detect_grid": ".interp_engine",
     "BinnedBinding": ".engine_core",
     "TensorStore": ".engine_core",
+    "BinnedConfig": "pynu.analysis_reader.binned_config",
+    "parse_binned_config": "pynu.analysis_reader.binned_config",
 }
 
 
@@ -45,7 +50,9 @@ def __getattr__(name):
     if module is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    return getattr(importlib.import_module(module, __name__), name)
+    # relative ('.mod') resolves against this package; absolute passes package=None
+    package = __name__ if module.startswith(".") else None
+    return getattr(importlib.import_module(module, package), name)
 
 
 def __dir__():

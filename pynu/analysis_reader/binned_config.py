@@ -1,6 +1,11 @@
 """BinnedConfig + parse_binned_config — the independent second XML parse for the
 optional ``<BinnedEngine>`` opt-in block.
 
+Home: ``pynu.analysis_reader`` (S.F1 re-homing — this is a reader concern, a
+sibling of ``ParseXML``; NOT absorbed into ``ParseXML`` itself, which is open
+call O-2). ``pynu.binned`` re-exports both symbols for back-compat via its PEP 562
+lazy map.
+
 Mirrors ``PyNuFit._parse_marginalization_config``: a self-contained
 ``xml.etree`` pass that reads a tag the main ``ParseXML`` reader never touches
 (``ParseXML.reader`` iterates only target/source/nuisance/fixed/physics

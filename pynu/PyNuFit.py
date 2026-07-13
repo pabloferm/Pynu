@@ -1353,7 +1353,7 @@ class PyNuFit:
         """Return {experiment_name: loaded BinnedBinding} for the XML's enabled
         <BinnedEngine> blocks, or {} (the toggle-OFF default). Lazy: no
         pynu.binned forward-model code runs when the XML has no such block."""
-        from .binned.config import parse_binned_config
+        from .analysis_reader.binned_config import parse_binned_config
         configs = parse_binned_config(analysis_file)
         if not configs:
             return {}
