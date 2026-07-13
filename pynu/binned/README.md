@@ -10,13 +10,14 @@ nothing about the existing event-level fit path changes.
 
 | module | role |
 |---|---|
-| `sk_binned_engine.py` | the engine: response contraction, nuisance dials, analytic-gradient χ², `fit_point` (vendored snapshot — see `PROVENANCE.md`) |
-| `adapter.py` | thin `PyNuFit`-side surface: config → engine construction, packaged `fit_point` passthrough, and the staged-state modular vocabulary (`apply_physics` / `stage_nuisance` / `expected_binned` / `chi2_and_grad_binned` …) |
+| `sk_binned_engine.py` | the engine: response contraction, nuisance dials, analytic-gradient χ², `fit_point` (native; delegates to the descriptor modules below) |
+| `engine_core.py` | native structural/numerical kernels + `TensorStore` (φ lookup/caching) + `BinnedBinding` (config → engine+store holder, the `PyNuFit`-side surface) |
+| `masks.py` / `grid_experiment.py` / `detector.py` | native descriptor modules: mask/selector assembly, flux/xsec cell-weight sourcing from the real PhysicsTunes methods, detector-factor kernels |
 | `builder.py` | native builders for the engine's inputs: response npz + per-node oscillation tensors, built from a live `PyNuFit` object's own MC and physics tunes |
 | `config.py` | `BinnedConfig` — the authoritative field list for the `<BinnedEngine>` XML block |
 | `escale_operator.py` | histogram-level energy-scale transfer operator shared with the event path (see its module docstring) |
-| `interp_engine.py` | cubic-interpolation layer over the tensor grid (vendored snapshot) |
-| `SK2023_Atm_datafit_r2_fude_ccqe*.xml` | nuisance ACTIVATION manifests for the named dial sets (values live in code — see below) |
+| `interp_engine.py` | cubic-interpolation layer over the tensor grid (native) |
+| `SK2023_Atm_datafit_r2_fude_ccqe_full.xml`, `SK2023_Atm_datafit_binned_extra_dials.xml` | the two dial-VALUE XMLs (package data; the sole authority for dial nominal/σ — see below). The named-spec ACTIVATION manifests live in `analysis/AnalysisFiles/`. |
 
 The companion likelihood class is `pynu/fitter/PoissonLikelihood.py` — a
 pure-Poisson likelihood mirroring the `BarlowBeestonLikelihood` interface whose
@@ -30,18 +31,18 @@ statistics term is the engine's own `poisson_chi2` kernel.
 2. **Through `PyNuFit`, packaged** — an analysis XML declares
    `<BinnedEngine><status>1</status>...` on a `<NeutrinoExperiment>`, and
    `PyNuFit.FitModel()` auto-routes to `FitModelBinned()`, which drives the identical
-   `SKBinnedEngine.fit_point()` through the adapter.
+   `SKBinnedEngine.fit_point()` through the `BinnedBinding`.
 3. **Through `PyNuFit`, modular** — the same method vocabulary the event engine
    uses (`StartNuisance` / `ApplyPhysicsWeights` / `ApplyNuisanceWeights` /
    `SetExpectedWeights` / `SetBinnedExpectedEvents`, plus `SetBinnedDcpNode` for the
-   δCP-node profile loop), backed by the adapter's staged state and a
-   `PoissonLikelihood`. This lets one worker loop drive event and binned fits with
-   the same call sequence. A full production-shaped worker built on this path is
-   `analysis/SK-binned-datafit/run_sk_binned_scan_row_worker.py`.
+   δCP-node profile loop), with the staged (phi, theta) held on the `PyNuFit`
+   object and a `PoissonLikelihood`. This lets one worker loop drive event and
+   binned fits with the same call sequence. A full production-shaped worker built
+   on this path is `analysis/SK-binned-datafit/run_sk_binned_scan_row_worker.py`.
 
 All paths call the exact same engine kernels with the exact same numerics — the
-adapter adds no numerical behavior of its own (see `adapter.py`'s module docstring)
-— so results agree bit-for-bit given the same inputs.
+`BinnedBinding` adds no numerical behavior of its own — so results agree
+bit-for-bit given the same inputs.
 
 ## Quickstart: through `PyNuFit`
 
@@ -50,14 +51,14 @@ from pynu.PyNuFit import PyNuFit
 
 pynufit = PyNuFit("path/to/your_analysis.xml")
 # If the XML's <NeutrinoExperiment> block for this experiment has a
-# <BinnedEngine><status>1</status>...</BinnedEngine> child, pynufit.BinnedAdapters
+# <BinnedEngine><status>1</status>...</BinnedEngine> child, pynufit.BinnedEngines
 # is now non-empty and every subsequent pynufit.FitModel(point) call for that
 # experiment routes through the binned engine automatically.
 chi2 = pynufit.FitModel({"Dm231": 2.5e-3, "Sin2Theta23": 0.55})
 ```
 
 Programmatic opt-in (no XML block needed) uses `pynufit.set_binned_engine(exp_name,
-BinnedConfig(...))`, which returns the loaded adapter.
+BinnedConfig(...))`, which returns the loaded `BinnedBinding`.
 
 Minimal `<BinnedEngine>` block (all fields but `<response>`/`<tensors>` are optional
 and default as shown; see `config.py:BinnedConfig` for the authoritative field list):
@@ -121,19 +122,23 @@ sin²θ₂₃) grid loop lives entirely in the calling script (standalone) or in
 `PyNuFit`'s own point-by-point calling convention (framework path) — never inside the
 engine itself.
 
-## Nuisance dials: values live in code, not XML
+## Nuisance dials: values come from the package value XMLs
 
-Unlike the rest of `PyNuFit` — where a `<nuisance>` block's `<nominal>`/`<sigma>`
-values are read from XML and directly control the fit — the binned engine's dial
-values are hardcoded in `sk_binned_engine.py`'s `CANONICAL_DIALS` table. An XML's
-`<nuisance>` blocks (or the `nuisance_spec` field above) only select **which named
-dials are active**; changing a prior for the binned path means editing the engine
-source, not the XML. The `SK2023_Atm_datafit_r2_fude_ccqe*.xml` manifests in this
-directory are exactly such activation lists, byte-equivalent to the engine's named
-specs of the same name. `adapter.crosscheck_xml_nuisances()` diffs the two sources
-for name overlaps and warns (never blocks) on a mismatch — useful as a sanity check
-when porting an XML from the event-level path, not a substitute for editing the
-table.
+The binned engine's dial `<nominal>`/`<sigma>` values are read from two **value
+XMLs that ship as package data** in this directory: the production 131-dial
+`SK2023_Atm_datafit_r2_fude_ccqe_full.xml` plus the supplementary
+`SK2023_Atm_datafit_binned_extra_dials.xml` for the non-production dials some
+specs resolve. These two files are the **sole authority** for dial values
+(`resolve_nuisance_spec` reads them via `XML_DIAL_VALUES`). A named
+`nuisance_spec` (or an activation manifest) only selects **which named dials are
+active and in what order**; the values come from the value XMLs, so changing a
+prior means editing a value XML, not the engine source. The named-spec activation
+manifests (`SK2023_Atm_datafit_*.xml`) live in `analysis/AnalysisFiles/`.
+
+When the analysis-tree mirror of a value XML is present
+(`analysis/AnalysisFiles/SK2023_Atm_datafit_r2_fude_ccqe_full.xml` etc.), the
+loader hard-fails on any byte-level divergence from the package copy — there is
+no silent second authority.
 
 For the event-level path, per-nuisance hard bounds are declared with an optional
 `<box>lo hi</box>` child on the `<nuisance>` block (parsed into
@@ -150,8 +155,8 @@ drive path:
 
 - **Binned engine** (standalone, or through `PyNuFit` packaged/modular): set the
   nuisance spec to the named spec `r2_fude_ccqe`, or equivalently to the manifest
-  path `pynu/binned/SK2023_Atm_datafit_r2_fude_ccqe.xml` — the two resolve to the
-  same 131 dials in the same order (`resolve_nuisance_spec` in
+  path `analysis/AnalysisFiles/SK2023_Atm_datafit_r2_fude_ccqe.xml` — the two
+  resolve to the same 131 dials in the same order (`resolve_nuisance_spec` in
   `sk_binned_engine.py`). In a `<BinnedEngine>` block that is
   `<nuisance_spec> r2_fude_ccqe </nuisance_spec>`; standalone it is
   `SKBinnedEngine(..., nuisance_spec="r2_fude_ccqe")`.
@@ -220,8 +225,8 @@ engine lives at `pynu/binned/sk_binned_engine.py`, not under `analysis/`.
 
 ## Provenance
 
-`sk_binned_engine.py` and `interp_engine.py` are vendored snapshots from an external
-research project, not developed in this repo. See `PROVENANCE.md` for exact source
-commits, hashes, and the resync history — read that before touching either file,
-since hand-editing them here will diverge from the upstream source of truth and
-won't be caught by the next resync.
+`pynu/binned/` is now native code (the Track S de-vendoring completed at E6):
+`sk_binned_engine.py`, `engine_core.py`, `interp_engine.py`, the descriptor
+modules, and the builders are owned by this repo, and the SK dial values ship as
+package-data value XMLs. `PROVENANCE.md` is the historical record of the former
+vendoring era (source commits + the snapshot hash history).
