@@ -28,10 +28,11 @@ import os
 import numpy as np
 from scipy.optimize import minimize
 
-# fit-time box dicts the moved ``fit_point`` references from the engine module's
-# globals (the truncation limits for the optional dials). Unchanged from the
-# former ``engine_core`` import.
-from ...binned.sk_binned_engine import (
+# fit-time box dicts (the truncation limits for the optional dials) — from the
+# dial-vocabulary leaf (Track T / T1; formerly reached via the engine module's
+# globals). Importing the leaf instead of the engine breaks the former
+# binned_fit <-> engine <-> engine_core import cycle; same values, same names.
+from ...analysis_reader.binned_dials import (
     FLUX_RATIO_BOX,
     FLUX_BAND_NAMES,
     XSEC_EXTRA_BOX,

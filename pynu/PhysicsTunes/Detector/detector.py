@@ -21,7 +21,9 @@ updown-escale-signed-norm / neutron-prod-migration); the algebra is generic.
 """
 import numpy as np
 
-from pynu.binned.sk_binned_engine import (
+# Dial vocabulary from the leaf (Track T / T1) — authority direction is now
+# vocabulary -> consumers; this module no longer imports from the engine shell.
+from pynu.analysis_reader.binned_dials import (
     DET_NAMES,
     DECAY_E_NAME,
     _unphys,
