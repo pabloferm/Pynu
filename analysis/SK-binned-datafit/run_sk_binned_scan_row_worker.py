@@ -22,7 +22,7 @@ the modular method vocabulary:
   pf.SetExpectedWeights / pf.SetBinnedExpectedEvents
   pf.LLH.stats_and_systematics                   # objective certification per cell
 
-The per-evaluation (f, g) inside L-BFGS-B is `pf._binned_chi2_and_grad()` —
+The per-evaluation (f, g) inside L-BFGS-B is `pf.BinnedChi2AndGrad()` —
 the engine's own analytic kernel (bit-identical to a direct
 `engine.chi2_and_grad` call; the staged (phi, theta) live on the PyNuFit object,
 Track S / E6). Every converged cell is additionally re-evaluated through the full
@@ -79,7 +79,7 @@ from pynu.analysis_reader.binned_dials import ALL_FLUX_RATIO_NAMES  # noqa: E402
 # --------------------------------------------------------------------------
 # the modular fit — SKBinnedEngine.fit_point protocol (:1806-1886, dcp_warmchain
 # default) driven through the method vocabulary. (f, g) per evaluation =
-# pf._binned_chi2_and_grad() (the engine's analytic kernel).
+# pf.BinnedChi2AndGrad() (the engine's analytic kernel; public since T.4).
 # --------------------------------------------------------------------------
 def modular_fit_point(pf, llh, dm, s23, x0, bounds, n_dcp):
     best = (np.inf, 0, np.asarray(x0, float), 0, False)
@@ -99,7 +99,7 @@ def modular_fit_point(pf, llh, dm, s23, x0, bounds, n_dcp):
         def fg(theta):
             pf.StartNuisance()                     # per-evaluation reset
             pf.ApplyNuisanceWeights(theta)         # stage theta on the engine
-            return pf._binned_chi2_and_grad()      # (f, g), engine analytic kernel
+            return pf.BinnedChi2AndGrad()          # (f, g), engine analytic kernel
 
         res = minimize(fg, x_seed, method="L-BFGS-B", jac=True, bounds=bounds,
                        options={"ftol": tol, "gtol": 1e-5, "maxiter": 200})

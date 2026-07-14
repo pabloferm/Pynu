@@ -699,14 +699,22 @@ class PyNuFit:
                             ) / self.physics_tunes[name].get_xsection(tune, vector[idx])
         return dWoverW
 
-    def _binned_chi2_and_grad(self):
+    def BinnedChi2AndGrad(self):
         """(f, g) at the staged (phi, theta) via the engine's analytic kernel —
         the modular gradient path (§4: analytic-gradient branch). Delegates to
         the single binned experiment's chi2_and_grad (the staged (phi, theta)
         now live on the BinnedExperiment, Track S·F / F2). Bit-identical to a
-        direct ``engine.chi2_and_grad(phi_slice, theta)``."""
+        direct ``engine.chi2_and_grad(phi_slice, theta)``.
+
+        Public CamelCase vocabulary method (Track T / T4): the per-evaluation
+        (f, g) callable a scan worker hands to L-BFGS-B is part of the modular
+        drive surface, not an internal."""
         _, exp = self._the_binned_engine()
         return exp.chi2_and_grad()
+
+    # back-compat alias (pre-T4 name; historical scripts + the frozen reference
+    # arm call the underscore form). Same method object, zero behavior change.
+    _binned_chi2_and_grad = BinnedChi2AndGrad
 
     def set_likelihood(self, mode, binned_priors=False):
         if mode == "PoissonLikelihood":
