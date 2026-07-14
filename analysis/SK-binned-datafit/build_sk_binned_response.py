@@ -2,19 +2,20 @@
 
 Thin wrapper over the NATIVE, Gate-D-certified PyNuFit method
 ``PyNuFit(analysis_xml).BuildBinnedResponse`` (``pynu/PyNuFit.py:1424`` ->
-``pynu.binned.builder.build_response``). One MC pass through the live
+``pynu.Experiments.sk_binned_builder.build_response``). One MC pass through the live
 experiment, so every convention (NC w_no fix, NORM, WMC, CC-mask encoding,
 the DIS |Mode|>25*CC quirk) is inherited from the event engine and never
 re-implemented. Follows the ``ic_build_tensors.py`` pattern: heavy imports
 (``from pynu import PyNuFit``) are deferred into ``main`` so ``--help`` works
 without the SK MC + nuSQuIDS environment.
 
-FROZEN-ORIGINAL CONVENTION: the standalone builder at
-``analysis/SuperK-datafit/sk_binned/build_sk_response.py`` remains the
-byte-parity reference for Gate D and stays the frozen SLURM entry point until
-Track S E7. It MUST NOT be modified. This wrapper is the native-method
-equivalent for the SK-binned-datafit pipeline; Gate-D certified the two produce
-byte-identical artifacts.
+PROVENANCE: the former standalone builder
+(``analysis/SuperK-datafit/sk_binned/build_sk_response.py``) was the Gate-D
+byte-parity reference; Gate D certified this native method produces
+byte-identical artifacts, Track S E7 closed the frozen-original hold, and the
+standalone tree was retired at Track T / T6 (git tag
+``archive/june-standalone-sk-binned`` carries the last copy). This wrapper is
+now the SLURM entry point.
 
 PRODUCTION DEFAULTS: the production SK response is 400x80 (400 true-E cells x
 80 true-cz cells). The method's own defaults are n_etrue=200 / n_cztrue=40 —

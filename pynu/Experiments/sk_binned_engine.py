@@ -246,7 +246,7 @@ class SKBinnedEngine:
                                  f" got shape {self.solar_mix_f.shape}")
 
         # ---- Track S / Phase E4: per-dial mask & selector assembly lives in the
-        # native pynu.binned.masks module (descriptor-driven). assemble_masks sets
+        # native sk_binned_masks module (descriptor-driven). assemble_masks sets
         # every mask/selector attribute this __init__ used to build inline
         # (energy-scale reco-E adjacency, flux-ratio legs, ntag bands, up-mu masks,
         # the up/down signed mask, dirsmear blocks, static flux fields, xsec class
@@ -287,7 +287,7 @@ class SKBinnedEngine:
         return _grid.cell_weights_via_tunes(self, phi, theta, flux, xsec)
 
     # ---------------- contractions ----------------
-    # Structural kernels below delegate to pynu.binned.engine_core (Track S,
+    # Structural kernels below delegate to sk_binned_engine_core (Track S,
     # Phase E1). Each engine_core function takes the engine instance and is a
     # verbatim move of the former in-class body; ZERO numerical change.
     def contract(self, W):
@@ -337,12 +337,12 @@ class SKBinnedEngine:
     # ---------------- detector factors ----------------
     def sample_rates(self, n_phys):
         """Weighted physics rate per sample (BaseWeight*PhysicsWeight sums).
-        Track S / Phase E5b: delegates to the native pynu.binned.detector kernel."""
+        Track S / Phase E5b: delegates to the native PhysicsTunes detector kernel."""
         return _det.sample_rates(self, n_phys)
 
     def detector_factors(self, t, rates, n_phys=None):
         """Per-sample detector factor D_s and per-tune d ln D. Track S / Phase E5b:
-        delegates to pynu.binned.detector.detector_factors (descriptor-driven
+        delegates to PhysicsTunes.Detector.detector.detector_factors (descriptor-driven
         generic kernels, guards preserved verbatim; ZERO numerical change)."""
         return _det.detector_factors(self, t, rates, n_phys=n_phys)
 
@@ -363,12 +363,12 @@ class SKBinnedEngine:
     @staticmethod
     def bb_chi2(obs, n_mod, var):
         """BarlowBeestonLikelihood.stats_only (BB-lite, no muons)."""
-        return _core.bb_chi2(obs, n_mod, var)
+        return _kernels_bb_chi2(obs, n_mod, var)
 
     @staticmethod
     def poisson_chi2(obs, n_mod):
         """Plain Poisson chi2 (event engine's no-MC-variance fallback form)."""
-        return _core.poisson_chi2(obs, n_mod)
+        return _kernels_poisson_chi2(obs, n_mod)
 
     def chi2(self, phi, theta):
         return _core.chi2(self, phi, theta)
@@ -412,7 +412,7 @@ class SKBinnedEngine:
         of the old scans' speed. False recovers the legacy cold-from-x0-per-node
         path EXACTLY (x_seed never leaves x0); kept as the validation baseline.
         """
-        return _core.fit_point(self, phi_dcp_stack, x0=x0, n_dcp=n_dcp,
+        return _fit_point(self, phi_dcp_stack, x0=x0, n_dcp=n_dcp,
                                free_mask=free_mask, jac=jac,
                                dcp_warmchain=dcp_warmchain)
 
@@ -456,4 +456,13 @@ from ..PhysicsTunes import TuneFactorSource as _grid  # noqa: E402
 # --- Track S / Phase E5b: descriptor detector-factor kernels.
 # (S.F4) re-homed to pynu.PhysicsTunes.Detector.detector (beside SKCombinedDetector).
 from pynu.PhysicsTunes.Detector import detector as _det  # noqa: E402
+# --- Track T / T6: the chi2 kernels + per-point fit protocol are imported from
+# their functional homes directly (engine_core's back-compat re-import block is
+# deleted). binned_fit imports only the vocabulary leaf at module top, so this
+# bottom import is cycle-free.
+from ..fitter.binned_kernels import (  # noqa: E402
+    bb_chi2 as _kernels_bb_chi2,
+    poisson_chi2 as _kernels_poisson_chi2,
+)
+from ..fitter.minimizer.binned_fit import fit_point as _fit_point  # noqa: E402
 

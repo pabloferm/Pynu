@@ -22,7 +22,10 @@ Track S·F / Phase F3: the two stateless χ² kernels (``poisson_chi2``,
 protocol (``fit_point``) + φ tensor lookup (``TensorStore``) + the loaded-triple
 holder (``BinnedBinding``) re-homed to ``pynu.fitter.minimizer.binned_fit``. All
 five are re-imported here (below) so the engine's delegates and the
-``pynu.binned`` back-compat re-exports keep resolving; ZERO numerical change.
+every delegate keeps resolving; ZERO numerical change. (Track T / T6: the
+back-compat re-import block at module bottom was deleted with the
+``pynu.binned`` shim; the engine imports the kernels from their functional
+homes directly.)
 """
 import numpy as np
 
@@ -544,24 +547,3 @@ def per_bin_report(eng, phi, theta):
         resid_std=resid_std.astype(float),
         stat_total=float(stat),
     )
-
-
-# --------------------------------------------------------------------------- #
-#  Track S·F / Phase F3 — re-homed objects, re-imported for back-compat.
-# --------------------------------------------------------------------------- #
-# The χ² kernels moved to ``pynu.fitter.binned_kernels`` and the per-point fit
-# protocol + φ tensor store + loaded-triple holder moved to
-# ``pynu.fitter.minimizer.binned_fit`` (their functional homes). They are
-# re-imported here so ``SKBinnedEngine``'s delegates (``poisson_chi2``,
-# ``bb_chi2``, ``fit_point``) and the ``pynu.binned`` PEP 562 re-exports
-# (``TensorStore``, ``BinnedBinding``) keep resolving off ``engine_core``
-# unchanged. Bottom-of-module import: ``binned_fit`` imports the fit-time box
-# dicts from ``sk_binned_engine`` (defined above), so importing it here (after
-# this module is itself imported at the bottom of ``sk_binned_engine``) resolves
-# without a circular import. ZERO numerical change.
-from ..fitter.binned_kernels import bb_chi2, poisson_chi2   # noqa: E402,F401
-from ..fitter.minimizer.binned_fit import (                 # noqa: E402,F401
-    fit_point,
-    TensorStore,
-    BinnedBinding,
-)

@@ -1389,7 +1389,8 @@ class PyNuFit:
 
     # ---------------- native binned-tensor engine (default-OFF toggle) ----------------
     # Additive methods: never reached unless an analysis XML declares an enabled
-    # <BinnedEngine> block (parsed independently of ParseXML). See pynu/binned/.
+    # <BinnedEngine> block (reader-attached, Track T / T2). See
+    # pynu/Experiments/README_sk_binned.md.
 
     _MODE_TO_LIKELIHOOD = {
         "BinnedLogLikelihoodRatio": "poisson",

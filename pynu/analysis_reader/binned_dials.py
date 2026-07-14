@@ -430,7 +430,7 @@ _ENGINE_DIR = _os.path.abspath(_os.path.join(
 _REPO_ROOT = _os.path.abspath(_os.path.join(_ENGINE_DIR, "..", ".."))
 
 # ---- value XMLs ship as PACKAGE DATA (Track S, Phase E6 / review N-2) --------
-# The two value XMLs live in the package directory (pynu/binned/) so a
+# The two value XMLs live beside the engine (pynu/Experiments/) so a
 # non-editable wheel install carries them — CANONICAL_DIALS is gone (E6) and is
 # no longer a fallback authority, so the package copy is the SOLE source of dial
 # values. The `analysis/AnalysisFiles/` copies are the analysis-facing mirror
@@ -477,7 +477,7 @@ def _load_xml_dial_values(path):
     if not _os.path.exists(path):
         raise FileNotFoundError(
             f"value XML {path} is missing from the package. The two SK binned "
-            "value XMLs ship as package data under pynu/binned/; without them "
+            "value XMLs ship as package data under pynu/Experiments/; without them "
             "the engine has no dial values (CANONICAL_DIALS was removed at E6). "
             "Reinstall the package or restore the file.")
     root = _ET.parse(path).getroot()

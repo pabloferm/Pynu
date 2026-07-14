@@ -71,3 +71,26 @@ edited engine byte-for-byte against a frozen copy of the pre-port engine
 (`frozen_referee_S`, md5 `ac46cfa801e6049278bbe5b256cd5695`). E6 re-ran the full
 Gate-C rerun + E1 binding + E2 value-parity + E3 manifest resolver, all PASS with
 diff = 0.0.
+
+## Track T (2026-07-13/14) — `pynu/binned/` deleted; final homes
+
+The back-compat shim (`pynu/binned/__init__.py`, PEP 562 lazy re-exports) and the
+package directory were deleted at Track T phase T6 — every module now lives at
+its functional home:
+
+| What | Final home |
+|---|---|
+| Dial vocabulary + XML value authority (`XML_DIAL_VALUES`, `resolve_nuisance_spec`) | `pynu/analysis_reader/binned_dials.py` (leaf; T1) |
+| `<BinnedEngine>` config (`BinnedConfig`, reader-attached) | `pynu/analysis_reader/binned_config.py` (reader-wired at T2) |
+| Engine shell | `pynu/Experiments/sk_binned_engine.py` (T3) |
+| Numerical kernels | `pynu/Experiments/sk_binned_engine_core.py` (T3) |
+| Mask/selector assembly | `pynu/Experiments/sk_binned_masks.py` (T3) |
+| Native builders (behind `PyNuFit.Build*`) | `pynu/Experiments/sk_binned_builder.py` (T3) |
+| Cell-weight factor sourcing from PhysicsTunes | `pynu/PhysicsTunes/TuneFactorSource.py` (T3, O-1 ruling) |
+| Dial-value XMLs (package data) | `pynu/Experiments/` (T3) |
+| χ² kernels / `fit_point` / `TensorStore` / `BinnedBinding` | `pynu/fitter/` (since S·F F3) |
+| Detector factors / escale operator | `pynu/PhysicsTunes/Detector/` (since S·F F4) |
+| The binned mode itself | `pynu/Experiments/BinnedExperiment.py` (since S·F F2) |
+
+Historical scripts importing `pynu.binned` run against the frozen reference tree
+(tag `certified/2a7b2ff`) via `PYNU_ROOT` — the shim was not kept.

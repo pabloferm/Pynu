@@ -105,8 +105,8 @@ Three distinct XML roles:
 2. **`--arm-specs`** = engine NAMED specs (`r2_fude_ccqe`, `r2_fude_ccqe_nmig`).
    Path-like values are rejected.
 3. **`--arm-xmls`** = nuisance-manifest .xml FILE PATHS (the
-   `pynu/binned/SK2023_Atm_datafit_r2_fude_ccqe*.xml` activation manifests),
-   mutually exclusive with `--arm-specs`. Existence-checked.
+   `analysis/AnalysisFiles/SK2023_Atm_datafit_r2_fude_ccqe*.xml` activation
+   manifests), mutually exclusive with `--arm-specs`. Existence-checked.
 
 The worker additionally hard-checks that the resolved dial list is byte-equal
 (names + order) to the seed json's `nuisance_names` — a spec/seed mismatch
@@ -135,18 +135,23 @@ Legacy seed knobs (`lump`, `xsec_tight_sigma`, `dirsmear_matrix`) are NOT
 supported: the worker hard-errors if a seed requests them (both unset in the
 production `r2_fude_ccqe*` seeds).
 
-## Module homes after Track S·F
+## Module homes after Track T (final)
 
-The binned surface no longer lives in a single `pynu/binned/` package. After the
-S·F re-homing it is distributed across the functional pynu subdirectories — the
-`<BinnedEngine>` config in `pynu/analysis_reader/`, the χ² kernels / `fit_point` /
-`TensorStore` / `BinnedBinding` / φ-interpolator in `pynu/fitter/`, the detector +
-energy-scale operator in `pynu/PhysicsTunes/Detector/`, and the mode itself as
-`pynu/Experiments/BinnedExperiment.py`. `pynu/binned/` remains as a back-compat
-re-export shim (plus the engine internals and builders that still reside there),
-so every `from pynu.binned import X` in this worker keeps resolving unchanged. For
-the full relocation table and the current resident-module list, see
-`pynu/binned/README.md`.
+The binned surface is fully distributed across the functional pynu
+subdirectories; `pynu/binned/` was DELETED at Track T / T6. Homes: the dial
+vocabulary + XML value authority in `pynu/analysis_reader/binned_dials.py`;
+the `<BinnedEngine>` config in `pynu/analysis_reader/binned_config.py`
+(reader-attached — `ParseXML.BinnedConfigs`); the engine + kernels + masks +
+builders as `pynu/Experiments/sk_binned_*` beside `BinnedExperiment.py`, with
+the two dial-value XMLs as package data there; the χ² kernels / `fit_point` /
+`TensorStore` / `BinnedBinding` / φ-interpolator in `pynu/fitter/`; the
+detector + energy-scale operator in `pynu/PhysicsTunes/Detector/` and the
+cell-weight factor sourcing in `pynu/PhysicsTunes/TuneFactorSource.py`. This
+worker imports only `pynu` (PyNuFit) and the two `analysis_reader` config
+modules. Full map: `pynu/Experiments/README_sk_binned.md` +
+`PROVENANCE_sk_binned.md`. Historical scripts that still import `pynu.binned`
+run against the frozen reference tree (tag `certified/2a7b2ff`) via
+`PYNU_ROOT`.
 
 ## How to submit
 

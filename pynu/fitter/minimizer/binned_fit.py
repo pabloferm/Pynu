@@ -13,7 +13,7 @@ change; every guard, ordering, epsilon and comment preserved):
   * ``TensorStore`` — (Δm², s²θ₂₃) -> φ tensor grid lookup / caching.
   * ``BinnedBinding`` — the loaded (engine, store, config) triple for ONE binned
     experiment; ``PyNuFit`` and ``BinnedExperiment`` construct via
-    ``BinnedBinding.load``. Re-exported through ``pynu.binned`` for back-compat.
+    ``BinnedBinding.load``.
 
 The fit-time box dicts (``FLUX_RATIO_BOX`` … ``DIR_SMEAR_BOX``) are imported from
 the engine module exactly as the former in-``engine_core`` code referenced them;

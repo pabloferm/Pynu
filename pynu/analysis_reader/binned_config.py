@@ -3,14 +3,14 @@ optional ``<BinnedEngine>`` opt-in block.
 
 Home: ``pynu.analysis_reader`` (S.F1 re-homing — this is a reader concern, a
 sibling of ``ParseXML``; NOT absorbed into ``ParseXML`` itself, which is open
-call O-2). ``pynu.binned`` re-exports both symbols for back-compat via its PEP 562
-lazy map.
+call O-2, RULED at Track T / T2: sibling module, reader-wired routing —
+``ParseXML`` attaches ``BinnedConfigs`` from its own tree).
 
 Mirrors ``PyNuFit._parse_marginalization_config``: a self-contained
 ``xml.etree`` pass that reads a tag the main ``ParseXML`` reader never touches
 (``ParseXML.reader`` iterates only target/source/nuisance/fixed/physics
 children), so every existing analysis XML parses to "toggle absent" -> ``{}``
-and no ``pynu.binned`` code runs. This module imports only the standard library,
+and no forward-model code runs. This module imports only the standard library,
 so it can be loaded without the heavy pynu import chain (nuSQuIDS, event MC).
 """
 import os

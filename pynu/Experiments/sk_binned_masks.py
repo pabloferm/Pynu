@@ -120,11 +120,6 @@ def assemble_masks(eng, z=None):
             "e": (np.abs(eng.cls_pdg) == 12), "mu": (np.abs(eng.cls_pdg) == 14),
             "numubar": (eng.cls_pdg == -14), "numu": (eng.cls_pdg == 14),
         }
-        # back-compat aliases used by older code paths
-        eng.fr_is_nuebar = eng._fr_leg["nuebar"]
-        eng.fr_is_nue = eng._fr_leg["nue"]
-        eng.fr_is_e = eng._fr_leg["e"]
-        eng.fr_is_mu = eng._fr_leg["mu"]
     # (2) momentum-resolved sub-GeV neutron-tag per-bin band masks. Within a
     #     sample bin = off + ie*nz + iz (build_sk_response.reco_bin_index),
     #     so the reco-momentum index is ie = (bin-off)//nz; ie<NTAG_PSPLIT is

@@ -2,7 +2,7 @@
 
 Thin wrapper over the NATIVE, Gate-D-certified PyNuFit method
 ``PyNuFit(analysis_xml).BuildOscTensors`` (``pynu/PyNuFit.py:1468`` ->
-``pynu.binned.builder.build_tensors``). Runs against the production
+``pynu.Experiments.sk_binned_builder.build_tensors``). Runs against the production
 ``AtmosphericOscillations`` object, so propagation, units, flux init, and the
 Dm231_bar->Dm231 convention are inherited from the event engine; the osc
 object's per-event state is snapshotted and restored around the build (even on
@@ -10,12 +10,13 @@ a mid-build exception). Follows the ``ic_build_tensors.py`` pattern: heavy
 imports (``from pynu import PyNuFit``) are deferred into ``main`` so ``--help``
 works without the SK MC + nuSQuIDS environment.
 
-FROZEN-ORIGINAL CONVENTION: the standalone builder at
-``analysis/SuperK-datafit/sk_binned/build_osc_tensors.py`` remains the
-byte-parity reference for Gate D and stays the frozen SLURM entry point until
-Track S E7. It MUST NOT be modified. This wrapper is the native-method
-equivalent for the SK-binned-datafit pipeline; Gate-D certified the two produce
-byte-identical artifacts.
+PROVENANCE: the former standalone builder
+(``analysis/SuperK-datafit/sk_binned/build_osc_tensors.py``) was the Gate-D
+byte-parity reference; Gate D certified this native method produces
+byte-identical artifacts, Track S E7 closed the frozen-original hold, and the
+standalone tree was retired at Track T / T6 (git tag
+``archive/june-standalone-sk-binned`` carries the last copy). This wrapper is
+now the SLURM entry point.
 
 PRODUCTION CONVENTIONS:
   * dCP nodes = ``np.linspace(0, 2*pi, 20, endpoint=False)`` (the 20-node
