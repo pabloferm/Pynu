@@ -4,6 +4,12 @@ import collections
 import numpy as np
 import itertools
 
+# <BinnedEngine> block parsing (Track T / T2, O-2 ruling): the reader attaches
+# the binned-mode configs itself so routing is automatic — PyNuFit consumes
+# ParseXML.BinnedConfigs instead of running a second, independent XML parse.
+# binned_config is stdlib-only, so this adds no import weight.
+from .binned_config import parse_binned_config_root
+
 
 class ParseXML:
     """Class handling the xml input analysis file, reading all the items for the analysis and
@@ -21,6 +27,11 @@ class ParseXML:
         self.check = check
         self.tree = ET.parse(xmlfile)  # create element tree object
         self.root = self.tree.getroot()  # get root element of XML file
+
+        # {experiment_name: BinnedConfig} for every <NeutrinoExperiment> with an
+        # enabled <BinnedEngine> block; {} = toggle-OFF (Track T / T2). Config
+        # parse only — no engine/forward-model code loads here.
+        self.BinnedConfigs = parse_binned_config_root(self.root)
 
         # Declare lists and dicts for Nuisance parameters
         self.NuisanceList = []

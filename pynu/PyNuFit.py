@@ -1392,14 +1392,19 @@ class PyNuFit:
     def _setup_binned_engines(self, analysis_file):
         """Return {experiment_name: BinnedExperiment} for the XML's enabled
         <BinnedEngine> blocks, or {} (the toggle-OFF default). Lazy: no
-        pynu.binned forward-model code runs when the XML has no such block.
+        forward-model code runs when the XML has no such block.
 
         Track S·F / F2: each enabled block becomes a ``BinnedExperiment`` (an
         ``Experiment`` subclass, decision D-2) wrapping the loaded
         ``BinnedBinding``. Per-experiment mode (D-1): only the opted-in
-        experiments are binned; the rest keep their event ``Manager``."""
-        from .analysis_reader.binned_config import parse_binned_config
-        configs = parse_binned_config(analysis_file)
+        experiments are binned; the rest keep their event ``Manager``.
+
+        Track T / T2 (O-2 ruling): the configs come from the analysis READER
+        (``self.Analysis.BinnedConfigs``, attached by ParseXML from its own
+        parsed tree) — the former second, independent XML parse is retired.
+        ``analysis_file`` is still threaded through for ``BinnedBinding.load``
+        (a ``nuisance_spec='self'`` block resolves dials from that XML)."""
+        configs = self.Analysis.BinnedConfigs
         if not configs:
             return {}
         from .fitter.minimizer.binned_fit import BinnedBinding

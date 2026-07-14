@@ -58,12 +58,23 @@ def parse_binned_config(xml_path):
     unreadable XML also yields ``{}`` (parse errors are the main parser's job to
     report); a *present* block missing ``<response>``/``<tensors>`` raises, since
     that is an explicit-but-broken opt-in.
+
+    Track T / T2 (O-2 ruling): the analysis reader now attaches these configs
+    itself (``ParseXML.BinnedConfigs``, from its already-parsed tree via
+    ``parse_binned_config_root``) and PyNuFit consumes them from the reader —
+    this path-based entry stays for standalone/tool use.
     """
-    configs = {}
     try:
         root = ET.parse(xml_path).getroot()
     except Exception:
-        return configs
+        return {}
+    return parse_binned_config_root(root)
+
+
+def parse_binned_config_root(root):
+    """``parse_binned_config`` on an already-parsed ElementTree root — the form
+    the analysis reader uses (it owns the tree; no second file parse)."""
+    configs = {}
     for exp in root.iter("NeutrinoExperiment"):
         block = exp.find("BinnedEngine")
         if block is None:
