@@ -16,10 +16,11 @@ Track S E7. It MUST NOT be modified. This wrapper is the native-method
 equivalent for the SK-binned-datafit pipeline; Gate-D certified the two produce
 byte-identical artifacts.
 
-PRODUCTION DEFAULTS: the production SK response is 400x40 (400 true-E cells x
-40 true-cz cells). The method's own default is n_etrue=200 — pass --n-etrue 400
-to match production. The response npz is a single per-experiment artifact
-(external data), passed downstream by path to the scan worker.
+PRODUCTION DEFAULTS: the production SK response is 400x80 (400 true-E cells x
+80 true-cz cells). The method's own defaults are n_etrue=200 / n_cztrue=40 —
+this wrapper defaults both to production (400/80). The response npz is a single
+per-experiment artifact (external data), passed downstream by path to the scan
+worker.
 
 ENVIRONMENT: a full run needs the SK MC + nuSQuIDS env (FASRC). Local smoke =
 ``python3 build_sk_binned_response.py --help`` only (import is deferred).
@@ -29,7 +30,7 @@ Usage on FASRC (from the staged Pynu root, env sourced):
   export PYNU=$ROOT/backup_pynu/Pynu; export PYTHONPATH=$PYNU:$PYTHONPATH
   python build_sk_binned_response.py \
       --config SK2023_Atm_datafit_r2_fude_ccqe_full.xml \
-      --output sk_response.npz --n-etrue 400 --n-cztrue 40
+      --output sk_response.npz --n-etrue 400 --n-cztrue 80
 """
 import argparse
 import sys
@@ -38,7 +39,7 @@ import sys
 def main():
     ap = argparse.ArgumentParser(
         description="Thin CLI over PyNuFit.BuildBinnedResponse (native "
-                    "Gate-D-certified response builder). Production = 400x40.")
+                    "Gate-D-certified response builder). Production = 400x80.")
     ap.add_argument("--config", required=True,
                     help="FULL PyNuFit analysis XML (experiment blocks + MC)")
     ap.add_argument("--output", required=True,
@@ -46,8 +47,9 @@ def main():
     ap.add_argument("--n-etrue", type=int, default=400,
                     help="true-E grid density (production 400; method default "
                          "200 — this wrapper defaults to production 400)")
-    ap.add_argument("--n-cztrue", type=int, default=40,
-                    help="true-cz grid density (production 40)")
+    ap.add_argument("--n-cztrue", type=int, default=80,
+                    help="true-cz grid density (production 80; method default "
+                         "40 — this wrapper defaults to production 80)")
     ap.add_argument("--exp-name", default=None,
                     help="experiment to build for (default: the single "
                          "experiment, matching the standalone keys()[0])")

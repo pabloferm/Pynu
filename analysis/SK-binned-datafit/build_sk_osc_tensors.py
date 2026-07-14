@@ -43,7 +43,7 @@ Usage on FASRC (from the staged Pynu root, env sourced):
   python build_sk_osc_tensors.py \
       --config SK2023_Atm_datafit_r2_fude_ccqe_full.xml \
       --dm231 2.5e-3 --s23 0.5 --row 10 --col 5 \
-      --outdir /path/to/tensors --n-etrue 400 --n-cztrue 40
+      --outdir /path/to/tensors --n-etrue 400 --n-cztrue 80
 """
 import argparse
 import os
@@ -75,9 +75,10 @@ def main():
     ap.add_argument("--n-etrue", type=int, default=400,
                     help="true-E grid density (MUST match the response build; "
                          "production 400)")
-    ap.add_argument("--n-cztrue", type=int, default=40,
+    ap.add_argument("--n-cztrue", type=int, default=80,
                     help="true-cz grid density (MUST match the response; "
-                         "production 40)")
+                         "production 80; method default 40 — this wrapper "
+                         "defaults to production 80)")
     ap.add_argument("--avg-scale", default=None,
                     help="fast-osc averaging override ('4pi'/'2pi'/'off'/"
                          "float); None -> the active <BinnedEngine> "

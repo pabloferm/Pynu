@@ -69,7 +69,7 @@ if PYNU_DIR not in sys.path:
     sys.path.insert(0, PYNU_DIR)
 
 from pynu import PyNuFit                                    # noqa: E402
-from pynu.binned import BinnedConfig                        # noqa: E402  (S.F1: re-export from analysis_reader.binned_config)
+from pynu.analysis_reader.binned_config import BinnedConfig  # noqa: E402  (functional home since S.F1)
 # The flux-ratio dial set the seed's flux_ratio_sigma applies to (a data list,
 # not a bounds/box transcription — the bounds box now lives behind
 # BinnedExperiment.nuisance_bounds, S.F5 dissolving deviation D2).
