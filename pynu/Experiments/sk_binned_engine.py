@@ -439,15 +439,20 @@ class SKBinnedEngine:
 # --- Track S / Phase E2 θ-order assert: now fires at binned_dials import
 # (Track T / T1) — every vocabulary consumer hits it, engine included.
 
-# --- Track S / Phase E1: structural kernels live in engine_core (native module).
-# Imported at module bottom so engine_core's `from .sk_binned_engine import ...`
-# (dial tables/constants, all defined above) resolves without a circular import;
-# the SKBinnedEngine methods above delegate to `_core` at call time only.
-from . import engine_core as _core  # noqa: E402
-# --- Track S / Phase E4: mask/selector assembly (same bottom-import rationale).
-from . import masks as _masks  # noqa: E402
-# --- Track S / Phase E5a: GridExperiment cell-weight factor sourcing.
-from . import grid_experiment as _grid  # noqa: E402
+# --- Track S / Phase E1 kernels (Track T / T3: co-moved to Experiments/ as
+# sk_binned_engine_core). Imported at module bottom so its
+# `from .sk_binned_engine import ...` (engine attributes defined above)
+# resolves without a circular import; the SKBinnedEngine methods above
+# delegate to `_core` at call time only.
+from . import sk_binned_engine_core as _core  # noqa: E402
+# --- Track S / Phase E4 mask/selector assembly (same bottom-import rationale;
+# T3: co-moved as sk_binned_masks).
+from . import sk_binned_masks as _masks  # noqa: E402
+# --- Track S / Phase E5a cell-weight factor sourcing from the real
+# PhysicsTunes methods (T3 / O-1 ruling: re-homed to
+# pynu/PhysicsTunes/TuneFactorSource.py, top-level sibling of PhysicsTunes.py
+# — it bridges Flux/AtmoFlux AND CrossSection/WaterXSection).
+from ..PhysicsTunes import TuneFactorSource as _grid  # noqa: E402
 # --- Track S / Phase E5b: descriptor detector-factor kernels.
 # (S.F4) re-homed to pynu.PhysicsTunes.Detector.detector (beside SKCombinedDetector).
 from pynu.PhysicsTunes.Detector import detector as _det  # noqa: E402

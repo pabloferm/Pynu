@@ -273,7 +273,7 @@ class BinnedBinding:
         """Build the engine (validates the nuisance spec against the response
         build) + the TensorStore for a BinnedConfig. ``nuisance_spec='self'``
         resolves to the analysis XML path."""
-        from ...binned.sk_binned_engine import SKBinnedEngine
+        from ...Experiments.sk_binned_engine import SKBinnedEngine
         spec = cls._resolve_spec(config, analysis_xml)
         engine = SKBinnedEngine(
             config.response,

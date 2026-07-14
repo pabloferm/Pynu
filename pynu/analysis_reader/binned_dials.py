@@ -423,11 +423,10 @@ DIR_SMEAR_BOX = (0.0, 1.0)         # one-sided s in [0,1] (positivity of A=(1-s)
 #                             xsec_{1,2}p2h/ccqe_subgev_nue).
 import os as _os
 
-# The value XMLs remain package data in pynu/binned/ (they follow the ENGINE's
-# home, not this vocabulary module's — Track T phase T3 moves both together).
-# _ENGINE_DIR therefore anchors to the engine package dir, NOT dirname(__file__).
+# The value XMLs are package data beside the ENGINE (pynu/Experiments/ since
+# Track T phase T3) — _ENGINE_DIR anchors there, NOT at dirname(__file__).
 _ENGINE_DIR = _os.path.abspath(_os.path.join(
-    _os.path.dirname(_os.path.abspath(__file__)), "..", "binned"))
+    _os.path.dirname(_os.path.abspath(__file__)), "..", "Experiments"))
 _REPO_ROOT = _os.path.abspath(_os.path.join(_ENGINE_DIR, "..", ".."))
 
 # ---- value XMLs ship as PACKAGE DATA (Track S, Phase E6 / review N-2) --------

@@ -45,8 +45,8 @@ __all__ = [
 # back-compat. Absolute module paths ('pynu...') are used for symbols that live
 # outside this package; relative paths ('.mod') for in-package submodules.
 _LAZY = {
-    "SKBinnedEngine": ".sk_binned_engine",
-    "resolve_nuisance_spec": ".sk_binned_engine",
+    "SKBinnedEngine": "pynu.Experiments.sk_binned_engine",
+    "resolve_nuisance_spec": "pynu.analysis_reader.binned_dials",
     "PhiInterpolator": "pynu.fitter.inference.interp_engine",
     "detect_grid": "pynu.fitter.inference.interp_engine",
     "BinnedBinding": "pynu.fitter.minimizer.binned_fit",
@@ -59,12 +59,30 @@ _LAZY = {
     "bin_era_from_sample_table": "pynu.PhysicsTunes.Detector.escale_operator",
 }
 
+# (Track T / T3) the resident modules physically moved out of this package
+# (engine trio + builder -> pynu/Experiments/, cell-weight factor sourcing ->
+# pynu/PhysicsTunes/TuneFactorSource.py). ``from pynu.binned import
+# sk_binned_engine`` (the attribute form the historical gate/campaign scripts
+# use) keeps resolving via this map — the whole MODULE is forwarded.
+# The dotted form ``import pynu.binned.sk_binned_engine`` is NOT recoverable
+# by PEP 562 and is gone; in-tree callers were rewired at T3.
+_LAZY_MODULES = {
+    "sk_binned_engine": "pynu.Experiments.sk_binned_engine",
+    "engine_core": "pynu.Experiments.sk_binned_engine_core",
+    "masks": "pynu.Experiments.sk_binned_masks",
+    "builder": "pynu.Experiments.sk_binned_builder",
+    "grid_experiment": "pynu.PhysicsTunes.TuneFactorSource",
+}
+
 
 def __getattr__(name):
+    import importlib
+    target = _LAZY_MODULES.get(name)
+    if target is not None:
+        return importlib.import_module(target)
     module = _LAZY.get(name)
     if module is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-    import importlib
     # relative ('.mod') resolves against this package; absolute passes package=None
     package = __name__ if module.startswith(".") else None
     return getattr(importlib.import_module(module, package), name)

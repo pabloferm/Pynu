@@ -1554,7 +1554,7 @@ class PyNuFit:
           n_etrue, n_cztrue: true-grid density (production 200x40 default; the
             engine's production response uses 400x40 — pass n_etrue=400 to match).
         """
-        from .binned.builder import build_response
+        from .Experiments.sk_binned_builder import build_response
         if exp_name is None:
             exp_name = next(iter(self.Experiments))
         manifest = list(getattr(self.Analysis, "NuisanceList", []))
@@ -1605,7 +1605,7 @@ class PyNuFit:
             current setting) is used.
           out_path: optional npz output path (schema-compatible tensor loader).
         """
-        from .binned.builder import build_tensors
+        from .Experiments.sk_binned_builder import build_tensors
         if exp_name is None:
             exp_name = next(iter(self.Experiments))
         if avg_scale is None:

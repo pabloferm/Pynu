@@ -73,7 +73,7 @@ from pynu.analysis_reader.binned_config import BinnedConfig  # noqa: E402  (func
 # The flux-ratio dial set the seed's flux_ratio_sigma applies to (a data list,
 # not a bounds/box transcription — the bounds box now lives behind
 # BinnedExperiment.nuisance_bounds, S.F5 dissolving deviation D2).
-from pynu.binned.sk_binned_engine import ALL_FLUX_RATIO_NAMES  # noqa: E402
+from pynu.analysis_reader.binned_dials import ALL_FLUX_RATIO_NAMES  # noqa: E402  (dial vocabulary leaf, T.1)
 
 
 # --------------------------------------------------------------------------

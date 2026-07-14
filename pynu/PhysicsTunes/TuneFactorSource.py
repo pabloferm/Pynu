@@ -28,7 +28,9 @@ gradient assembly, to preserve association order / byte-parity).
 """
 import numpy as np
 
-from .sk_binned_engine import (
+# Dial vocabulary from the leaf (Track T / T1+T3) — this module lives in
+# PhysicsTunes now (O-1 ruling) and consumes vocabulary, never the engine.
+from ..analysis_reader.binned_dials import (
     MASK_TUNES,
     SUBGEV_NUE_NORM,
     MULTIGEV_CCQE_NORM,
