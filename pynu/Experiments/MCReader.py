@@ -19,6 +19,9 @@ def Manager(detector, source, dict_of_details, scenario):
                 elif 'Gdtag' in detector:
                     from .SuperK_Atm_Pheno import SuperK_Gdtag
                     return SuperK_Gdtag(dict_of_details, scenario)
+                elif '2023' in detector:
+                    from .SuperK_Atm_Pheno import SuperK_2023
+                    return SuperK_2023(dict_of_details, scenario)
                 else:
                     from .SuperK_Atm_Pheno import SuperK
                     return SuperK(dict_of_details, scenario)
@@ -86,7 +89,7 @@ def reader(filename):
     if extension == '.root':
         sys.exit(
             'Not there yet. Please go to utils/ and convert it to HD5F.\nSupported file types are HDF5 and csv')
-    elif extension == '.HDF5' or extension == '.HDF' or extension == '.hdf' or extension == '.hdf5':
+    elif extension == '.HDF5' or extension == '.HDF' or extension == '.hdf' or extension == '.hdf5' or extension == '.h5':
         fdata = {}
         with h5py.File(filename, 'r') as hf:
             for var in hf.keys():

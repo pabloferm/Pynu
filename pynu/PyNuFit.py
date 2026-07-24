@@ -2,15 +2,15 @@ import sys
 from scipy.optimize import minimize
 import numpy as np
 import h5py
-import analysis_reader as ar  # contains parse class to read and setup the analysis
-import Experiments as Exp  # contains rd class to read and setup each experiment
+from . import analysis_reader as ar  # contains parse class to read and setup the analysis
+from . import Experiments as Exp  # contains rd class to read and setup each experiment
 # contains everything to modify your simulations to help figuring out what
 # you have measured
-from PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
-import fitter as ft  # does all the fitting calculations
+from .PhysicsTunes.PhysicsTunes import PhysicsTunes as PT
+from . import fitter as ft  # does all the fitting calculations
 
-from fitter.inference import mcmc
-from fitter.inference import variational
+from .fitter.inference import mcmc
+from .fitter.inference import variational
 # from fitter.inference.mcmc_cython import run_metropolis_hastings
 
 
@@ -343,6 +343,14 @@ class PyNuFit:
                     # print(x2)
                     # print('Chi2 gradient')
                     # print(dx2)
+            elif method == "HMC":
+                sampler = mcmc.HMC(
+                    self.model_tester,
+                    self.model_tester_gradient,
+                    AnalyticPrior,
+                    num_samples=20, num_steps=10, lf_epsilon=1e-2)
+                all_samples = sampler.hamiltonian_monte_carlo()
+                print(all_samples)
             else:
                 res = minimize(
                     self.model_tester_and_gradient,

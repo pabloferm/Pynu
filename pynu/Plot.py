@@ -1,4 +1,4 @@
-import analysis_reader as ar  # contains parse class to read and setup the analysis
+from . import analysis_reader as ar  # contains parse class to read and setup the analysis
 import h5py
 import numpy as np
 import os
@@ -6,9 +6,9 @@ import sys
 from scipy.interpolate import interp1d, interp2d
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from pynu import PyNuFit
+from . import PyNuFit
 
-plt.style.use(os.environ['PYNU'] + '/../utils/plot.mplstyle')
+# plt.style.use(os.environ['PYNU'] + '/../utils/plot.mplstyle')
 
 
 class Plot:

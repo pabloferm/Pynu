@@ -1,7 +1,7 @@
 from math import asin, sqrt
 import numpy as np
 # import nuSQuIDS as nsq
-from PhysicsTunes import Tune
+from ..PhysicsTunes import Tune
 import sys
 sys.path.append('../')
 
@@ -63,7 +63,7 @@ class Oscillator(Tune):
             dm = self.Parameters[s_dm]
             if 'inverted' in self.Parameters['Ordering'] and s_dm == 'Dm231':
                 dm = self.Parameters['Dm221'] - self.Parameters['Dm231']
-            self.Osc.update_parameter(s_dm.lowe(), dm)
+            self.Osc.update_parameter(s_dm.lower(), dm)
 
         if 'dCP' in self.Parameters:
             self.Osc.update_parameter('dcp', self.Parameters['dCP'])
@@ -75,7 +75,7 @@ class Oscillator(Tune):
         if self.Source in ['Sun', 'Atmospheric']:
             print(self.Source)
             import pychic_earth as pce
-            self.Osc = pce.CHIC_EARTHDIFF_BATCH()
+            self.Osc = pce.CHIC_EARTH_BATCH()
         elif self.Source in ['Accelerator', 'Reactor']:
             print(self.Source)
             import pychic as pc
@@ -84,7 +84,7 @@ class Oscillator(Tune):
     def GetOscillations(self):
         sys.exit('Oscillator not defined.')
 
-    def diff_oscillations(self):
+    def diff_GetOscillations(self, param):
         sys.exit('Oscillator not defined.')
 
     # def NSQNeutrinoType(self, experiment):
@@ -105,13 +105,59 @@ class Oscillator(Tune):
         return self.GetOscillations()
 
     def diff_Sin2Theta12(self, experiment, x):  # Numerical derivation
-        h0 = x * (1 + self.eps)
-        h1 = x * (1 - self.eps)
-        w0 = self.Sin2Theta12(experiment, h0)
-        w1 = self.Sin2Theta12(experiment, h1)
-        dw = ((w0 - w1) / (h0 - h1))
+        self.Osc.update_parameter("theta_12", asin(sqrt(x)))
         self.Parameters['Sin2Theta12'] = x
-        return dw
+        return self.diff_GetOscillations("theta_12")
+
+    def Sin2Theta13(self, experiment, x):
+        self.Osc.update_parameter("theta_13", asin(sqrt(x)))
+        self.Parameters['Sin2Theta13'] = x
+        return self.GetOscillations()
+
+    def diff_Sin2Theta13(self, experiment, x):  # Numerical derivation
+        self.Osc.update_parameter("theta_13", asin(sqrt(x)))
+        self.Parameters['Sin2Theta13'] = x
+        return self.diff_GetOscillations("theta_13")
+
+    def Sin2Theta23(self, experiment, x):
+        self.Osc.update_parameter("theta_23", asin(sqrt(x)))
+        self.Parameters['Sin2Theta23'] = x
+        return self.GetOscillations()
+
+    def diff_Sin2Theta23(self, experiment, x):  # Numerical derivation
+        self.Osc.update_parameter("theta_23", asin(sqrt(x)))
+        self.Parameters['Sin2Theta23'] = x
+        return self.diff_GetOscillations("theta_23")
+
+    def dCP(self, experiment, x):
+        self.Osc.update_parameter("dcp", x)
+        self.Parameters['dCP'] = x
+        return self.GetOscillations()
+
+    def diff_dCP(self, experiment, x):  # Numerical derivation
+        self.Osc.update_parameter("dcp", x)
+        self.Parameters['dCP'] = x
+        return self.diff_GetOscillations("dcp")
+
+    def Dm221(self, experiment, x):
+        self.Osc.update_parameter("dm221", x)
+        self.Parameters['Dm221'] = x
+        return self.GetOscillations()
+
+    def diff_Dm221(self, experiment, x):  # Numerical derivation
+        self.Osc.update_parameter("dm221", x)
+        self.Parameters['Dm221'] = x
+        return self.diff_GetOscillations("dm221")
+
+    def Dm231(self, experiment, x):
+        self.Osc.update_parameter("dm231", x)
+        self.Parameters['Dm231'] = x
+        return self.GetOscillations()
+
+    def diff_Dm231(self, experiment, x):  # Numerical derivation
+        self.Osc.update_parameter("dm231", x)
+        self.Parameters['Dm231'] = x
+        return self.diff_GetOscillations("dm231")
 
     # def Sin2Theta23(self, experiment, x):
     #     self.Osc.Set_MixingAngle(1, 2, asin(sqrt(x)))

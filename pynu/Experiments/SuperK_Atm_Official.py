@@ -105,6 +105,22 @@ class SuperK_I(Experiment):
                 AtmInitialFlux[ic][ie][1][2] = 0.  # nutau bar
 
         return AtmInitialFlux
+    
+    def SetInitialFlux_Array(self, neutrino_flavors=3):
+        flux = nuflux.makeFlux('IPhonda2014_sk_solmin')
+
+        AtmInitialFlux = np.zeros(
+            (len(self.ETrue), neutrino_flavors))
+
+        for i, (nunub, E, cz) in enumerate(zip(self.nuPDG, self.ETrue, self.CosZTrue)):
+            if nunub > 0:
+                AtmInitialFlux[i][0] = flux.getFlux(nuflux.NuE, E, cz)  # nue
+                AtmInitialFlux[i][1] = flux.getFlux(nuflux.NuMu, E, cz)  # numu
+            else:
+                AtmInitialFlux[i][0] = flux.getFlux(nuflux.NuEBar, E, cz)  # nue
+                AtmInitialFlux[i][1] = flux.getFlux(nuflux.NuMuBar, E, cz)  # numu
+
+        return AtmInitialFlux
 
     def DataVariables(self):
         d_itype = self.Data['itype']

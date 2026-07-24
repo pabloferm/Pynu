@@ -87,7 +87,7 @@
 		<target name="Water"> </target>
 		<source name='Atmospheric'>
 			<status> 1 </status>
-			<MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
+			<MCFiles name='/home/pablofm/Pheno/Atmospherics/AtmNuCombination_devel/src/Analysis/MC/ICUp/neutrino_mc.csv'>
 				<status> 1 </status>
 			</MCFiles>
 			<exposure> 5 </exposure> <!-- years-->

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Analysis>
 
-	<Method name="Binned grid-search and profiling">
+	<!-- <Method name="Binned grid-search and profiling">
 		<minimizer name="L-BFGS-B"> </minimizer>
 		<status> 1 </status>
 		<verbosity> 1 </verbosity>
@@ -9,7 +9,7 @@
 		<max_tolerance> 1e-4 </max_tolerance>
 		<min_tolerance> 1e-6 </min_tolerance>
 		<tolerance_threshold> 5e2 </tolerance_threshold>
-	</Method>
+	</Method> -->
 
 	<Method name="Binned inference">
 		<sampler name="HMC"> </sampler>
@@ -46,7 +46,7 @@
 			<distribution> normal </distribution>
 		</nuisance>
 		<physics name='tilt'>
-			<points> 9 </points>
+			<points> 1 </points>
 			<min> 0.9 </min>
 			<max> 1.1 </max>
 			<true> 1.0 </true>
@@ -62,7 +62,7 @@
 	<NeutrinoTarget name="Water">
 		<status> 1 </status>
 		<physics name='XSecNuTau'>
-			<points> 9 </points>
+			<points> 1 </points>
 			<min> 0.75 </min>
 			<max> 1.25 </max>
 			<true> 1.0 </true>
@@ -84,16 +84,16 @@
 <!--Anything common to a given neutrino experiment-->
 
 <!-- IceCube Upgrade -->
-	<NeutrinoExperiment name="SuperK Pheno">
+	<NeutrinoExperiment name="SuperK Pheno 2023">
 		<status> 1 </status>
 		<target name="Water"> </target>
 		<source name='Atmospheric'>
 			<status> 1 </status>
-			<MCFiles name='/home/SuperK.hdf5'>
+			<MCFiles name='/home/pablofm/Pheno/SK-DC/tune_mc/SuperK_fullMC_6_4_x50_inv_flux_tune1_allvariables_strfix_oscw_skphases.h5'>
 				<status> 1 </status>
 			</MCFiles>
-			<exposure> 12 </exposure> <!-- years-->
-			<MCexposure> 279 </MCexposure> <!-- This is total exposure of all the specified MC files-->
+			<exposure> 1 </exposure> <!-- years-->
+			<MCexposure> 50 </MCexposure> <!-- This is total exposure of all the specified MC files-->
 <!-- 	    <MCFiles name='/home/pablofer/Pheno/Atmospherics/MC/IceCubeUpgrade/data/neutrino_mc.csv'>
 				<status> 1 </status>
 			</MCFiles> -->

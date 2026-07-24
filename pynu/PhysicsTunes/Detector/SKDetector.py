@@ -1,4 +1,4 @@
-from PhysicsTunes import Tune
+from ..PhysicsTunes import Tune
 import numpy as np
 # import logging
 from LoggingDecorator import logd

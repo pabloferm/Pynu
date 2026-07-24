@@ -22,15 +22,8 @@ class ParseXML:
         self.tree = ET.parse(xmlfile)  # create element tree object
         self.root = self.tree.getroot()  # get root element of XML file
 
-        """Profiling or marginalization, important to know how to treat analysis parameters:
-        - Profiling: there are physics parameters which form a grid to sample and systematics 
-        which are minimize over for each grid point.
-        - Marginalization: No grids, the only difference is that physics parameters are assummed
-        to have no (flat) prior.
-        Fixed parameters are treated equally.
-        """
-        # Maybe we don't need the previous, it can be handled when calling the fitter.
-        # self.profiling = False
+        # Read description of the analysis method from the XML file 
+        self.analysis_method()
 
         # Declare lists and dicts for Nuisance parameters
         self.NuisanceList = []
@@ -70,77 +63,20 @@ class ParseXML:
         self.n_sphere = False
         self.n_sphere_cut = None
 
-        # Read description of the analysis method from the XML file
-        self.analysis_method()
-
-    @staticmethod
-    def _cast(value: str):
-        """Convert an XML text value to int/float where possible, else leave as string."""
-        value = (value or "").strip()
-        try:
-            return int(value)
-        except ValueError:
-            pass
-        try:
-            return float(value)
-        except ValueError:
-            pass
-        return value
-
     def analysis_method(self) -> None:
-        """Reads the statistical method to be used in the analysis. Expects exactly one
-        active <Method> block in the XML file; exits with an error if zero or more than
-        one are found. Commented-out blocks are automatically ignored, since ElementTree
-        does not expose XML comments as elements.
-        """
-        active_methods = []
-        for method_elem in self.root.findall('.//Method'):
-            status_elem = method_elem.find('status')
-            if status_elem is not None and int(status_elem.text or "0"):
-                active_methods.append(method_elem)
-
-        if len(active_methods) == 0:
-            sys.exit('No active <Method> block found in the XML file. '
-                      'Please enable exactly one Method block.')
-        if len(active_methods) > 1:
-            sys.exit('More than one active <Method> block found in the XML file. '
-                      'Please enable exactly one Method block.')
-
-        method_elem = active_methods[0]
-        name = method_elem.attrib.get('name')
-
-        sampler = None
-        minimizer = None
-        params = {}
-
-        for child in method_elem:
-            if child.tag == 'sampler':
-                sampler = child.attrib.get('name')
-            elif child.tag == 'minimizer':
-                minimizer = child.attrib.get('name')
+        """Reads the statistical method to be used in the analysis."""
+        self.method = self.reader('Method')
+        for m in self.method:
+            self.method_name = m["name"]
+            if "inference" in self.method_name:
+                self.sampler = m["sampler"]
             else:
-                params[child.tag] = self._cast(child.text)
-
-        if sampler is None: # Profiling
-            self.method = {
-                'name': name,
-                'minimizer': minimizer,
-                'params': params,
-            }
-            self.profiling =True
-        elif minimizer is None: # Marginalization
-            self.method = {
-                'name': name,
-                'sampler': sampler,
-                'params': params,
-            }
-        else:
-            sys.exit('No minimizer or sampler has been defined.')
-
-
+                self.minimizer = m["minimizer"]
+            params = m["params"]
         print('------------------------------------')
         print('Analysis method:')
-        print(' + ', self.method)
+        for s in self.method:
+            print(' + ', s)
         print('====================================')
 
 
