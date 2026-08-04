@@ -46,10 +46,13 @@
 			<distribution> normal </distribution>
 		</nuisance>
 		<physics name='tilt'>
-			<points> 1 </points>
-			<min> 0.9 </min>
-			<max> 1.1 </max>
-			<true> 1.0 </true>
+			<points> 1 </points> <!-- P: mandatory, M: no -->
+			<min> 0.9 </min> <!-- P: mandatory, M: optional -->
+			<max> 1.1 </max> <!-- P: mandatory, M: optional -->
+			<true> 1.0 </true> <!-- Mandatory for sensitvity --> 
+			<nominal> 0.02 </nominal> <!-- optional -->
+			<sigma> 0.02 </sigma> <!-- optional -->
+			<distribution> normal </distribution> <!-- optional linked to sigma and nominal -->
 		</physics>
 	</NeutrinoSource>
 

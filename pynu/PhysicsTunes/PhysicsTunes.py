@@ -104,10 +104,7 @@ class Tune:
     def Get(self, tune, exp, x):
         """ Get specific weights for a given `experiment` from tune evaluated
         at `x`, given the name of the `tune`. """
-        # print("====================================")
-        # print(f'tune {tune}')
-        # print(f'exp {exp}')
-        # print(f'x {x}')
+
         try:
             return self.__getattribute__(tune)(exp, x)
         except BaseException:

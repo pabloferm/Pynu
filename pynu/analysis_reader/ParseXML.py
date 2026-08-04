@@ -25,12 +25,42 @@ class ParseXML:
         """Profiling or marginalization, important to know how to treat analysis parameters:
         - Profiling: there are physics parameters which form a grid to sample and systematics 
         which are minimize over for each grid point.
-        - Marginalization: No grids, the only difference is that physics parameters are assummed
-        to have no (flat) prior.
+        - Marginalization: No grids, no difference between physics and nuisance in the analysis.
         Fixed parameters are treated equally.
         """
         # Maybe we don't need the previous, it can be handled when calling the fitter.
-        # self.profiling = False
+        self.profiling = False
+        # Read description of the analysis method from the XML file
+        self.analysis_method()
+
+        if self.profiling:
+            print("We're profiling")
+        else:
+            print("We're marginalizing")
+
+        # Declare lists and dicts for Physics parameters
+        self.PhysicsList = []
+        self.Physics = {}
+        self.PhysTrue = {}
+        self.PhysTrueList = []
+        
+        self.PhysPoints = {}
+        self.PhysPointsList = []
+        self.PhysEdges = {}
+
+        # INCLUDE PRIORS TO PHYSICS PARAMETERS
+        self.PhysNominal = {}
+        self.PhysNominalList = []
+        self.PhysSigma = {}
+        self.PhysSigmaList = []
+        self.PhysDistribution = {}
+        self.PhysDistributionList = []
+
+        # Declare lists and dicts for Fixed parameters
+        self.FixedList = []
+        self.Fixed = {}
+        self.FixedValue = {}
+        self.FixedValueList = []
 
         # Declare lists and dicts for Nuisance parameters
         self.NuisanceList = []
@@ -42,24 +72,7 @@ class ParseXML:
         self.NuisDistribution = {}
         self.NuisDistributionList = []
 
-        # Declare lists and dicts for Physics parameters
-        self.PhysicsList = []
-        self.Physics = {}
-        self.PhysTrue = {}
-        self.PhysTrueList = []
-        self.PhysGrid = {}
-        self.PhysGridList = []
-        self.PhysPoints = {}
-        self.PhysPointsList = []
-        self.PhysEdges = {}
-
-        # Declare lists and dicts for Fixed parameters
-        self.FixedList = []
-        self.Fixed = {}
-        self.FixedValue = {}
-        self.FixedValueList = []
-
-        # Declare lists and dicts for Experiments details and files
+       # Declare lists and dicts for Experiments details and files
         self.MCFiles = {}
         self.MCyears = {}
         self.DataFiles = {}
@@ -67,11 +80,15 @@ class ParseXML:
         self.Experiments = {}
         self.ExpTarget = {}
 
-        self.n_sphere = False
-        self.n_sphere_cut = None
 
-        # Read description of the analysis method from the XML file
-        self.analysis_method()
+        if self.profiling:
+            # If profiling, build the physics grid
+            self.PhysGrid = {}
+            self.PhysGridList = []
+
+            # Check if we want the spherical grid
+            self.n_sphere = False
+            self.n_sphere_cut = None
 
     @staticmethod
     def _cast(value: str):
@@ -87,11 +104,14 @@ class ParseXML:
             pass
         return value
 
+    def _get_key(self, parent, tag):
+        elem = parent.find(tag)
+        return self._cast(elem.text) if elem is not None else None
+
     def analysis_method(self) -> None:
         """Reads the statistical method to be used in the analysis. Expects exactly one
         active <Method> block in the XML file; exits with an error if zero or more than
-        one are found. Commented-out blocks are automatically ignored, since ElementTree
-        does not expose XML comments as elements.
+        one are found.
         """
         active_methods = []
         for method_elem in self.root.findall('.//Method'):
@@ -100,11 +120,9 @@ class ParseXML:
                 active_methods.append(method_elem)
 
         if len(active_methods) == 0:
-            sys.exit('No active <Method> block found in the XML file. '
-                      'Please enable exactly one Method block.')
+            sys.exit('No active Method found in the XML file. ')
         if len(active_methods) > 1:
-            sys.exit('More than one active <Method> block found in the XML file. '
-                      'Please enable exactly one Method block.')
+            sys.exit('More than one active sMethods found in the XML file. ')
 
         method_elem = active_methods[0]
         name = method_elem.attrib.get('name')
@@ -174,6 +192,71 @@ class ParseXML:
         return True
 
     def get_analysis(self) -> None:
+        """ Sets structure and analysis variables from XML file depending on 
+        the type of method, profiling or marginalization.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        
+        if self.profiling:
+            self.get_profiling_analysis()
+        else:
+            self.get_marginalization_analysis()
+
+    def get_marginalization_analysis(self) -> None:
+        """
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.read_sources()
+        self.read_detectors()
+        self.read_experiments()
+        self.read_oscillations()
+
+        # Remove remmanents from profiling grid
+        del self.PhysPoints
+        del self.PhysPointsList
+        del self.PhysEdges
+
+        # Merge Nuisance into Physics to ensure equal treatment in the analysis (marginalization)
+        self.PhysicsList = []
+        self.PhysTrueList = []
+        self.PhysNominalList = []
+        self.PhysSigmaList = []
+        self.PhysDistributionList = []
+
+        for key in self.Physics.keys():
+            self.Physics[key] += self.Nuisance[key]
+            self.PhysTrue[key].update(self.NuisNominal[key])
+            self.PhysNominal[key].update(self.NuisNominal[key])
+            self.PhysSigma[key].update(self.NuisSigma[key])
+            self.PhysDistribution[key].update(self.NuisDistribution[key])
+
+            self.PhysicsList += self.Physics[key]
+            self.PhysTrueList += self.PhysTrue[key].values()
+            self.PhysNominalList += self.PhysNominal[key].values()
+            self.PhysSigmaList += self.PhysSigma[key].values()
+            self.PhysDistributionList += self.PhysDistribution[key].values()
+
+        # Remove nuisances to avoid double counting
+        self.Nuisance = None
+        del self.NuisanceList
+        del self.NuisNominal
+        del self.NuisNominalList
+        del self.NuisSigma
+        del self.NuisSigmaList
+        del self.NuisDistribution
+        del self.NuisDistributionList
+
+    def get_profiling_analysis(self) -> None:
         """Sets all analysis variables, that is all the sources, targets, detectors and oscillation
         parameters of the given analysis. It also computes the number of nuisance and physics parameters,
         in case it is useful at some point.
@@ -499,7 +582,8 @@ class ParseXML:
         itemList = []
         for source in self.root.iter(item):
             if atrib == 'name':
-                if int(source.find('status').text):
+                # if int(source.find('status').text):
+                if self._get_key(source, "status"):
                     sname = source.attrib['name']
                     itemList.append(source.attrib[atrib])
                     if item == 'NeutrinoOscillations':
@@ -537,18 +621,18 @@ class ParseXML:
                                 sys.exit(
                                     'Neutrino mass ordering cannot be a nuisance parameter. Please, test both ordering hypotheses.')
                             else:
-                                self.NuisSigma[sname][s] = float(
-                                    nuis.find('sigma').text)
+                                self.NuisSigma[sname][s] = self._get_key(
+                                    nuis, 'sigma')
                                 self.NuisSigmaList.append(
-                                    float(nuis.find('sigma').text))
-                                self.NuisNominal[sname][s] = float(
-                                    nuis.find('nominal').text)
+                                    self._get_key(nuis, 'sigma'))
+                                self.NuisNominal[sname][s] = self._get_key(
+                                    nuis, 'nominal')
                                 self.NuisNominalList.append(
-                                    float(nuis.find('nominal').text))
-                                self.NuisDistribution[sname][s] = str(
-                                    nuis.find('distribution').text).strip()
+                                    self._get_key(nuis, 'nominal'))
+                                self.NuisDistribution[sname][s] = self._get_key(
+                                    nuis, 'distribution') # .strip()
                                 self.NuisDistributionList.append(
-                                    str(nuis.find('distribution').text).strip())
+                                    self._get_key(nuis, 'distribution'))
                                 self.Nuisance[sname].append(s)
                                 self.NuisanceList.append(s)
                     self.Fixed[sname] = []
@@ -564,33 +648,36 @@ class ParseXML:
                                 self.Fixed[sname].append(s)
                                 self.FixedList = np.append(self.FixedList, s)
                             else:
-                                self.FixedValue[sname][s] = float(
-                                    fix.find('value').text)
+                                self.FixedValue[sname][s] = self._get_key(
+                                    fix, 'value')
                                 self.FixedValueList.append(
-                                    float(fix.find('value').text))
+                                    self._get_key(fix, 'value'))
                                 self.Fixed[sname].append(s)
                                 self.FixedList.append(s)
                     self.Physics[sname] = []
                     self.PhysTrue[sname] = {}
+                    self.PhysNominal[sname] = {}
+                    self.PhysSigma[sname] = {}
+                    self.PhysDistribution[sname] = {}
                     self.PhysPoints[sname] = []
                     self.PhysEdges[sname] = []
                     for phys in source.findall('physics'):
                         s = phys.attrib['name']
                         if s == 'Ordering':
-                            points = int(phys.find('points').text)
+                            points = self._get_key(phys, 'points')
                             no = 0
                             io = 0
-                            if 'norm' in phys.find(
-                                    'min').text or 'norm' in phys.find('max').text:
+                            if 'norm' in self._get_key(phys, 
+                                    'min') or 'norm' in self._get_key(phys, 'max'):
                                 no = 1
-                            if 'inv' in phys.find(
-                                    'min').text or 'inv' in phys.find('max').text:
+                            if 'inv' in self._get_key(phys, 
+                                    'min') or 'inv' in self._get_key(phys, 'max'):
                                 io = 1
-                            if io + no == 2 and points == 2:
+                            if io + no == 2 and points == 2 or (io + no == 0 or points == 0): # If no MO is specified, assume both
                                 self.PhysTrue[sname][s] = phys.find(
                                     'true').text
                                 self.PhysTrueList.append(
-                                    phys.find('true').text)
+                                    self._get_key(phys, 'true'))
                                 self.PhysPoints[sname].append(2)
                                 self.PhysPointsList.append(2)
                                 self.PhysEdges[sname].append(
@@ -612,41 +699,41 @@ class ParseXML:
                                     'Notice: Parameter ' +
                                     str(s) +
                                     ' has been moved to fixed.')
-                            elif io + no == 0 or points == 0:
-                                sys.exit(
-                                    'Please, specify a neutrino mass ordering')
                             else:
                                 sys.exit(
                                     'Please, take a look to the Ordering, something is not well defined.')
                         else:
-                            if float(
-                                    phys.find('min').text) == float(
-                                    phys.find('max').text) or int(
-                                    phys.find('points').text) <= 1:  # this parameter should be fixed
-                                self.FixedValue[sname][s] = float(
-                                    phys.find('true').text)
+                            if self.profiling and (self._get_key(phys, 'min') == self._get_key(phys, 'max') or
+                                    self._get_key(phys, 'points') <= 1):  # this parameter should be fixed
+                                self.FixedValue[sname][s] = self._get_key(phys, 'true')
                                 self.FixedValueList.append(
-                                    float(phys.find('true').text))
+                                    self._get_key(phys, 'true'))
                                 self.Fixed[sname].append(s)
                                 self.FixedList.append(s)
                                 print(
                                     'Notice: Parameter ' +
                                     str(s) +
                                     ' has been moved to fixed.')
-                            elif float(phys.find('min').text) == float(phys.find('max').text):
-                                sys.exit('Please, check parameter ' + str(s))
                             else:
-                                self.PhysTrue[sname][s] = float(
-                                    phys.find('true').text)
-                                self.PhysTrueList.append(
-                                    float(phys.find('true').text))
-                                self.PhysPoints[sname].append(
-                                    int(phys.find('points').text))
-                                self.PhysPointsList.append(
-                                    int(phys.find('points').text))
+                                self.PhysTrue[sname][s] = self._get_key(phys, 'true')
+                                self.PhysTrueList.append(self._get_key(phys, 'true'))
+                                self.PhysPoints[sname].append(self._get_key(phys, 'points'))
+                                self.PhysPointsList.append(self._get_key(phys, 'points'))
                                 self.PhysEdges[sname].append([
-                                    float(phys.find('min').text),
-                                    float(phys.find('max').text)])
+                                    self._get_key(phys, 'min'),
+                                    self._get_key(phys, 'max')])
+                                self.PhysSigma[sname][s] = self._get_key(
+                                    phys, 'sigma')
+                                self.PhysSigmaList.append(
+                                    self._get_key(phys, 'sigma'))
+                                self.PhysNominal[sname][s] = self._get_key(
+                                    phys, 'nominal')
+                                self.PhysNominalList.append(
+                                    self._get_key(phys, 'nominal'))
+                                self.PhysDistribution[sname][s] = self._get_key(
+                                    phys, 'distribution') # .strip()
+                                self.PhysDistributionList.append(
+                                    self._get_key(phys, 'distribution'))
                                 self.Physics[sname].append(s)
                                 self.PhysicsList.append(s)
             else:

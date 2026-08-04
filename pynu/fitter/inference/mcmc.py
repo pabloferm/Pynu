@@ -11,7 +11,7 @@ class MCMC:
 
     def __init__(
             self,
-            neg_log_likelihood, initial_values, sigma=0.1, num_samples=100):
+            neg_log_likelihood, initial_values, sigma=0.1, burn_in= 10, num_samples=100):
 
         self.num_samples = num_samples
         self.dim = len(initial_values)
@@ -60,6 +60,7 @@ class HMC(MCMC):
         grad_neg_log_likelihood,
         initial_values,
         sigma=0.1,
+        burn_in=5,
         num_steps=10,
         num_samples=100,
         lf_epsilon=5e-3,
@@ -70,6 +71,7 @@ class HMC(MCMC):
             neg_log_likelihood,
             initial_values,
             sigma=sigma,
+            burn_in=burn_in,
             num_samples=num_samples)
 
         self.lf_epsilon = lf_epsilon
@@ -87,14 +89,16 @@ class HMC(MCMC):
             self.grad_neg_log_likelihood(q_new) / 2.0
         return q_new, p_new
 
-    def kinetic_energy(self, p):
-        # Kinetic energy: 0.5 * p^T * p
+    def kinetic_energy(self, q, p):
+        # Kinetic energy: 0.5 * p^T * g * p, g Fisher information at point
         # Include mass term
-        return 0.5 * np.dot(p, p)
+        pM = np.dot(p, self.grad_neg_log_likelihood(q))
+        return 0.5 * pM**2
+        # return 0.5 * np.dot(p, p)
 
     def hamiltonian(self, q, p):
         # Hamiltonian: potential energy + kinetic energy
-        return self.neg_log_likelihood(q) + self.kinetic_energy(p)
+        return self.neg_log_likelihood(q) + self.kinetic_energy(q, p)
 
     def hamiltonian_monte_carlo(self):
         all_samples = []
@@ -180,7 +184,7 @@ class tHMC(HMC):
         self.t_alpha = 1 / self.t_alpha
         return q_new, p_new
 
-    def kinetic_energy(self, p):
-        # Kinetic energy: 0.5 * p^T * p
-        # Include mass term
-        return 0.5 * np.dot(p, p)
+    # def kinetic_energy(self, p):
+    #     # Kinetic energy: 0.5 * p^T * p
+    #     # Include mass term
+    #     return 0.5 * np.dot(p, p)
