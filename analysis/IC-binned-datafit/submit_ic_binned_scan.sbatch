@@ -82,14 +82,33 @@ echo "phi       : ${PHI}"
 echo "hs dir    : ${HS_DIR}"
 echo "out       : ${OUT}"
 
+# OBSERVED_NPZ (optional): explicit 200-bin observation for XMLs whose
+# <DataFiles> block is disabled — the worker refuses to self-fit Asimov MC
+# without it (load_observation guard). Build it from the real data with
+# pynu.Experiments.ic_binned_support.observed_200.
+OBS_ARGS=()
+if [[ -n "${OBSERVED_NPZ:-}" ]]; then
+    [[ -f "${OBSERVED_NPZ}" ]] || { echo "PREFLIGHT FAIL: missing OBSERVED_NPZ ${OBSERVED_NPZ}" >&2; exit 64; }
+    OBS_ARGS=(--observed-npz "${OBSERVED_NPZ}")
+fi
+
 python3 -u "${ANALYSIS_DIR}/run_ic_binned_fit_worker.py" \
     --row "${SLURM_ARRAY_TASK_ID}" \
     --config   "${CONFIG}" \
     --response "${RESPONSE}" \
     --phi      "${PHI}" \
     --hs-dir   "${HS_DIR}" \
+    ${OBS_ARGS[@]+"${OBS_ARGS[@]}"} \
     --ndm ${NDM}   --dm-min ${DM_MIN}   --dm-max ${DM_MAX} \
     --ns23 ${NS23} --s23-min ${S23_MIN} --s23-max ${S23_MAX} \
     --tag "${TAG}" --outdir "${OUT}"
+rc=$?
+# propagate the worker's exit code — a guard abort must FAIL the task, not
+# masquerade as COMPLETED (job 39856508 lesson: 20/20 tasks exited 0 with
+# zero output because this echo was the last command).
+if (( rc != 0 )); then
+    echo "=== task ${SLURM_ARRAY_TASK_ID} FAILED rc=${rc} $(date) ===" >&2
+    exit "${rc}"
+fi
 
 echo "=== task ${SLURM_ARRAY_TASK_ID} done $(date) ==="
