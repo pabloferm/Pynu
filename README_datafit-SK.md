@@ -228,3 +228,16 @@ repo. Treat event-engine results as authoritative until the gates pass.
   `|S1`-encoded files, disabling every CC xsec systematic; the WMC/variance
   fixes make the BB variance consistent with the model weight
   `BaseWeight = Weight × NORM × WMC`.
+
+## 5. Binned engines: IC DeepCore & ORCA
+
+The binned forward-engine approach was extended to IC DeepCore and ORCA as
+per-experiment response-matrix engines with analytic dial gradients
+(`pynu/Experiments/{ic,orca}_binned_engine.py` + per-experiment satellites; the
+only shared module is the 85-line neutral kernel `binned_contract.py`). The
+engines are pynu-free at fit time (npz artifacts in, oscillated flux φ and — for
+IC — hypersurface slopes passed as data) and stat-only: the Gaussian prior is
+owned by the fit drivers. Build + scan pipelines with per-experiment READMEs:
+`analysis/ORCA-binned-datafit/`, `analysis/IC-binned-datafit/`. Certification
+battery and reference values: `test/binned_icorca/`. Provenance and certified
+tolerances: `pynu/Experiments/PROVENANCE_icorca_binned.md`.

@@ -147,3 +147,12 @@ dmypy.json
 !data/IceCube/IC_data.parquet
 !data/IceCube/IC_MC.parquet
 !data/ORCAFull/ORCA_full_MC.parquet
+
+# IC/ORCA binned-engine build products — rebuilt from data/ via analysis/*-binned-datafit/
+ic_response_*.npz
+orca_binned_response_*.npz
+*_phi_*.npz
+analysis/ORCA-binned-datafit/results/
+analysis/IC-binned-datafit/results/
+analysis/ORCA-binned-datafit/logs/
+analysis/IC-binned-datafit/logs/
