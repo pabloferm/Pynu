@@ -20,12 +20,12 @@
 # ============================================================================
 
 # ---- grid (parameterize here; must match the tensor build) ------------------
-NDM=20
-NS23=20
-DM_MIN=2.3e-3
-DM_MAX=2.7e-3
-S23_MIN=0.40
-S23_MAX=0.65
+NDM=${NDM:-20}
+NS23=${NS23:-20}
+DM_MIN=${DM_MIN:-2.3e-3}
+DM_MAX=${DM_MAX:-2.7e-3}
+S23_MIN=${S23_MIN:-0.40}
+S23_MAX=${S23_MAX:-0.65}
 
 # ---- roots (override any via --export) --------------------------------------
 # PYNU_TREE = the Pynu checkout that carries this analysis dir + pynu/Experiments.
