@@ -1,0 +1,836 @@
+{
+  "all_pass": true,
+  "worst_g1_rel": 4.490910190275778e-08,
+  "worst_g1_dial": "solar_activity@theta0",
+  "summary": {
+    "response": "claude/2-atmospheric-oscillation/multi-experiment-systematics/ic_response_modeaxis_L3.npz",
+    "grid": "L3",
+    "n_cell": 127757,
+    "n_entry": 330097,
+    "n_dials": 39,
+    "n_cell_dials": 33,
+    "hs_dials": [
+      "dom_eff",
+      "hole_ice_p0",
+      "hole_ice_p1",
+      "bulk_ice_abs",
+      "bulk_ice_scatter"
+    ],
+    "pinned": [
+      "nunubar_ratio"
+    ],
+    "few_bins": 200,
+    "norm": 1.0,
+    "mu_total": 512.1659999999999,
+    "ccqe_shape_subgev_mu": -1.0164880658631577
+  },
+  "inert": {
+    "flux_nuebar_subgev": 0.0,
+    "flux_flavor_subgev": 0.0,
+    "flux_numubar_subgev": 0.0
+  },
+  "pinned": {
+    "nunubar_ratio": 0.0
+  },
+  "muon_jacobian_invariant": true,
+  "rows": [
+    {
+      "theta": 0,
+      "dial": "normalization_below1GeV",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 0,
+      "dial": "normalization_above1GeV",
+      "analytic": 0.0,
+      "fd": -9.073479453313346e-09,
+      "rel": 9.073479453313346e-09
+    },
+    {
+      "theta": 0,
+      "dial": "flavor_ratio",
+      "analytic": 0.0,
+      "fd": -3.141266219626185e-08,
+      "rel": 3.141266219626185e-08
+    },
+    {
+      "theta": 0,
+      "dial": "tilt",
+      "analytic": 0.0,
+      "fd": -2.155392184177707e-08,
+      "rel": 2.155392184177707e-08
+    },
+    {
+      "theta": 0,
+      "dial": "zenith_up",
+      "analytic": 0.0,
+      "fd": 9.876978701786379e-09,
+      "rel": 9.876978701786379e-09
+    },
+    {
+      "theta": 0,
+      "dial": "zenith_down",
+      "analytic": 0.0,
+      "fd": 2.7977741284149654e-08,
+      "rel": 2.7977741284149654e-08
+    },
+    {
+      "theta": 0,
+      "dial": "solar_activity",
+      "analytic": 0.0,
+      "fd": -4.490910190275778e-08,
+      "rel": 4.490910190275778e-08
+    },
+    {
+      "theta": 0,
+      "dial": "kpi_ratio",
+      "analytic": 0.0,
+      "fd": 1.3466925780543834e-08,
+      "rel": 1.3466925780543834e-08
+    },
+    {
+      "theta": 0,
+      "dial": "flux_horizvert",
+      "analytic": 0.0,
+      "fd": -9.961646127489935e-09,
+      "rel": 9.961646127489935e-09
+    },
+    {
+      "theta": 0,
+      "dial": "flux_nuebar_subgev",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 0,
+      "dial": "flux_nuebar_mid",
+      "analytic": 0.0,
+      "fd": 8.692132858722277e-09,
+      "rel": 8.692132858722277e-09
+    },
+    {
+      "theta": 0,
+      "dial": "flux_nuebar_high",
+      "analytic": 0.0,
+      "fd": -8.003906420741188e-09,
+      "rel": 8.003906420741188e-09
+    },
+    {
+      "theta": 0,
+      "dial": "flux_flavor_subgev",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 0,
+      "dial": "flux_flavor_mid",
+      "analytic": 0.0,
+      "fd": -2.0149282904486912e-08,
+      "rel": 2.0149282904486912e-08
+    },
+    {
+      "theta": 0,
+      "dial": "flux_flavor_high",
+      "analytic": 0.0,
+      "fd": 1.4599666780789703e-08,
+      "rel": 1.4599666780789703e-08
+    },
+    {
+      "theta": 0,
+      "dial": "flux_numubar_subgev",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 0,
+      "dial": "flux_numubar_mid",
+      "analytic": 0.0,
+      "fd": 4.549613292283198e-09,
+      "rel": 4.549613292283198e-09
+    },
+    {
+      "theta": 0,
+      "dial": "flux_numubar_high",
+      "analytic": 0.0,
+      "fd": -2.455962829527282e-08,
+      "rel": 2.455962829527282e-08
+    },
+    {
+      "theta": 0,
+      "dial": "XSecNuTau",
+      "analytic": 0.0,
+      "fd": -2.1593851155610997e-08,
+      "rel": 2.1593851155610997e-08
+    },
+    {
+      "theta": 0,
+      "dial": "NCoverCC",
+      "analytic": 0.0,
+      "fd": -2.233291495889559e-09,
+      "rel": 2.233291495889559e-09
+    },
+    {
+      "theta": 0,
+      "dial": "NCHad",
+      "analytic": 0.0,
+      "fd": -2.233291495889559e-09,
+      "rel": 2.233291495889559e-09
+    },
+    {
+      "theta": 0,
+      "dial": "AxialMass",
+      "analytic": 0.0,
+      "fd": 4.069097659906691e-08,
+      "rel": 4.069097659906691e-08
+    },
+    {
+      "theta": 0,
+      "dial": "DIS",
+      "analytic": 0.0,
+      "fd": 2.251925199772108e-08,
+      "rel": 2.251925199772108e-08
+    },
+    {
+      "theta": 0,
+      "dial": "CCQE",
+      "analytic": 0.0,
+      "fd": 3.911290786868928e-09,
+      "rel": 3.911290786868928e-09
+    },
+    {
+      "theta": 0,
+      "dial": "CCQENuBarNu",
+      "analytic": 0.0,
+      "fd": -5.692575984064172e-09,
+      "rel": 5.692575984064172e-09
+    },
+    {
+      "theta": 0,
+      "dial": "CCQEMuE",
+      "analytic": 0.0,
+      "fd": 7.180798455183355e-09,
+      "rel": 7.180798455183355e-09
+    },
+    {
+      "theta": 0,
+      "dial": "CC1PiProduction",
+      "analytic": 0.0,
+      "fd": -3.725981383238125e-08,
+      "rel": 3.725981383238125e-08
+    },
+    {
+      "theta": 0,
+      "dial": "CC1Pi_NuBarNuE",
+      "analytic": 0.0,
+      "fd": -2.2624621896860637e-08,
+      "rel": 2.2624621896860637e-08
+    },
+    {
+      "theta": 0,
+      "dial": "CC1Pi_NuBarNuMu",
+      "analytic": 0.0,
+      "fd": 2.5199090409085367e-08,
+      "rel": 2.5199090409085367e-08
+    },
+    {
+      "theta": 0,
+      "dial": "xsec_ccqe_shape",
+      "analytic": 0.0,
+      "fd": -3.329419987140094e-08,
+      "rel": 3.329419987140094e-08
+    },
+    {
+      "theta": 0,
+      "dial": "xsec_ccqe_shape_subgev",
+      "analytic": 0.0,
+      "fd": 3.428765850972944e-10,
+      "rel": 3.428765850972944e-10
+    },
+    {
+      "theta": 0,
+      "dial": "xsec_ccqe_multigev_nue",
+      "analytic": 0.0,
+      "fd": -1.4190666949226757e-08,
+      "rel": 1.4190666949226757e-08
+    },
+    {
+      "theta": 0,
+      "dial": "xsec_ccqe_multigev_numu",
+      "analytic": 0.0,
+      "fd": 7.201228443061249e-09,
+      "rel": 7.201228443061249e-09
+    },
+    {
+      "theta": 0,
+      "dial": "dom_eff",
+      "analytic": 0.0,
+      "fd": 4.0776006696749916e-08,
+      "rel": 4.0776006696749916e-08
+    },
+    {
+      "theta": 0,
+      "dial": "hole_ice_p0",
+      "analytic": 0.0,
+      "fd": -4.0285207427624805e-08,
+      "rel": 4.0285207427624805e-08
+    },
+    {
+      "theta": 0,
+      "dial": "hole_ice_p1",
+      "analytic": 0.0,
+      "fd": -7.298892667133301e-09,
+      "rel": 7.298892667133301e-09
+    },
+    {
+      "theta": 0,
+      "dial": "bulk_ice_abs",
+      "analytic": 0.0,
+      "fd": 2.988833991890814e-08,
+      "rel": 2.988833991890814e-08
+    },
+    {
+      "theta": 0,
+      "dial": "bulk_ice_scatter",
+      "analytic": 0.0,
+      "fd": -1.0352074663342637e-08,
+      "rel": 1.0352074663342637e-08
+    },
+    {
+      "theta": 1,
+      "dial": "normalization_below1GeV",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 1,
+      "dial": "normalization_above1GeV",
+      "analytic": -13571.781221680576,
+      "fd": -13571.78122165357,
+      "rel": 1.9899035530691295e-12
+    },
+    {
+      "theta": 1,
+      "dial": "flavor_ratio",
+      "analytic": -2187.985105094014,
+      "fd": -2187.985105130489,
+      "rel": 1.6670511230503594e-11
+    },
+    {
+      "theta": 1,
+      "dial": "tilt",
+      "analytic": -76346.3201044938,
+      "fd": -76346.32010454367,
+      "rel": 6.531999632637863e-13
+    },
+    {
+      "theta": 1,
+      "dial": "zenith_up",
+      "analytic": 1960.4918486311326,
+      "fd": 1960.4918486220413,
+      "rel": 4.637259290474552e-12
+    },
+    {
+      "theta": 1,
+      "dial": "zenith_down",
+      "analytic": 1498.5749860413216,
+      "fd": 1498.574986044332,
+      "rel": 2.0088600776760432e-12
+    },
+    {
+      "theta": 1,
+      "dial": "solar_activity",
+      "analytic": 0.0005446289639488548,
+      "fd": 0.0005446319543504311,
+      "rel": 2.990401576320398e-09
+    },
+    {
+      "theta": 1,
+      "dial": "kpi_ratio",
+      "analytic": -41527.357373699495,
+      "fd": -41527.35737372666,
+      "rel": 6.542295838104475e-13
+    },
+    {
+      "theta": 1,
+      "dial": "flux_horizvert",
+      "analytic": 384.38548623778183,
+      "fd": 384.3854862122953,
+      "rel": 6.630464356302766e-11
+    },
+    {
+      "theta": 1,
+      "dial": "flux_nuebar_subgev",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 1,
+      "dial": "flux_nuebar_mid",
+      "analytic": 0.0008091974836216163,
+      "fd": 0.0008091981032650129,
+      "rel": 6.196433965975981e-10
+    },
+    {
+      "theta": 1,
+      "dial": "flux_nuebar_high",
+      "analytic": 474.63522521274393,
+      "fd": 474.6352252151923,
+      "rel": 5.1584029315621785e-12
+    },
+    {
+      "theta": 1,
+      "dial": "flux_flavor_subgev",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 1,
+      "dial": "flux_flavor_mid",
+      "analytic": -0.00568539401622775,
+      "fd": -0.0056853931103736,
+      "rel": 9.058541495035599e-10
+    },
+    {
+      "theta": 1,
+      "dial": "flux_flavor_high",
+      "analytic": -1931.5809108660396,
+      "fd": -1931.5809108392216,
+      "rel": 1.3883986296929777e-11
+    },
+    {
+      "theta": 1,
+      "dial": "flux_numubar_subgev",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 1,
+      "dial": "flux_numubar_mid",
+      "analytic": 0.0014278351885928364,
+      "fd": 0.0014278538174039568,
+      "rel": 1.862881112042747e-08
+    },
+    {
+      "theta": 1,
+      "dial": "flux_numubar_high",
+      "analytic": 292.37083276679994,
+      "fd": 292.37083274248715,
+      "rel": 8.315734736598909e-11
+    },
+    {
+      "theta": 1,
+      "dial": "XSecNuTau",
+      "analytic": -5523.281885445326,
+      "fd": -5523.28188544531,
+      "rel": 2.963981374018324e-15
+    },
+    {
+      "theta": 1,
+      "dial": "NCoverCC",
+      "analytic": -10629.698028959614,
+      "fd": -10629.698028894078,
+      "rel": 6.16540272754786e-12
+    },
+    {
+      "theta": 1,
+      "dial": "NCHad",
+      "analytic": -10286.521683284911,
+      "fd": -10286.521683294342,
+      "rel": 9.168755336123263e-13
+    },
+    {
+      "theta": 1,
+      "dial": "AxialMass",
+      "analytic": -472.15713806480693,
+      "fd": -472.1571380637594,
+      "rel": 2.2185633517321e-12
+    },
+    {
+      "theta": 1,
+      "dial": "DIS",
+      "analytic": -10188.429993752232,
+      "fd": -10188.429993764568,
+      "rel": 1.2108230750368805e-12
+    },
+    {
+      "theta": 1,
+      "dial": "CCQE",
+      "analytic": -163.0948569628232,
+      "fd": -163.0948569485136,
+      "rel": 8.773784778682833e-11
+    },
+    {
+      "theta": 1,
+      "dial": "CCQENuBarNu",
+      "analytic": -158.51651409815045,
+      "fd": -158.51651409396558,
+      "rel": 2.640021050091245e-11
+    },
+    {
+      "theta": 1,
+      "dial": "CCQEMuE",
+      "analytic": -166.7785173981643,
+      "fd": -166.778517435849,
+      "rel": 2.2595664354967426e-10
+    },
+    {
+      "theta": 1,
+      "dial": "CC1PiProduction",
+      "analytic": -13481.973796807797,
+      "fd": -13481.973796828204,
+      "rel": 1.513668727288434e-12
+    },
+    {
+      "theta": 1,
+      "dial": "CC1Pi_NuBarNuE",
+      "analytic": -592.8548987765175,
+      "fd": -592.8548988034285,
+      "rel": 4.5392093576752656e-11
+    },
+    {
+      "theta": 1,
+      "dial": "CC1Pi_NuBarNuMu",
+      "analytic": -2558.4478301934932,
+      "fd": -2558.4478302436637,
+      "rel": 1.9609724161982175e-11
+    },
+    {
+      "theta": 1,
+      "dial": "xsec_ccqe_shape",
+      "analytic": -1260.2912622486251,
+      "fd": -1260.291262285591,
+      "rel": 2.933128119857823e-11
+    },
+    {
+      "theta": 1,
+      "dial": "xsec_ccqe_shape_subgev",
+      "analytic": -1.7386119403952652e-08,
+      "fd": -1.5537201155287523e-08,
+      "rel": 1.8489182486651291e-09
+    },
+    {
+      "theta": 1,
+      "dial": "xsec_ccqe_multigev_nue",
+      "analytic": -0.8600409545582399,
+      "fd": -0.8600409523751296,
+      "rel": 2.1831103591551937e-09
+    },
+    {
+      "theta": 1,
+      "dial": "xsec_ccqe_multigev_numu",
+      "analytic": -160.98794930141273,
+      "fd": -160.98794930864338,
+      "rel": 4.4914252528857765e-11
+    },
+    {
+      "theta": 1,
+      "dial": "dom_eff",
+      "analytic": -206.0226157309839,
+      "fd": -206.02261572014888,
+      "rel": 5.2591358945294907e-11
+    },
+    {
+      "theta": 1,
+      "dial": "hole_ice_p0",
+      "analytic": 71.08069451710696,
+      "fd": 71.0806944905092,
+      "rel": 3.741910603042e-10
+    },
+    {
+      "theta": 1,
+      "dial": "hole_ice_p1",
+      "analytic": 42.76020441816102,
+      "fd": 42.760204438726156,
+      "rel": 4.80941080499058e-10
+    },
+    {
+      "theta": 1,
+      "dial": "bulk_ice_abs",
+      "analytic": -27.885526615636245,
+      "fd": -27.88552664692922,
+      "rel": 1.1221941024092552e-09
+    },
+    {
+      "theta": 1,
+      "dial": "bulk_ice_scatter",
+      "analytic": -15.275651584978617,
+      "fd": -15.275651564555423,
+      "rel": 1.3369769346001162e-09
+    },
+    {
+      "theta": 2,
+      "dial": "normalization_below1GeV",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 2,
+      "dial": "normalization_above1GeV",
+      "analytic": 3942.679430595765,
+      "fd": 3942.6794305647636,
+      "rel": 7.863051434425688e-12
+    },
+    {
+      "theta": 2,
+      "dial": "flavor_ratio",
+      "analytic": 395.71577431342905,
+      "fd": 395.7157743278828,
+      "rel": 3.652557613742769e-11
+    },
+    {
+      "theta": 2,
+      "dial": "tilt",
+      "analytic": 22063.039205397166,
+      "fd": 22063.03920539241,
+      "rel": 2.1551148310096564e-13
+    },
+    {
+      "theta": 2,
+      "dial": "zenith_up",
+      "analytic": -662.9232104791729,
+      "fd": -662.9232104957813,
+      "rel": 2.5053273400236234e-11
+    },
+    {
+      "theta": 2,
+      "dial": "zenith_down",
+      "analytic": -519.5745461482074,
+      "fd": -519.5745461579075,
+      "rel": 1.866931728401764e-11
+    },
+    {
+      "theta": 2,
+      "dial": "solar_activity",
+      "analytic": -0.0001240168212760466,
+      "fd": -0.00012402433450612685,
+      "rel": 7.51323008023547e-09
+    },
+    {
+      "theta": 2,
+      "dial": "kpi_ratio",
+      "analytic": 11564.862141325579,
+      "fd": 11564.862141311945,
+      "rel": 1.178857595792283e-12
+    },
+    {
+      "theta": 2,
+      "dial": "flux_horizvert",
+      "analytic": -545.9287128474095,
+      "fd": -545.9287128335669,
+      "rel": 2.5356100022608233e-11
+    },
+    {
+      "theta": 2,
+      "dial": "flux_nuebar_subgev",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 2,
+      "dial": "flux_nuebar_mid",
+      "analytic": -0.0001702071131497803,
+      "fd": -0.00017020601943664392,
+      "rel": 1.0937131363878035e-09
+    },
+    {
+      "theta": 2,
+      "dial": "flux_nuebar_high",
+      "analytic": -91.45211325757096,
+      "fd": -91.45211325488845,
+      "rel": 2.9332422126087024e-11
+    },
+    {
+      "theta": 2,
+      "dial": "flux_flavor_subgev",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 2,
+      "dial": "flux_flavor_mid",
+      "analytic": 0.0012503051097937368,
+      "fd": 0.0012502956349087558,
+      "rel": 9.474884980981493e-09
+    },
+    {
+      "theta": 2,
+      "dial": "flux_flavor_high",
+      "analytic": 553.3757292152175,
+      "fd": 553.3757292096197,
+      "rel": 1.0115572874386955e-11
+    },
+    {
+      "theta": 2,
+      "dial": "flux_numubar_subgev",
+      "analytic": 0.0,
+      "fd": 0.0,
+      "rel": 0.0
+    },
+    {
+      "theta": 2,
+      "dial": "flux_numubar_mid",
+      "analytic": -0.0003159926634279146,
+      "fd": -0.0003159969471274356,
+      "rel": 4.283699520969686e-09
+    },
+    {
+      "theta": 2,
+      "dial": "flux_numubar_high",
+      "analytic": -335.55938485233867,
+      "fd": -335.5593848488724,
+      "rel": 1.0329780644562592e-11
+    },
+    {
+      "theta": 2,
+      "dial": "XSecNuTau",
+      "analytic": 2022.1351976635115,
+      "fd": 2022.135197664027,
+      "rel": 2.549068543118495e-13
+    },
+    {
+      "theta": 2,
+      "dial": "NCoverCC",
+      "analytic": 2720.267247240714,
+      "fd": 2720.2672472482213,
+      "rel": 2.7598111999396477e-12
+    },
+    {
+      "theta": 2,
+      "dial": "NCHad",
+      "analytic": 2672.6492443374973,
+      "fd": 2672.6492443309216,
+      "rel": 2.460347802004388e-12
+    },
+    {
+      "theta": 2,
+      "dial": "AxialMass",
+      "analytic": 179.9830656317949,
+      "fd": 179.98306563976976,
+      "rel": 4.430903453299293e-11
+    },
+    {
+      "theta": 2,
+      "dial": "DIS",
+      "analytic": 2678.280351404329,
+      "fd": 2678.280351385978,
+      "rel": 6.851737753359545e-12
+    },
+    {
+      "theta": 2,
+      "dial": "CCQE",
+      "analytic": -27.834169973479487,
+      "fd": -27.834169999891856,
+      "rel": 9.489188713284541e-10
+    },
+    {
+      "theta": 2,
+      "dial": "CCQENuBarNu",
+      "analytic": -29.25443909974062,
+      "fd": -29.254439103283403,
+      "rel": 1.211024361656835e-10
+    },
+    {
+      "theta": 2,
+      "dial": "CCQEMuE",
+      "analytic": -29.37072362603439,
+      "fd": -29.370723595529096,
+      "rel": 1.038629306880594e-09
+    },
+    {
+      "theta": 2,
+      "dial": "CC1PiProduction",
+      "analytic": 3870.2575180855097,
+      "fd": 3870.257518060729,
+      "rel": 6.402816163063197e-12
+    },
+    {
+      "theta": 2,
+      "dial": "CC1Pi_NuBarNuE",
+      "analytic": 97.97757344690646,
+      "fd": 97.97757343827563,
+      "rel": 8.808990068551549e-11
+    },
+    {
+      "theta": 2,
+      "dial": "CC1Pi_NuBarNuMu",
+      "analytic": 449.14088718141045,
+      "fd": 449.1408871927642,
+      "rel": 2.527878061595485e-11
+    },
+    {
+      "theta": 2,
+      "dial": "xsec_ccqe_shape",
+      "analytic": -225.59020502263056,
+      "fd": -225.59020503952829,
+      "rel": 7.490453512799383e-11
+    },
+    {
+      "theta": 2,
+      "dial": "xsec_ccqe_shape_subgev",
+      "analytic": 1.9881894106049805e-09,
+      "fd": 1.5395092608135503e-09,
+      "rel": 4.486801497914301e-10
+    },
+    {
+      "theta": 2,
+      "dial": "xsec_ccqe_multigev_nue",
+      "analytic": 0.2186574969567731,
+      "fd": 0.21865749888642463,
+      "rel": 1.929651521903608e-09
+    },
+    {
+      "theta": 2,
+      "dial": "xsec_ccqe_multigev_numu",
+      "analytic": -29.52901426356316,
+      "fd": -29.529014268755798,
+      "rel": 1.7584871476735026e-10
+    },
+    {
+      "theta": 2,
+      "dial": "dom_eff",
+      "analytic": 40.56430500292687,
+      "fd": 40.56430498238228,
+      "rel": 5.064696668197873e-10
+    },
+    {
+      "theta": 2,
+      "dial": "hole_ice_p0",
+      "analytic": -51.127334994053825,
+      "fd": -51.12733499743172,
+      "rel": 6.606821466958462e-11
+    },
+    {
+      "theta": 2,
+      "dial": "hole_ice_p1",
+      "analytic": -16.146874242992453,
+      "fd": -16.146874236397935,
+      "rel": 4.0840837751834583e-10
+    },
+    {
+      "theta": 2,
+      "dial": "bulk_ice_abs",
+      "analytic": -0.346654626412775,
+      "fd": -0.3466546302159183,
+      "rel": 3.803143300284972e-09
+    },
+    {
+      "theta": 2,
+      "dial": "bulk_ice_scatter",
+      "analytic": 23.005447680328075,
+      "fd": 23.005447673488295,
+      "rel": 2.973113322884076e-10
+    }
+  ]
+}
