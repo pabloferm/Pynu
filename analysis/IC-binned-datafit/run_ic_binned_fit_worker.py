@@ -152,8 +152,11 @@ def refresh_cell_state(ctx, i_dm, i_s23, dm, s23):
             sys.exit(f"phi row {ipt} outside the tensor's {phi_dm.size} rows — "
                      "the tensor was not built on this scan grid")
         got_dm, got_s23 = float(phi_dm[ipt]), float(ctx["phi_s23"][ipt])
-        if not (np.isclose(got_dm, dm, rtol=1e-9, atol=0.0)
-                and np.isclose(got_s23, s23, rtol=1e-9, atol=0.0)):
+        # rtol: loose enough for the tensor's stored-coordinate float noise
+        # (job 39860001: rows matched to 8 decimals yet failed at 1e-9), tight
+        # enough that a one-grid-step error (~1e-2 relative) can never pass.
+        if not (np.isclose(got_dm, dm, rtol=1e-6, atol=0.0)
+                and np.isclose(got_s23, s23, rtol=1e-6, atol=0.0)):
             sys.exit(
                 f"phi row {ipt} was built at (dm231={got_dm:.8e}, s23={got_s23:.8f}) "
                 f"but this cell is (dm231={dm:.8e}, s23={s23:.8f}) — the tensor row "
