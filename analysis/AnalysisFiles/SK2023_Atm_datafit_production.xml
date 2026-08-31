@@ -1,0 +1,424 @@
+<!--
+
+Super-Kamiokande 2023 Data Fit Configuration — PRODUCTION (V1c+V3, 2026-08-29)
+
+Event-engine projection of the user-adopted V1c+V3 production systematic-prior
+set (sheet of record: claude/2-atmospheric-oscillation/SuperK/dm2-shift-causes/
+sk_production_priors.pdf; adoption ruling: SK2017_PRIOR_CROSSWALK_2026-08-28.md
+section "ADOPTION (2026-08-29, USER RULING)"). Derived from
+SK2023_Atm_datafit_phased_upmufix_fluxfix.xml with the production widths
+applied wherever the event framework has the corresponding base dial.
+
+MC base of record: SuperK_fullMC_7_2_x100.h5 (MC 7.2, x100 => MCexposure 100).
+
+Width changes vs the parent XML (all from the validated V3 runner env,
+RM_SIGMA_SET in WARD claude-tmp/pablo_mc_diff/run_v3_scan.sh):
+  XSecNuTau            0.20 -> 0.25   (SK-2017 paper width)
+  CC_2p2h              1.00 -> 0.10   (paper; was 10x inflated)
+  CC_2p2hNuBarNu       1.00 -> 0.10   (paper; was 10x inflated)
+  zenith_up            0.02 -> 0.01   (paper)
+  zenith_down          0.02 -> 0.01   (paper)
+  fcpc_separation      0.06 -> 0.01   (production merged single dial, PE prior)
+  upmu_shower_separation 0.04 -> 0.012 (0.3x tightening of the spec width;
+                        engine runs this era-split: 0.0102/0.0132/0.0072/0.009
+                        for sk1/sk2/sk3/sk45 — base dial carries 0.3 x 0.04)
+  upmu_stop_bkg        0.17 -> 0.007  (V1c repurposed split stop-reduction
+                        norm; engine era-split 0.007/0.007/0.007/0.005 —
+                        base dial carries the loosest-era envelope)
+  upmu_showering_bkg   0.17 -> 0.005  (V1c thru-showering reduction norm;
+                        engine era-split 0.005/0.005/0.005/0.003)
+  upmu_nonshowering_bkg 0.24 -> 0.005 (V1c thru-nonshowering reduction norm;
+                        engine era-split 0.005/0.005/0.005/0.003)
+
+Deliberately UNCHANGED base dials (production changes not representable here):
+  flavor_ratio 0.02   — production PINS this dial, superseded by the banded
+                        sum-preserving flux_flavor_{subgev,mid,high} engine
+                        dials at paper widths 0.02/0.03/0.05; the event engine
+                        has no banded flux dials, so the base dial stays FREE
+                        at the sub-GeV paper width to preserve flavor freedom.
+  nunubar_ratio 0.05  — same story: production uses banded sum-preserving
+                        flux_numubar_{subgev,mid,high} = 0.02/0.06/0.15 and
+                        flux_nuebar_{subgev,mid,high} = 0.05/0.05/0.08.
+  pc_reduction 0.02   — production tightens only the sk3 era copy to 0.009
+                        (paper); the base era-common dial keeps the spec width.
+  decay_e_tagging 0.10 — already at the paper width in the parent XML.
+
+Engine-only production elements with NO event-framework counterpart (live in
+the binned engine spec/env, see run_v3_scan.sh): upmu_norm (single up-mu
+normalization, PINNED), the 3 horizon-bin up-mu background shape dials
+(upmu_stop_bkg_horiz_lowp 0.090 / _highp 0.036, upmu_nonshow_bkg_horiz 0.013,
+FLOATING), the clean CCQE shape basis (xsec_ccqe_shape_subgev 0.40 +
+xsec_ccqe_shape_multigev 0.20 ACTIVE, global power-law xsec_ccqe_shape
+RETIRED/pinned at nominal), kpi_ratio 0.10, updown_escale_sk2/sk3 0.006/0.013,
+and the 12 whole-sample upmu_*_bkg_{era} norms pinned at nominal.
+
+Oscillation parameters (dCP, Sin2Theta13, Sin2Theta12, Dm221) are profiled
+programmatically in the row worker, not scanned in XML.
+-->
+<Analysis>
+<!--
+ =======================================================================
+-->
+<!-- Atmospheric Flux Systematics (7 parameters) -->
+<!--
+ =======================================================================
+-->
+<NeutrinoSource name="Atmospheric">
+<status> 1 </status>
+<nuisance name="normalization_below1GeV">
+<status> 1 </status>
+<sigma> 0.25 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="normalization_above1GeV">
+<status> 1 </status>
+<sigma> 0.15 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="tilt">
+<status> 1 </status>
+<sigma> 0.10 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="nunubar_ratio">
+<status> 1 </status>
+<sigma> 0.05 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="flavor_ratio">
+<status> 1 </status>
+<sigma> 0.02 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="zenith_up">
+<status> 1 </status>
+<sigma> 0.01 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="zenith_down">
+<status> 1 </status>
+<sigma> 0.01 </sigma>
+<nominal> 0.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+</NeutrinoSource>
+<!--
+ =======================================================================
+-->
+<!--
+ Cross-Section Systematics (16 parameters)
+-->
+<!--
+ =======================================================================
+-->
+<NeutrinoTarget name="Water">
+<status> 1 </status>
+<nuisance name="XSecNuTau">
+<status> 1 </status>
+<sigma> 0.25 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="NCoverCC">
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="NCHad">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="AxialMass">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="DIS">
+<status> 1 </status>
+<sigma> 0.05 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC_2p2h">
+<status> 1 </status>
+<sigma> 0.10 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC_2p2hNuBarNu">
+<status> 1 </status>
+<sigma> 0.10 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC_2p2hMuE">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CCQE">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CCQENuBarNu">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CCQEMuE">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC1Pi_Pi0Pi">
+<status> 1 </status>
+<sigma> 0.4 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC1Pi_NuBarNuE">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC1Pi_NuBarNuMu">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CC1PiProduction">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="CohPiProduction">
+<status> 1 </status>
+<sigma> 1.0 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+</NeutrinoTarget>
+<!--
+ =======================================================================
+-->
+<!-- Super-Kamiokande 2023 Detector Configuration -->
+<!--
+ =======================================================================
+-->
+<NeutrinoExperiment name="SuperK_pheno_2023">
+<status> 1 </status>
+<target name="Water"> </target>
+<source name="Atmospheric">
+<status> 1 </status>
+<MCFiles name="/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/SuperK_fullMC_7_2_x100.h5">
+<status> 1 </status>
+</MCFiles>
+<exposure> 1.0 </exposure>
+<MCexposure> 100.0 </MCexposure>
+<!-- Real SK data file -->
+<DataFiles name="/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/miaochenjin/AtmNuDataFit/SK_data_root_text.csv">
+<status> 1 </status>
+</DataFiles>
+</source>
+<!--
+ Detector Systematics (22 parameters, production V1c+V3 widths)
+-->
+<nuisance name="fcpc_separation">
+<status> 1 </status>
+<sigma> 0.01 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_reduction">
+<status> 1 </status>
+<sigma> 0.02 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mge_nonubkg">
+<status> 1 </status>
+<sigma> 0.2 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fc_reduction">
+<status> 1 </status>
+<sigma> 0.01 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="fiducial_volume">
+<status> 1 </status>
+<sigma> 0.02 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_2ring_pi0">
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="subgev_1ring_pi0">
+<status> 1 </status>
+<sigma> 0.25 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_nunubar_separation">
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_emu_separation">
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_eother_separation">
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pc_stopthru_separation">
+<status> 1 </status>
+<sigma> 0.006 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="pi0_ring_separation">
+<status> 1 </status>
+<sigma> 0.02 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="e_ring_separation">
+<status> 1 </status>
+<sigma> 0.06 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="mu_ring_separation">
+<status> 1 </status>
+<sigma> 0.03 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="singlering_pid">
+<status> 1 </status>
+<sigma> 0.0035 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="multiring_pid">
+<status> 1 </status>
+<sigma> 0.04 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="neutron_tagging">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="decay_e_tagging">
+<status> 1 </status>
+<sigma> 0.1 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_shower_separation">
+<status> 1 </status>
+<sigma> 0.012 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_stop_bkg">
+<status> 1 </status>
+<sigma> 0.007 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_showering_bkg">
+<status> 1 </status>
+<sigma> 0.005 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+<nuisance name="upmu_nonshowering_bkg">
+<status> 1 </status>
+<sigma> 0.005 </sigma>
+<nominal> 1.0 </nominal>
+<distribution> normal </distribution>
+</nuisance>
+</NeutrinoExperiment>
+<!--
+ =======================================================================
+-->
+<!-- Physics Scenario: Standard 3-flavor Oscillations -->
+<!--
+ =======================================================================
+-->
+<NeutrinoOscillations name="3-Osc">
+<status> 1 </status>
+<flavors> 3 </flavors>
+<!--
+ Fixed parameters (profiled programmatically in row worker)
+-->
+<fixed name="Sin2Theta12">
+<status> 1 </status>
+<value> 0.303 </value>
+</fixed>
+<fixed name="Sin2Theta13">
+<status> 1 </status>
+<value> 0.022 </value>
+</fixed>
+<fixed name="Sin2Theta23">
+<status> 1 </status>
+<value> 0.572 </value>
+</fixed>
+<fixed name="Dm221">
+<status> 1 </status>
+<value> 7.41e-5 </value>
+</fixed>
+<fixed name="dCP">
+<status> 1 </status>
+<value> 1.36 </value>
+</fixed>
+<!-- Dm231 scan range -->
+<physics name="Dm231">
+<points> 2 </points>
+<min> 2.3e-3 </min>
+<max> 2.7e-3 </max>
+<true> 2.511e-3 </true>
+</physics>
+<physics name="Ordering">
+<points> 1 </points>
+<min> normal </min>
+<max> normal </max>
+<true> normal </true>
+</physics>
+</NeutrinoOscillations>
+</Analysis>
