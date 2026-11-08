@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Super-Kamiokande I-V alone: Delta chi^2 lattice scan of record.
+
+  Engine     the SK kernel "Ninv": the response matrix of the 7.2 x100 MC
+             pinned per (species, analysis bin) to the SK release NO best-fit tables;
+             all 930 analysis bins fitted; pure Poisson likelihood; the engine adds its
+             own Gaussian prior over the 136 parameters below.
+  Protocol   per lattice cell (Delta m^2_31, sin^2 theta_23), the delta_CP nodes in the
+             region's order; each node is one L-BFGS-B fit plus 2 restarts kept if
+             lower, seeded from the previous node (the first node from start_NO/IO, the
+             SK-alone best fit).
+  Region     20 x 20 cells around each ordering's best fit, odd delta_CP nodes.
+  Parameters lo/hi are the engine's box (nominal +- 10 sigma, floor 0.01, fixed boxes
+             for ratio and shape parameters); pinned parameters stay at nominal.
+-->
+<binned_scan name="SK" experiments="SK">
+  <inputs>
+    <input key="sk_response" path="${PYNU_WORK}/sk/sk_response_Ninv.npz" md5="eae268499fff134b607ebe1690993640"/>
+    <input key="sk_fluxq" path="${PYNU_WORK}/fluxq/fluxq_sk.npz" md5="e983943e7d0cf84ecd10b660c1b29371"/>
+    <input key="sk_tensors" path="${PYNU_WORK}/tensors/sk/{ordering}"/>
+  </inputs>
+  <lattice dm31_min="0.0016" dm31_max="0.003" n_dm31="41" s23_min="0.3" s23_max="0.7" n_s23="41" n_dcp="20" dm21="7.41e-05" sin2theta13="0.022"/>
+  <region ordering="NO" i_dm31="15-34" i_s23="12-31" dcp_nodes="13,15,17,19,1,3,5,7,9,11"/>
+  <region ordering="IO" i_dm31="9-28" i_s23="12-31" dcp_nodes="13,15,17,19,1,3,5,7,9,11"/>
+  <fit ftol="1e-08" gtol="1e-05" maxiter="2000" npolish="2" warm_carry="true"/>
+  <arm name="SK"/>
+  <dials>
+    <dial name="normalization_below1GeV" nominal="1.0" sigma="0.25" lo="0.01" hi="3.5" start_NO="1.0116172597302568" start_IO="1.0073408978705718"/>
+    <dial name="normalization_above1GeV" nominal="1.0" sigma="0.15" lo="0.01" hi="2.5" start_NO="0.9704052272539911" start_IO="0.967467872644358"/>
+    <dial name="tilt" nominal="0.0" sigma="0.1" lo="-1.0" hi="1.0" start_NO="-0.03833440302099989" start_IO="-0.03793271773183409"/>
+    <dial name="flavor_ratio" nominal="1.0" sigma="0.02" lo="1.0" hi="1.0" pinned="true" start_NO="1.0" start_IO="1.0"/>
+    <dial name="zenith_up" nominal="0.0" sigma="0.01" lo="-0.1" hi="0.1" start_NO="-0.0005867516931582943" start_IO="-0.0006873523565324993"/>
+    <dial name="zenith_down" nominal="0.0" sigma="0.01" lo="-0.1" hi="0.1" start_NO="0.0007136487086232086" start_IO="0.0007436437465962361"/>
+    <dial name="XSecNuTau" nominal="1.0" sigma="0.25" lo="0.01" hi="3.5" start_NO="0.9676719696420519" start_IO="1.0768745794444958"/>
+    <dial name="NCoverCC" nominal="1.0" sigma="0.2" lo="0.01" hi="3.0" start_NO="1.0805170631621253" start_IO="1.0868618627413815"/>
+    <dial name="NCHad" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="1.0214799574193725" start_IO="1.023409147766067"/>
+    <dial name="AxialMass" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.9975542033671358" start_IO="0.9971609060114114"/>
+    <dial name="DIS" nominal="1.0" sigma="0.05" lo="0.5" hi="1.5" start_NO="1.0620020803141672" start_IO="1.0600883435544988"/>
+    <dial name="CC_2p2h" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.9544310214152795" start_IO="0.9559886908553367"/>
+    <dial name="CC_2p2hNuBarNu" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.9858440750888382" start_IO="0.9851476813568484"/>
+    <dial name="CC_2p2hMuE" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="1.009646789070533" start_IO="1.0084731482204377"/>
+    <dial name="CCQE" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.8325093716490537" start_IO="0.8383107142685399"/>
+    <dial name="CCQENuBarNu" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.9275861433516849" start_IO="0.9228730419364738"/>
+    <dial name="CCQEMuE" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="1.0230659881286681" start_IO="1.0171233366948056"/>
+    <dial name="CC1Pi_Pi0Pi" nominal="1.0" sigma="0.4" lo="0.01" hi="5.0" start_NO="0.9424473981574616" start_IO="0.946352600140093"/>
+    <dial name="CC1Pi_NuBarNuE" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="1.0022028829745966" start_IO="0.9971732594409702"/>
+    <dial name="CC1Pi_NuBarNuMu" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.8859503133653885" start_IO="0.8807519994277597"/>
+    <dial name="CC1PiProduction" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="1.0128868300242537" start_IO="1.0157472179052716"/>
+    <dial name="CohPiProduction" nominal="1.0" sigma="1.0" lo="0.01" hi="11.0" start_NO="0.8591074231328042" start_IO="0.8575365005737127"/>
+    <dial name="pc_reduction_sk1" nominal="1.0" sigma="0.024" lo="0.76" hi="1.24" start_NO="0.9826583085765607" start_IO="0.9829611107875126"/>
+    <dial name="pc_reduction_sk2" nominal="1.0" sigma="0.048" lo="0.52" hi="1.48" start_NO="0.9623055937176123" start_IO="0.9629432860951931"/>
+    <dial name="pc_reduction_sk3" nominal="1.0" sigma="0.009" lo="0.91" hi="1.09" start_NO="0.999165255298715" start_IO="0.9991836931546281"/>
+    <dial name="pc_reduction_sk45" nominal="1.0" sigma="0.01" lo="0.9" hi="1.1" start_NO="0.9924030922762809" start_IO="0.9925389076148333"/>
+    <dial name="mge_nonubkg_sk1" nominal="1.0" sigma="0.13" lo="0.01" hi="2.3" start_NO="0.9628687143161586" start_IO="0.9626743628166622"/>
+    <dial name="mge_nonubkg_sk2" nominal="1.0" sigma="0.38" lo="0.01" hi="4.8" start_NO="0.9419969328353848" start_IO="0.9545732959052307"/>
+    <dial name="mge_nonubkg_sk3" nominal="1.0" sigma="0.27" lo="0.01" hi="3.7" start_NO="0.9312238015469602" start_IO="0.9348907221768852"/>
+    <dial name="mge_nonubkg_sk45" nominal="1.0" sigma="0.18" lo="0.01" hi="2.8" start_NO="0.9515297802927043" start_IO="0.9544510458337805"/>
+    <dial name="fc_reduction_sk1" nominal="1.0" sigma="0.002" lo="0.98" hi="1.02" start_NO="0.9999380785678136" start_IO="0.9999372386038419"/>
+    <dial name="fc_reduction_sk2" nominal="1.0" sigma="0.002" lo="0.98" hi="1.02" start_NO="0.999965742603449" start_IO="0.9999653361214017"/>
+    <dial name="fc_reduction_sk3" nominal="1.0" sigma="0.008" lo="0.92" hi="1.08" start_NO="0.9996610102531075" start_IO="0.9996398763164704"/>
+    <dial name="fc_reduction_sk45" nominal="1.0" sigma="0.013" lo="0.87" hi="1.13" start_NO="1.0000011949164762" start_IO="0.9999979994584943"/>
+    <dial name="subgev_2ring_pi0_sk1" nominal="1.0" sigma="0.056" lo="0.43999999999999995" hi="1.56" start_NO="0.9846914205233352" start_IO="0.9840228160723997"/>
+    <dial name="subgev_2ring_pi0_sk2" nominal="1.0" sigma="0.044" lo="0.56" hi="1.44" start_NO="0.9952732717398723" start_IO="0.9951046231061358"/>
+    <dial name="subgev_2ring_pi0_sk3" nominal="1.0" sigma="0.059" lo="0.41000000000000003" hi="1.5899999999999999" start_NO="0.9935620042551945" start_IO="0.9933147079888606"/>
+    <dial name="subgev_2ring_pi0_sk45" nominal="1.0" sigma="0.056" lo="0.43999999999999995" hi="1.56" start_NO="0.9610603100070072" start_IO="0.9594972512949531"/>
+    <dial name="subgev_1ring_pi0_sk1" nominal="1.0" sigma="0.12" lo="0.01" hi="2.2" start_NO="0.9890066631981339" start_IO="0.9887223276296393"/>
+    <dial name="subgev_1ring_pi0_sk2" nominal="1.0" sigma="0.12" lo="0.01" hi="2.2" start_NO="0.9928062494758907" start_IO="0.9926088391561529"/>
+    <dial name="subgev_1ring_pi0_sk3" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.9983066014106676" start_IO="0.9982103048159093"/>
+    <dial name="subgev_1ring_pi0_sk45" nominal="1.0" sigma="0.15" lo="0.01" hi="2.5" start_NO="0.960382341558672" start_IO="0.958915886555791"/>
+    <dial name="multiring_nunubar_separation_sk1" nominal="1.0" sigma="0.072" lo="0.28" hi="1.72" start_NO="1.0349382611449827" start_IO="1.0357183718531837"/>
+    <dial name="multiring_nunubar_separation_sk2" nominal="1.0" sigma="0.079" lo="0.20999999999999996" hi="1.79" start_NO="1.0248776464331077" start_IO="1.0254866464163224"/>
+    <dial name="multiring_nunubar_separation_sk3" nominal="1.0" sigma="0.077" lo="0.22999999999999998" hi="1.77" start_NO="1.0110746577691367" start_IO="1.0108531307266562"/>
+    <dial name="multiring_nunubar_separation_sk45" nominal="1.0" sigma="0.068" lo="0.31999999999999995" hi="1.6800000000000002" start_NO="1.0721842217551507" start_IO="1.0764820662740369"/>
+    <dial name="multiring_emu_separation_sk1" nominal="1.0" sigma="0.06" lo="0.4" hi="1.6" start_NO="1.0005816794903475" start_IO="1.0022977106784754"/>
+    <dial name="multiring_emu_separation_sk2" nominal="1.0" sigma="0.038" lo="0.62" hi="1.38" start_NO="0.9997474727890463" start_IO="1.0000942209193417"/>
+    <dial name="multiring_emu_separation_sk3" nominal="1.0" sigma="0.053" lo="0.47" hi="1.53" start_NO="1.0003473959355897" start_IO="1.0006173584156164"/>
+    <dial name="multiring_emu_separation_sk45" nominal="1.0" sigma="0.033" lo="0.6699999999999999" hi="1.33" start_NO="1.0004588846789928" start_IO="1.0020466873679679"/>
+    <dial name="multiring_eother_separation_sk1" nominal="1.0" sigma="0.057" lo="0.42999999999999994" hi="1.57" start_NO="0.9970186385244594" start_IO="0.998914339521172"/>
+    <dial name="multiring_eother_separation_sk2" nominal="1.0" sigma="0.041" lo="0.59" hi="1.4100000000000001" start_NO="0.9968056916459546" start_IO="0.9976434498159001"/>
+    <dial name="multiring_eother_separation_sk3" nominal="1.0" sigma="0.049" lo="0.51" hi="1.49" start_NO="0.9986532672518789" start_IO="0.9994372490252612"/>
+    <dial name="multiring_eother_separation_sk45" nominal="1.0" sigma="0.034" lo="0.6599999999999999" hi="1.34" start_NO="0.9887047730251871" start_IO="0.9913234320652738"/>
+    <dial name="pc_stopthru_separation_sk1" nominal="1.0" sigma="0.25" lo="0.01" hi="3.5" start_NO="1.0859344138615648" start_IO="1.0881890103178324"/>
+    <dial name="pc_stopthru_separation_sk2" nominal="1.0" sigma="0.14" lo="0.01" hi="2.4000000000000004" start_NO="1.0103533536689304" start_IO="1.0100446267918175"/>
+    <dial name="pc_stopthru_separation_sk3" nominal="1.0" sigma="0.3" lo="0.01" hi="4.0" start_NO="1.0534052955542392" start_IO="1.049985387546589"/>
+    <dial name="pc_stopthru_separation_sk45" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="1.036290411249277" start_IO="1.0370602186378077"/>
+    <dial name="pi0_ring_separation_sk1" nominal="1.0" sigma="0.023" lo="0.77" hi="1.23" start_NO="1.0004750712999608" start_IO="1.0005462064982529"/>
+    <dial name="pi0_ring_separation_sk2" nominal="1.0" sigma="0.023" lo="0.77" hi="1.23" start_NO="1.0002033900356713" start_IO="1.0002417489002806"/>
+    <dial name="pi0_ring_separation_sk3" nominal="1.0" sigma="0.023" lo="0.77" hi="1.23" start_NO="1.0002478631503473" start_IO="1.0002723451698445"/>
+    <dial name="pi0_ring_separation_sk45" nominal="1.0" sigma="0.03" lo="0.7" hi="1.3" start_NO="1.0023553791912667" start_IO="1.002452350399038"/>
+    <dial name="e_ring_separation_sk1" nominal="1.0" sigma="0.035" lo="0.6499999999999999" hi="1.35" start_NO="0.9944791552876255" start_IO="0.9940991646454278"/>
+    <dial name="e_ring_separation_sk2" nominal="1.0" sigma="0.038" lo="0.62" hi="1.38" start_NO="0.9979074300446868" start_IO="0.9974353471400942"/>
+    <dial name="e_ring_separation_sk3" nominal="1.0" sigma="0.013" lo="0.87" hi="1.13" start_NO="0.9999559919115633" start_IO="0.9999357200938751"/>
+    <dial name="e_ring_separation_sk45" nominal="1.0" sigma="0.018" lo="0.8200000000000001" hi="1.18" start_NO="0.993643072642507" start_IO="0.9935088381324996"/>
+    <dial name="mu_ring_separation_sk1" nominal="1.0" sigma="0.045" lo="0.55" hi="1.45" start_NO="0.9897443566582599" start_IO="0.9898106960911969"/>
+    <dial name="mu_ring_separation_sk2" nominal="1.0" sigma="0.08" lo="0.19999999999999996" hi="1.8" start_NO="0.9702450556127539" start_IO="0.9695940511593827"/>
+    <dial name="mu_ring_separation_sk3" nominal="1.0" sigma="0.026" lo="0.74" hi="1.26" start_NO="0.9997700569682744" start_IO="0.9996208255176198"/>
+    <dial name="mu_ring_separation_sk45" nominal="1.0" sigma="0.023" lo="0.77" hi="1.23" start_NO="0.9946365903965644" start_IO="0.9945689763084998"/>
+    <dial name="singlering_pid_sk1" nominal="1.0" sigma="0.002" lo="0.98" hi="1.02" start_NO="1.000009339544297" start_IO="1.0000160833969638"/>
+    <dial name="singlering_pid_sk2" nominal="1.0" sigma="0.007" lo="0.9299999999999999" hi="1.07" start_NO="1.0001649906747478" start_IO="1.0002216063890572"/>
+    <dial name="singlering_pid_sk3" nominal="1.0" sigma="0.0026" lo="0.974" hi="1.026" start_NO="1.0000041057990945" start_IO="1.0000094228507743"/>
+    <dial name="singlering_pid_sk45" nominal="1.0" sigma="0.0035" lo="0.965" hi="1.035" start_NO="0.9996639780097242" start_IO="0.9997079196800492"/>
+    <dial name="multiring_pid_sk1" nominal="1.0" sigma="0.065" lo="0.35" hi="1.65" start_NO="1.000987335718794" start_IO="1.0028168839425906"/>
+    <dial name="multiring_pid_sk2" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.9980050154132626" start_IO="1.0006620740045786"/>
+    <dial name="multiring_pid_sk3" nominal="1.0" sigma="0.05" lo="0.5" hi="1.5" start_NO="1.0002451508880126" start_IO="1.0005688638523553"/>
+    <dial name="multiring_pid_sk45" nominal="1.0" sigma="0.035" lo="0.6499999999999999" hi="1.35" start_NO="1.0003782639088656" start_IO="1.0022564650963466"/>
+    <dial name="upmu_shower_separation_sk1" nominal="1.0" sigma="0.0102" lo="0.898" hi="1.102" start_NO="0.9960601744787948" start_IO="0.9961295710335523"/>
+    <dial name="upmu_shower_separation_sk2" nominal="1.0" sigma="0.0132" lo="0.868" hi="1.1320000000000001" start_NO="0.9965212501752112" start_IO="0.9965804393284823"/>
+    <dial name="upmu_shower_separation_sk3" nominal="1.0" sigma="0.0072" lo="0.928" hi="1.072" start_NO="0.99930554399662" start_IO="0.9993245638329327"/>
+    <dial name="upmu_shower_separation_sk45" nominal="1.0" sigma="0.009" lo="0.91" hi="1.09" start_NO="0.9923858104661571" start_IO="0.9925307803429922"/>
+    <dial name="upmu_stop_bkg_sk1" nominal="1.0" sigma="0.007" lo="0.9299999999999999" hi="1.07" start_NO="1.0002893152297223" start_IO="1.0002227513030881"/>
+    <dial name="upmu_stop_bkg_sk2" nominal="1.0" sigma="0.007" lo="0.9299999999999999" hi="1.07" start_NO="1.0001504009721596" start_IO="1.0001136597577969"/>
+    <dial name="upmu_stop_bkg_sk3" nominal="1.0" sigma="0.007" lo="0.9299999999999999" hi="1.07" start_NO="1.0001024731483368" start_IO="1.0000779585354411"/>
+    <dial name="upmu_stop_bkg_sk45" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start_NO="1.000346393702673" start_IO="1.0002567249559275"/>
+    <dial name="upmu_showering_bkg_sk1" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start_NO="0.9992911439814193" start_IO="0.9993085095699207"/>
+    <dial name="upmu_showering_bkg_sk2" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start_NO="0.9996255095608743" start_IO="0.9996351695056469"/>
+    <dial name="upmu_showering_bkg_sk3" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start_NO="0.9997508443903674" start_IO="0.9997572307558339"/>
+    <dial name="upmu_showering_bkg_sk45" nominal="1.0" sigma="0.003" lo="0.97" hi="1.03" start_NO="0.9993685328980965" start_IO="0.9993826479496443"/>
+    <dial name="upmu_nonshowering_bkg_sk1" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start_NO="1.0011823007965095" start_IO="1.001178514835878"/>
+    <dial name="upmu_nonshowering_bkg_sk2" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start_NO="1.0006315570652857" start_IO="1.000630099357501"/>
+    <dial name="upmu_nonshowering_bkg_sk3" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start_NO="1.0004139505669745" start_IO="1.0004134753063083"/>
+    <dial name="upmu_nonshowering_bkg_sk45" nominal="1.0" sigma="0.003" lo="0.97" hi="1.03" start_NO="1.0010614667134226" start_IO="1.0010567925457006"/>
+    <dial name="fiducial_volume" nominal="1.0" sigma="0.02" lo="0.8" hi="1.2" start_NO="0.9995434106408577" start_IO="0.9995145082562632"/>
+    <dial name="neutron_tagging_subgev" nominal="1.0" sigma="0.12" lo="0.01" hi="2.2" start_NO="1.0466846883100729" start_IO="1.0435386243643758"/>
+    <dial name="neutron_tagging_multigev" nominal="1.0" sigma="0.12" lo="0.01" hi="2.2" start_NO="1.0366835965503363" start_IO="1.0330390521985287"/>
+    <dial name="energy_scale_sk1" nominal="1.0" sigma="0.033" lo="0.6699999999999999" hi="1.33" start_NO="0.9792332123979276" start_IO="0.9796737934033058"/>
+    <dial name="energy_scale_sk2" nominal="1.0" sigma="0.028" lo="0.72" hi="1.28" start_NO="0.9937398966761999" start_IO="0.9938072003353821"/>
+    <dial name="energy_scale_sk3" nominal="1.0" sigma="0.024" lo="0.76" hi="1.24" start_NO="0.9979089034756904" start_IO="0.9978627514646885"/>
+    <dial name="energy_scale_sk45" nominal="1.0" sigma="0.021" lo="0.79" hi="1.21" start_NO="0.9996841119974902" start_IO="1.0002571427197826"/>
+    <dial name="solar_activity" nominal="0.0" sigma="0.15" lo="-1.5" hi="1.5" start_NO="-0.02159482721554916" start_IO="-0.021051537860448912"/>
+    <dial name="kpi_ratio" nominal="0.0" sigma="0.1" lo="-1.0" hi="1.0" start_NO="0.14362739986599996" start_IO="0.14386733107512184"/>
+    <dial name="rel_norm_fcmg" nominal="1.0" sigma="0.05" lo="0.5" hi="1.5" start_NO="0.9589366182238982" start_IO="0.9613264584314596"/>
+    <dial name="flux_nuebar_subgev" nominal="1.0" sigma="0.05" lo="0.3" hi="1.7" start_NO="0.9752955122151191" start_IO="0.9744781948120497"/>
+    <dial name="flux_flavor_subgev" nominal="1.0" sigma="0.02" lo="0.3" hi="1.7" start_NO="0.9996544863598273" start_IO="0.9993077829261457"/>
+    <dial name="flux_nuebar_mid" nominal="1.0" sigma="0.05" lo="0.3" hi="1.7" start_NO="0.9977969728863804" start_IO="0.9920298211321863"/>
+    <dial name="flux_nuebar_high" nominal="1.0" sigma="0.08" lo="0.3" hi="1.7" start_NO="1.0220779287573583" start_IO="1.0215414928332485"/>
+    <dial name="flux_flavor_mid" nominal="1.0" sigma="0.03" lo="0.3" hi="1.7" start_NO="0.9933154507420299" start_IO="0.9908857509035135"/>
+    <dial name="flux_flavor_high" nominal="1.0" sigma="0.05" lo="0.3" hi="1.7" start_NO="1.045293863873712" start_IO="1.046826693807965"/>
+    <dial name="flux_numubar_subgev" nominal="1.0" sigma="0.02" lo="0.3" hi="1.7" start_NO="1.0005730580529457" start_IO="1.0006873154108498"/>
+    <dial name="flux_numubar_mid" nominal="1.0" sigma="0.06" lo="0.3" hi="1.7" start_NO="0.9811067529897072" start_IO="0.9820790394645876"/>
+    <dial name="flux_numubar_high" nominal="1.0" sigma="0.15" lo="0.3" hi="1.7" start_NO="0.859932074604414" start_IO="0.874126932469659"/>
+    <dial name="xsec_1p1h_subgev_nue" nominal="1.0" sigma="0.05" lo="0.5" hi="1.5" start_NO="0.9781014512468225" start_IO="0.9789187093206744"/>
+    <dial name="xsec_ccqe_shape_subgev" nominal="0.0" sigma="0.4" lo="-2.0" hi="2.0" start_NO="0.35574296966419094" start_IO="0.3589754391283208"/>
+    <dial name="flux_horizvert" nominal="0.0" sigma="0.03" lo="-0.3" hi="0.3" start_NO="-0.0037653236942452066" start_IO="-0.005203011106901435"/>
+    <dial name="upmu_stop_bkg_horiz_lowp" nominal="1.0" sigma="0.09" lo="0.10000000000000009" hi="1.9" start_NO="1.0164847623060438" start_IO="1.0162951007743826"/>
+    <dial name="upmu_stop_bkg_horiz_highp" nominal="1.0" sigma="0.036" lo="0.64" hi="1.3599999999999999" start_NO="0.9814217777395838" start_IO="0.9807340364959817"/>
+    <dial name="upmu_nonshow_bkg_horiz" nominal="1.0" sigma="0.013" lo="0.87" hi="1.13" start_NO="1.0094952792923526" start_IO="1.0101428511761856"/>
+    <dial name="updown_escale_sk1" nominal="0.0" sigma="0.006" lo="-0.06" hi="0.06" start_NO="0.0009409058524092721" start_IO="0.0010877939680864618"/>
+    <dial name="updown_escale_sk2" nominal="0.0" sigma="0.006" lo="-0.06" hi="0.06" start_NO="0.0005460146012409764" start_IO="0.0006219496275921166"/>
+    <dial name="updown_escale_sk3" nominal="0.0" sigma="0.013" lo="-0.13" hi="0.13" start_NO="0.0015686279236547989" start_IO="0.0018070361443037989"/>
+    <dial name="updown_escale_sk45" nominal="0.0" sigma="0.005" lo="-0.05" hi="0.05" start_NO="0.0034505432286311226" start_IO="0.003685686247772763"/>
+    <dial name="xsec_ccqe_shape" nominal="1.0" sigma="0.2" lo="1.0" hi="1.0" pinned="true" start_NO="1.0" start_IO="1.0"/>
+    <dial name="xsec_ccqe_multigev_nue" nominal="1.0" sigma="0.25" lo="0.0" hi="3.0" start_NO="0.9468144852512684" start_IO="0.9339928628320064"/>
+    <dial name="xsec_ccqe_multigev_numu" nominal="1.0" sigma="0.25" lo="0.0" hi="3.0" start_NO="0.8928282721617677" start_IO="0.8900828835384771"/>
+    <dial name="nmig_subgev_nuebar_pinned" nominal="1.0" sigma="0.1" lo="0.0" hi="1.3834044950684579" start_NO="1.0676848859827297" start_IO="1.070537122880809"/>
+    <dial name="nmig_multigev_nuebar_pinned" nominal="1.0" sigma="0.1" lo="0.0" hi="1.8748460942131424" start_NO="1.0802187610592484" start_IO="1.087879574906912"/>
+    <dial name="decay_e_tagging_sk1" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.9771223586371824" start_IO="0.9767503478134602"/>
+    <dial name="decay_e_tagging_sk2" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.9955212213205769" start_IO="0.9976175530474112"/>
+    <dial name="decay_e_tagging_sk3" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="0.9913749791849451" start_IO="0.9919343847796159"/>
+    <dial name="decay_e_tagging_sk45" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start_NO="1.0396113890094634" start_IO="1.042297519214938"/>
+    <dial name="elike_ringcount_lowp_sk13" nominal="1.0" sigma="0.04" lo="0.6" hi="1.4" start_NO="1.0239730474697026" start_IO="1.0243446702073524"/>
+    <dial name="fcpc_separation" nominal="1.0" sigma="0.01" lo="0.9" hi="1.1" start_NO="1.0025599506710987" start_IO="1.0024066182705762"/>
+    <dial name="upmu_norm" nominal="1.0" sigma="0.05" lo="1.0" hi="1.0" pinned="true" start_NO="1.0" start_IO="1.0"/>
+    <dial name="xsec_ccqe_shape_multigev" nominal="0.0" sigma="0.2" lo="-2.0" hi="2.0" start_NO="-0.089565266410035" start_IO="-0.09076644202713385"/>
+  </dials>
+  <reference ordering="NO" cell="24,22,13" chi2="991.3407333271289" tol="0.001" tol_rebuilt="0.005" note="published NO best fit"/>
+  <reference ordering="IO" cell="19,22,11" chi2="997.6883991401209" tol="0.001" tol_rebuilt="0.005" note="published IO best fit"/>
+</binned_scan>

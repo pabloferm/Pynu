@@ -4,22 +4,17 @@ from .Oscillations import Oscillator
 import nuSQuIDS as nsq
 
 
-####################
-# Atmospheric flux #
-####################
-
-
 class AtmosphericOscillations(Oscillator):
-    """
-    Atmospheric neutrino oscillations handler.
+    """Atmospheric neutrino oscillations: the flux evolved through the Earth by nuSQuIDS,
+    evaluated at per-event (or per-cell) flavor, cos(zenith), energy and type."""
 
-    Extended to support CPT invariance testing:
-    - When Dm231_bar is not set or equals Dm231: standard single propagation
-    - When Dm231_bar differs from Dm231: dual propagation for CPT test
-    """
-
-    def __init__(self, scenario, neutrino_flavors, experiment):
-        super().__init__(scenario, neutrino_flavors, source="Atmospheric")
+    def __init__(self, neutrino_flavors, experiment, avg_scale=None):
+        """
+        avg_scale: `scale` of nuSQuIDS' fast-oscillation averaging (None = averaging off).
+        nuSQuIDS compares it to the eigenvalue phase dm2*L/(2E), so 4*pi averages the
+        modes whose sin^2 argument 1.2667*dm2*L/E exceeds 2*pi. Read at evaluation time.
+        """
+        super().__init__(neutrino_flavors)
 
         self.E_nodes = 200
         self.Z_nodes = 40
@@ -31,10 +26,10 @@ class AtmosphericOscillations(Oscillator):
             experiment.Z_edges[0], experiment.Z_edges[1], self.Z_nodes
         )
 
+        self.osc_avg_scale = avg_scale
+
         self.CosZTrue = experiment.CosZTrue
         self.ETrue = experiment.ETrue
-        self.CC = experiment.CC
-        self.nuPDG = experiment.nuPDG  # Store for CPT mode
 
         self.SetUpOscillator()
 
@@ -45,125 +40,32 @@ class AtmosphericOscillations(Oscillator):
             self.energy_nodes, self.cth_nodes, neutrino_flavors
         )
 
-        # Initialize Dm231_bar to None (will be set from Dm231 when needed)
-        # Note: Dm231 is not yet set from XML at this point, so we can't copy it here
-        # The GetOscillations() method handles the case where Dm231_bar is None or 0
-        if "Dm231_bar" not in self.Parameters or self.Parameters["Dm231_bar"] == 0:
-            self.Parameters["Dm231_bar"] = None
+    def _eval_flavor_weights(self):
+        """EvalFlavor over all events/cells for the current evolved state.
 
-        # Cache for optimization
-        self._last_params = None
-        self._cached_weights = None
-
-    def reset_cache(self):
-        """Reset the weight cache when parameters change."""
-        self._last_params = None
-        self._cached_weights = None
-
-    def _get_param_tuple(self):
-        """Get tuple of current parameters for cache comparison."""
-        return (
-            self.Parameters.get("Sin2Theta12"),
-            self.Parameters.get("Sin2Theta13"),
-            self.Parameters.get("Sin2Theta23"),
-            self.Parameters.get("Dm221"),
-            self.Parameters.get("Dm231"),
-            self.Parameters.get("Dm231_bar"),
-            self.Parameters.get("dCP"),
-            self.Parameters.get("Ordering"),
-        )
-
-    def _single_propagation(self, dm31_value):
+        Averaging off (osc_avg_scale None): EvalFlavor(flv, cz, E, type,
+        randomize_height=True), a fresh production-height draw per call, so the
+        result is stochastic. Averaging on: nuSQuIDS' fast-oscillation averaging
+        overload EvalFlavor(flv, cz, E, type, scale, avr) (fixed height; avr is an
+        ignored per-call output buffer of length n_flavors).
         """
-        Run single propagation with given Dm31 value.
+        flav = self.NSQneuflavor
+        cosz = self.CosZTrue.astype(float).tolist()
+        enu = (self.ETrue * self.UNITS.GeV).astype(float).tolist()
+        ntype = self.NSQneutype
+        if self.osc_avg_scale is None:
+            return np.asarray(list(map(
+                self.Osc.EvalFlavor, flav, cosz, enu, ntype, repeat(True))))
+        s, nf = self.osc_avg_scale, self.NeutrinoFlavors
+        return np.asarray([
+            self.Osc.EvalFlavor(f, c, e, t, s, [False] * nf)
+            for f, c, e, t in zip(flav, cosz, enu, ntype)
+        ])
 
-        Args:
-            dm31_value: The Dm31 value to use
-
-        Returns:
-            Array of oscillation weights
-        """
-        # Set Dm31
-        self.Osc.Set_SquareMassDifference(2, dm31_value)
-
-        # Propagate
+    def GetOscillations(self):
+        """Oscillated flux at every event/cell for the current parameters."""
+        self.ApplyParameters()
         self.Osc.Set_initial_state(self.InitialFlux, nsq.Basis.flavor)
         self.Osc.EvolveState()
 
-        # Evaluate weights for each event
-        weights = list(
-            map(
-                self.Osc.EvalFlavor,
-                self.NSQneuflavor,
-                self.CosZTrue.astype(float).tolist(),
-                (self.ETrue * self.UNITS.GeV).astype(float).tolist(),
-                self.NSQneutype,
-                repeat(True),
-            )
-        )
-
-        return np.asarray(weights)
-
-    def GetOscillations(self):
-        """
-        Calculate oscillation weights.
-
-        In CPT mode (Dm231 != Dm231_bar):
-        - Propagates neutrinos with Dm231
-        - Propagates antineutrinos with Dm231_bar
-        - Combines based on PDG code
-
-        In standard mode:
-        - Single propagation with Dm231
-        """
-        # Check cache
-        current_params = self._get_param_tuple()
-        if self._last_params == current_params and self._cached_weights is not None:
-            return self._cached_weights
-
-        dm31_nu = self.Parameters.get("Dm231", 2.511e-3)
-        # Handle case where Dm231_bar is 0 (uninitialized) or not set
-        dm31_nubar = self.Parameters.get("Dm231_bar")
-        if dm31_nubar is None or dm31_nubar == 0:
-            dm31_nubar = dm31_nu
-
-        # Check if we need CPT mode (dual propagation)
-        cpt_mode = abs(dm31_nu - dm31_nubar) > 1e-10
-
-        if not cpt_mode:
-            # Standard mode: single propagation
-            self.ApplyParameters()  # Apply all parameters including Dm231
-            self.Osc.Set_initial_state(self.InitialFlux, nsq.Basis.flavor)
-            self.Osc.EvolveState()
-
-            weights = list(
-                map(
-                    self.Osc.EvalFlavor,
-                    self.NSQneuflavor,
-                    self.CosZTrue.astype(float).tolist(),
-                    (self.ETrue * self.UNITS.GeV).astype(float).tolist(),
-                    self.NSQneutype,
-                    repeat(True),
-                )
-            )
-            weights = np.asarray(weights)
-        else:
-            # CPT mode: dual propagation
-            # First, apply all parameters except Dm31
-            self.ApplyParameters()
-
-            # Propagate neutrinos with Dm231
-            w_nu = self._single_propagation(dm31_nu)
-
-            # Propagate antineutrinos with Dm231_bar
-            w_nubar = self._single_propagation(dm31_nubar)
-
-            # Combine based on PDG sign: positive PDG = neutrino, negative = antineutrino
-            is_neutrino = self.nuPDG > 0
-            weights = np.where(is_neutrino, w_nu, w_nubar)
-
-        # Update cache
-        self._last_params = current_params
-        self._cached_weights = weights
-
-        return weights
+        return self._eval_flavor_weights()

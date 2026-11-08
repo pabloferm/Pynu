@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Build-stage analysis file for KM3NeT/ORCA6: the MC, the exposure, and the oscillation
+     point at which the event framework is evaluated when it is constructed. The observed
+     counts of orca_aux are read directly from the data file, and the bin mask `few` is
+     the expectation at this point. Fit parameters live in configs/ORCA.xml and
+     configs/Combined.xml. ${ORCA_MC} is filled by pynu.build.events.render_event_xml. -->
+<Analysis>
+
+<NeutrinoExperiment name="ORCA">
+    <source name='Atmospheric'>
+        <MCFiles name='${ORCA_MC}'> </MCFiles>
+        <exposure> 1.0 </exposure>
+        <MCexposure> 100.0 </MCexposure>
+    </source>
+</NeutrinoExperiment>
+
+<NeutrinoOscillations>
+    <flavors> 3 </flavors>
+
+    <fixed name='Sin2Theta12'>
+        <value> 0.303 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta13'>
+        <value> 0.022 </value>
+    </fixed>
+
+    <fixed name='Sin2Theta23'>
+        <value> 0.572 </value>
+    </fixed>
+
+    <fixed name='Dm221'>
+        <value> 7.41e-5 </value>
+    </fixed>
+
+    <fixed name='dCP'>
+        <value> 1.36 </value>
+    </fixed>
+
+    <fixed name='Dm231'>
+        <value> 2.511e-3 </value>
+    </fixed>
+</NeutrinoOscillations>
+
+</Analysis>

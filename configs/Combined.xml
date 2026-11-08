@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Super-Kamiokande + IceCube-DeepCore + KM3NeT/ORCA6 combined fit: Delta chi^2
+  lattice scan of record (the paper's combined result).
+
+  Fit vector  the dials below, in this order: 47 shared slots (block="shared"; one
+              Gaussian prior each, bounds nominal +- 5 sigma with floor 0.01) followed by
+              104 SK-only slots (block="sk"; the SK engine's prior and box).
+              "experiments" says which engines a shared slot feeds.
+  chi^2       chi^2_IC + chi^2_ORCA + chi^2_SK + prior(shared). SK's engine prior on the
+              shared slots is switched off (width 1e12) so each is penalised once.
+  Protocol    per lattice cell, delta_CP nodes 0..19 in order; each node is one L-BFGS-B
+              fit over all three engines plus 1 restart kept if lower, seeded from the
+              previous node (the first node from "start").
+  Region      20 x 20 cells around each ordering's best fit, all 20 delta_CP nodes.
+  ORCA        oscillation tensors averaged over 5 sub-energies per bin (avg5).
+-->
+<binned_scan name="Combined" experiments="SK IC ORCA">
+  <inputs>
+    <input key="sk_response" path="${PYNU_WORK}/sk/sk_response_Ninv.npz" md5="eae268499fff134b607ebe1690993640"/>
+    <input key="sk_fluxq" path="${PYNU_WORK}/fluxq/fluxq_sk.npz" md5="e983943e7d0cf84ecd10b660c1b29371"/>
+    <input key="sk_tensors" path="${PYNU_WORK}/tensors/sk/{ordering}"/>
+    <input key="ic_response" path="${PYNU_WORK}/ic/ic_response_modeaxis_L3.npz" md5="1b2008a9918a8b1541eeb3fd245921fd"/>
+    <input key="ic_aux" path="${PYNU_WORK}/ic/ic_aux.npz"/>
+    <input key="ic_fluxq" path="${PYNU_WORK}/fluxq/fluxq_ic.npz"/>
+    <input key="ic_tensors" path="${PYNU_WORK}/tensors/ic/{ordering}"/>
+    <input key="orca_response" path="${PYNU_WORK}/orca/orca_response_flat900.npz" md5="febf4f2b139f214b0e8a559afce2f68c"/>
+    <input key="orca_aux" path="${PYNU_WORK}/orca/orca_aux.npz"/>
+    <input key="orca_fluxq" path="${PYNU_WORK}/fluxq/fluxq_orca.npz"/>
+    <input key="orca_tensors" path="${PYNU_WORK}/tensors/orca/{ordering}"/>
+  </inputs>
+  <lattice dm31_min="0.0016" dm31_max="0.003" n_dm31="41" s23_min="0.3" s23_max="0.7" n_s23="41" n_dcp="20" dm21="7.41e-05" sin2theta13="0.022"/>
+  <region ordering="NO" i_dm31="15-34" i_s23="12-31" dcp_nodes="0-19"/>
+  <region ordering="IO" i_dm31="8-27" i_s23="12-31" dcp_nodes="0-19"/>
+  <fit ftol="1e-08" gtol="1e-05" maxiter="2000" npolish="1" warm_carry="true"/>
+  <!-- each engine's own parameter order (it fixes the floating-point summation order) -->
+  <arm name="SK"
+       dials="normalization_below1GeV normalization_above1GeV tilt flavor_ratio zenith_up
+            zenith_down XSecNuTau NCoverCC NCHad AxialMass DIS CC_2p2h CC_2p2hNuBarNu
+            CC_2p2hMuE CCQE CCQENuBarNu CCQEMuE CC1Pi_Pi0Pi CC1Pi_NuBarNuE
+            CC1Pi_NuBarNuMu CC1PiProduction CohPiProduction pc_reduction_sk1
+            pc_reduction_sk2 pc_reduction_sk3 pc_reduction_sk45 mge_nonubkg_sk1
+            mge_nonubkg_sk2 mge_nonubkg_sk3 mge_nonubkg_sk45 fc_reduction_sk1
+            fc_reduction_sk2 fc_reduction_sk3 fc_reduction_sk45 subgev_2ring_pi0_sk1
+            subgev_2ring_pi0_sk2 subgev_2ring_pi0_sk3 subgev_2ring_pi0_sk45
+            subgev_1ring_pi0_sk1 subgev_1ring_pi0_sk2 subgev_1ring_pi0_sk3
+            subgev_1ring_pi0_sk45 multiring_nunubar_separation_sk1
+            multiring_nunubar_separation_sk2 multiring_nunubar_separation_sk3
+            multiring_nunubar_separation_sk45 multiring_emu_separation_sk1
+            multiring_emu_separation_sk2 multiring_emu_separation_sk3
+            multiring_emu_separation_sk45 multiring_eother_separation_sk1
+            multiring_eother_separation_sk2 multiring_eother_separation_sk3
+            multiring_eother_separation_sk45 pc_stopthru_separation_sk1
+            pc_stopthru_separation_sk2 pc_stopthru_separation_sk3
+            pc_stopthru_separation_sk45 pi0_ring_separation_sk1 pi0_ring_separation_sk2
+            pi0_ring_separation_sk3 pi0_ring_separation_sk45 e_ring_separation_sk1
+            e_ring_separation_sk2 e_ring_separation_sk3 e_ring_separation_sk45
+            mu_ring_separation_sk1 mu_ring_separation_sk2 mu_ring_separation_sk3
+            mu_ring_separation_sk45 singlering_pid_sk1 singlering_pid_sk2
+            singlering_pid_sk3 singlering_pid_sk45 multiring_pid_sk1 multiring_pid_sk2
+            multiring_pid_sk3 multiring_pid_sk45 upmu_shower_separation_sk1
+            upmu_shower_separation_sk2 upmu_shower_separation_sk3
+            upmu_shower_separation_sk45 upmu_stop_bkg_sk1 upmu_stop_bkg_sk2
+            upmu_stop_bkg_sk3 upmu_stop_bkg_sk45 upmu_showering_bkg_sk1
+            upmu_showering_bkg_sk2 upmu_showering_bkg_sk3 upmu_showering_bkg_sk45
+            upmu_nonshowering_bkg_sk1 upmu_nonshowering_bkg_sk2
+            upmu_nonshowering_bkg_sk3 upmu_nonshowering_bkg_sk45 fiducial_volume
+            neutron_tagging_subgev neutron_tagging_multigev energy_scale_sk1
+            energy_scale_sk2 energy_scale_sk3 energy_scale_sk45 solar_activity kpi_ratio
+            rel_norm_fcmg flux_nuebar_subgev flux_flavor_subgev flux_nuebar_mid
+            flux_nuebar_high flux_flavor_mid flux_flavor_high flux_numubar_subgev
+            flux_numubar_mid flux_numubar_high xsec_1p1h_subgev_nue
+            xsec_ccqe_shape_subgev flux_horizvert upmu_stop_bkg_horiz_lowp
+            upmu_stop_bkg_horiz_highp upmu_nonshow_bkg_horiz updown_escale_sk1
+            updown_escale_sk2 updown_escale_sk3 updown_escale_sk45 xsec_ccqe_shape
+            xsec_ccqe_multigev_nue xsec_ccqe_multigev_numu nmig_subgev_nuebar_pinned
+            nmig_multigev_nuebar_pinned decay_e_tagging_sk1 decay_e_tagging_sk2
+            decay_e_tagging_sk3 decay_e_tagging_sk45 elike_ringcount_lowp_sk13
+            xsec_ccqe_shape_multigev fcpc_separation upmu_norm"/>
+  <arm name="IC"
+       dials="normalization_below1GeV normalization_above1GeV tilt nunubar_ratio
+            flavor_ratio zenith_up zenith_down solar_activity kpi_ratio flux_horizvert
+            flux_nuebar_subgev flux_nuebar_mid flux_nuebar_high flux_flavor_subgev
+            flux_flavor_mid flux_flavor_high flux_numubar_subgev flux_numubar_mid
+            flux_numubar_high XSecNuTau NCoverCC NCHad AxialMass DIS CCQE CCQENuBarNu
+            CCQEMuE CC1PiProduction CC1Pi_NuBarNuE CC1Pi_NuBarNuMu xsec_ccqe_shape
+            xsec_ccqe_shape_subgev xsec_ccqe_multigev_nue xsec_ccqe_multigev_numu
+            dom_eff hole_ice_p0 hole_ice_p1 bulk_ice_abs bulk_ice_scatter
+            xsec_ccqe_shape_multigev"/>
+  <arm name="ORCA"
+       dials="normalization_below1GeV normalization_above1GeV tilt nunubar_ratio
+            flavor_ratio zenith_up zenith_down solar_activity kpi_ratio flux_horizvert
+            flux_nuebar_subgev flux_nuebar_mid flux_nuebar_high flux_flavor_subgev
+            flux_flavor_mid flux_flavor_high flux_numubar_subgev flux_numubar_mid
+            flux_numubar_high XSecNuTau NCoverCC NCHad AxialMass f_all f_HPT f_Shower
+            f_tauCC f_NC f_HE E_shift"/>
+  <dials>
+    <dial name="normalization_below1GeV" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25" start="1.0"/>
+    <dial name="normalization_above1GeV" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.15" lo="0.25" hi="1.75" start="1.0"/>
+    <dial name="nunubar_ratio" block="shared" experiments="IC ORCA" nominal="1.0" sigma="0.05" lo="1.0" hi="1.0" pinned="true" start="1.0"/>
+    <dial name="flavor_ratio" block="shared" experiments="IC ORCA" nominal="1.0" sigma="0.02" lo="1.0" hi="1.0" pinned="true" start="1.0"/>
+    <dial name="tilt" block="shared" experiments="SK IC ORCA" nominal="0.0" sigma="0.1" lo="-0.5" hi="0.5" start="0.0"/>
+    <dial name="zenith_up" block="shared" experiments="SK IC ORCA" nominal="0.0" sigma="0.01" lo="-0.05" hi="0.05" start="0.0"/>
+    <dial name="zenith_down" block="shared" experiments="SK IC ORCA" nominal="0.0" sigma="0.01" lo="-0.05" hi="0.05" start="0.0"/>
+    <dial name="solar_activity" block="shared" experiments="SK IC ORCA" nominal="0.0" sigma="0.15" lo="-0.75" hi="0.75" start="0.0"/>
+    <dial name="kpi_ratio" block="shared" experiments="SK IC ORCA" nominal="0.0" sigma="0.1" lo="-0.5" hi="0.5" start="0.0"/>
+    <dial name="flux_horizvert" block="shared" experiments="SK IC ORCA" nominal="0.0" sigma="0.03" lo="-0.15" hi="0.15" start="0.0"/>
+    <dial name="flux_nuebar_subgev" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25" start="1.0"/>
+    <dial name="flux_nuebar_mid" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25" start="1.0"/>
+    <dial name="flux_nuebar_high" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.08" lo="0.6" hi="1.4" start="1.0"/>
+    <dial name="flux_flavor_subgev" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.02" lo="0.9" hi="1.1" start="1.0"/>
+    <dial name="flux_flavor_mid" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.03" lo="0.85" hi="1.15" start="1.0"/>
+    <dial name="flux_flavor_high" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25" start="1.0"/>
+    <dial name="flux_numubar_subgev" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.02" lo="0.9" hi="1.1" start="1.0"/>
+    <dial name="flux_numubar_mid" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.06" lo="0.7" hi="1.3" start="1.0"/>
+    <dial name="flux_numubar_high" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.15" lo="0.25" hi="1.75" start="1.0"/>
+    <dial name="XSecNuTau" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25" start="1.0"/>
+    <dial name="NCoverCC" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0" start="1.0"/>
+    <dial name="NCHad" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="AxialMass" block="shared" experiments="SK IC ORCA" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="DIS" block="shared" experiments="SK IC" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25" start="1.0"/>
+    <dial name="CCQE" block="shared" experiments="SK IC" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="CCQENuBarNu" block="shared" experiments="SK IC" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="CCQEMuE" block="shared" experiments="SK IC" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="CC1PiProduction" block="shared" experiments="SK IC" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="CC1Pi_NuBarNuE" block="shared" experiments="SK IC" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="CC1Pi_NuBarNuMu" block="shared" experiments="SK IC" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="xsec_ccqe_shape" block="shared" experiments="IC" nominal="1.0" sigma="0.2" lo="1.0" hi="1.0" pinned="true" start="1.0"/>
+    <dial name="xsec_ccqe_shape_subgev" block="shared" experiments="SK IC" nominal="0.0" sigma="0.4" lo="-2.0" hi="2.0" start="0.0"/>
+    <dial name="xsec_ccqe_multigev_nue" block="shared" experiments="SK IC" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25" start="1.0"/>
+    <dial name="xsec_ccqe_multigev_numu" block="shared" experiments="SK IC" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25" start="1.0"/>
+    <dial name="f_all" block="shared" experiments="ORCA" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0" start="1.0"/>
+    <dial name="f_HPT" block="shared" experiments="ORCA" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0" start="1.0"/>
+    <dial name="f_Shower" block="shared" experiments="ORCA" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0" start="1.0"/>
+    <dial name="f_tauCC" block="shared" experiments="ORCA" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0" start="1.0"/>
+    <dial name="f_NC" block="shared" experiments="ORCA" nominal="1.0" sigma="0.2" lo="1.0" hi="1.0" pinned="true" start="1.0"/>
+    <dial name="f_HE" block="shared" experiments="ORCA" nominal="1.0" sigma="0.5" lo="0.01" hi="3.5" start="1.0"/>
+    <dial name="E_shift" block="shared" experiments="ORCA" nominal="1.0" sigma="0.1" lo="1.0" hi="1.0" pinned="true" start="1.0"/>
+    <dial name="dom_eff" block="shared" experiments="IC" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="hole_ice_p0" block="shared" experiments="IC" nominal="0.1" sigma="0.1" lo="0.01" hi="0.6" start="0.1"/>
+    <dial name="hole_ice_p1" block="shared" experiments="IC" nominal="-0.05" sigma="0.1" lo="-0.55" hi="0.45" start="-0.05"/>
+    <dial name="bulk_ice_abs" block="shared" experiments="IC" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="bulk_ice_scatter" block="shared" experiments="IC" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5" start="1.0"/>
+    <dial name="xsec_ccqe_shape_multigev" block="shared" experiments="SK IC" nominal="0.0" sigma="0.2" lo="-1.0" hi="1.0" start="0.0"/>
+    <dial name="flavor_ratio" block="sk" experiments="SK" nominal="1.0" sigma="0.02" lo="1.0" hi="1.0" pinned="true" start="1.0"/>
+    <dial name="CC_2p2h" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="1.2155992537998768"/>
+    <dial name="CC_2p2hNuBarNu" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="1.0037791586310882"/>
+    <dial name="CC_2p2hMuE" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="1.0359926188583934"/>
+    <dial name="CC1Pi_Pi0Pi" block="sk" experiments="SK" nominal="1.0" sigma="0.4" lo="0.01" hi="5.0" start="1.0111861782927694"/>
+    <dial name="CohPiProduction" block="sk" experiments="SK" nominal="1.0" sigma="1.0" lo="0.01" hi="11.0" start="1.2049378317036035"/>
+    <dial name="pc_reduction_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.024" lo="0.76" hi="1.24" start="0.9969931386135603"/>
+    <dial name="pc_reduction_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.048" lo="0.52" hi="1.48" start="0.9937990450540592"/>
+    <dial name="pc_reduction_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.009" lo="0.91" hi="1.09" start="0.9999563149068132"/>
+    <dial name="pc_reduction_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.01" lo="0.9" hi="1.1" start="0.9989043058879699"/>
+    <dial name="mge_nonubkg_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.13" lo="0.01" hi="2.3" start="0.9490980383350884"/>
+    <dial name="mge_nonubkg_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.38" lo="0.01" hi="4.8" start="1.066089792038374"/>
+    <dial name="mge_nonubkg_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.27" lo="0.01" hi="3.7" start="1.023804357298707"/>
+    <dial name="mge_nonubkg_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.18" lo="0.01" hi="2.8" start="0.992047470407164"/>
+    <dial name="fc_reduction_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.002" lo="0.98" hi="1.02" start="1.000034096089925"/>
+    <dial name="fc_reduction_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.002" lo="0.98" hi="1.02" start="1.0000216123636374"/>
+    <dial name="fc_reduction_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.008" lo="0.92" hi="1.08" start="1.0002715872350425"/>
+    <dial name="fc_reduction_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.013" lo="0.87" hi="1.13" start="0.9973374962366864"/>
+    <dial name="subgev_2ring_pi0_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.056" lo="0.43999999999999995" hi="1.56" start="0.981715900364777"/>
+    <dial name="subgev_2ring_pi0_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.044" lo="0.56" hi="1.44" start="0.9940191488181495"/>
+    <dial name="subgev_2ring_pi0_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.059" lo="0.41000000000000003" hi="1.5899999999999999" start="0.9926371821743049"/>
+    <dial name="subgev_2ring_pi0_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.056" lo="0.43999999999999995" hi="1.56" start="0.9493239583644512"/>
+    <dial name="subgev_1ring_pi0_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.12" lo="0.01" hi="2.2" start="0.9856491027823963"/>
+    <dial name="subgev_1ring_pi0_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.12" lo="0.01" hi="2.2" start="0.9905078644564701"/>
+    <dial name="subgev_1ring_pi0_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="0.9948571773830972"/>
+    <dial name="subgev_1ring_pi0_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.15" lo="0.01" hi="2.5" start="0.9408707463056155"/>
+    <dial name="multiring_nunubar_separation_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.072" lo="0.28" hi="1.72" start="1.0354430093051854"/>
+    <dial name="multiring_nunubar_separation_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.079" lo="0.20999999999999996" hi="1.79" start="1.0216158375501023"/>
+    <dial name="multiring_nunubar_separation_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.077" lo="0.22999999999999998" hi="1.77" start="1.0084938949254352"/>
+    <dial name="multiring_nunubar_separation_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.068" lo="0.31999999999999995" hi="1.6800000000000002" start="1.076177574862362"/>
+    <dial name="multiring_emu_separation_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.06" lo="0.4" hi="1.6" start="0.9975174404413248"/>
+    <dial name="multiring_emu_separation_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.038" lo="0.62" hi="1.38" start="0.9990093446405588"/>
+    <dial name="multiring_emu_separation_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.053" lo="0.47" hi="1.53" start="0.9990079161536509"/>
+    <dial name="multiring_emu_separation_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.033" lo="0.6699999999999999" hi="1.33" start="1.002426879512853"/>
+    <dial name="multiring_eother_separation_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.057" lo="0.42999999999999994" hi="1.57" start="0.9846065428003077"/>
+    <dial name="multiring_eother_separation_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.041" lo="0.59" hi="1.4100000000000001" start="0.9922452461791826"/>
+    <dial name="multiring_eother_separation_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.049" lo="0.51" hi="1.49" start="0.9994855070538927"/>
+    <dial name="multiring_eother_separation_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.034" lo="0.6599999999999999" hi="1.34" start="0.9827197885323564"/>
+    <dial name="pc_stopthru_separation_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.25" lo="0.01" hi="3.5" start="1.029545467944167"/>
+    <dial name="pc_stopthru_separation_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.14" lo="0.01" hi="2.4000000000000004" start="1.0172344345702096"/>
+    <dial name="pc_stopthru_separation_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.3" lo="0.01" hi="4.0" start="1.039093450443078"/>
+    <dial name="pc_stopthru_separation_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="1.0283539645488444"/>
+    <dial name="pi0_ring_separation_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.023" lo="0.77" hi="1.23" start="1.0007466935797547"/>
+    <dial name="pi0_ring_separation_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.023" lo="0.77" hi="1.23" start="1.000305767449846"/>
+    <dial name="pi0_ring_separation_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.023" lo="0.77" hi="1.23" start="1.0001506182992481"/>
+    <dial name="pi0_ring_separation_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.03" lo="0.7" hi="1.3" start="1.0022180383400365"/>
+    <dial name="e_ring_separation_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.035" lo="0.6499999999999999" hi="1.35" start="0.9947287826313687"/>
+    <dial name="e_ring_separation_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.038" lo="0.62" hi="1.38" start="0.9948185180497767"/>
+    <dial name="e_ring_separation_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.013" lo="0.87" hi="1.13" start="0.9999651342634333"/>
+    <dial name="e_ring_separation_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.018" lo="0.8200000000000001" hi="1.18" start="0.9880394140044115"/>
+    <dial name="mu_ring_separation_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.045" lo="0.55" hi="1.45" start="0.9816260859273018"/>
+    <dial name="mu_ring_separation_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.08" lo="0.19999999999999996" hi="1.8" start="0.9647076919804802"/>
+    <dial name="mu_ring_separation_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.026" lo="0.74" hi="1.26" start="0.999719988843229"/>
+    <dial name="mu_ring_separation_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.023" lo="0.77" hi="1.23" start="0.9998621615558448"/>
+    <dial name="singlering_pid_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.002" lo="0.98" hi="1.02" start="1.0000582723250397"/>
+    <dial name="singlering_pid_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.007" lo="0.9299999999999999" hi="1.07" start="0.999948548407377"/>
+    <dial name="singlering_pid_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.0026" lo="0.974" hi="1.026" start="1.0000508062977111"/>
+    <dial name="singlering_pid_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.0035" lo="0.965" hi="1.035" start="0.9989626965811523"/>
+    <dial name="multiring_pid_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.065" lo="0.35" hi="1.65" start="0.9969568227332014"/>
+    <dial name="multiring_pid_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="0.9944879477427089"/>
+    <dial name="multiring_pid_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.05" lo="0.5" hi="1.5" start="0.999115550834648"/>
+    <dial name="multiring_pid_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.035" lo="0.6499999999999999" hi="1.35" start="1.0025506769671702"/>
+    <dial name="upmu_shower_separation_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.0102" lo="0.898" hi="1.102" start="1.0001702450601069"/>
+    <dial name="upmu_shower_separation_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.0132" lo="0.868" hi="1.1320000000000001" start="1.0000471539034317"/>
+    <dial name="upmu_shower_separation_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.0072" lo="0.928" hi="1.072" start="1.0001916506252082"/>
+    <dial name="upmu_shower_separation_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.009" lo="0.91" hi="1.09" start="0.999537237256297"/>
+    <dial name="upmu_stop_bkg_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.007" lo="0.9299999999999999" hi="1.07" start="1.0"/>
+    <dial name="upmu_stop_bkg_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.007" lo="0.9299999999999999" hi="1.07" start="1.0"/>
+    <dial name="upmu_stop_bkg_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.007" lo="0.9299999999999999" hi="1.07" start="1.0"/>
+    <dial name="upmu_stop_bkg_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start="1.0"/>
+    <dial name="upmu_showering_bkg_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start="1.0"/>
+    <dial name="upmu_showering_bkg_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start="1.0"/>
+    <dial name="upmu_showering_bkg_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start="1.0"/>
+    <dial name="upmu_showering_bkg_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.003" lo="0.97" hi="1.03" start="1.0"/>
+    <dial name="upmu_nonshowering_bkg_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start="1.0"/>
+    <dial name="upmu_nonshowering_bkg_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start="1.0"/>
+    <dial name="upmu_nonshowering_bkg_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.005" lo="0.95" hi="1.05" start="1.0"/>
+    <dial name="upmu_nonshowering_bkg_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.003" lo="0.97" hi="1.03" start="1.0"/>
+    <dial name="fiducial_volume" block="sk" experiments="SK" nominal="1.0" sigma="0.02" lo="0.8" hi="1.2" start="0.9960020494641172"/>
+    <dial name="neutron_tagging_subgev" block="sk" experiments="SK" nominal="1.0" sigma="0.12" lo="0.01" hi="2.2" start="1.0457286579670853"/>
+    <dial name="neutron_tagging_multigev" block="sk" experiments="SK" nominal="1.0" sigma="0.12" lo="0.01" hi="2.2" start="1.0335521326044457"/>
+    <dial name="energy_scale_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.033" lo="0.6699999999999999" hi="1.33" start="0.9891728332047314"/>
+    <dial name="energy_scale_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.028" lo="0.72" hi="1.28" start="0.9964225598722681"/>
+    <dial name="energy_scale_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.024" lo="0.76" hi="1.24" start="0.9979557838914451"/>
+    <dial name="energy_scale_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.021" lo="0.79" hi="1.21" start="1.0033696239285266"/>
+    <dial name="rel_norm_fcmg" block="sk" experiments="SK" nominal="1.0" sigma="0.05" lo="0.5" hi="1.5" start="0.9577127385880355"/>
+    <dial name="xsec_1p1h_subgev_nue" block="sk" experiments="SK" nominal="1.0" sigma="0.05" lo="0.5" hi="1.5" start="0.9733882407019179"/>
+    <dial name="upmu_stop_bkg_horiz_lowp" block="sk" experiments="SK" nominal="1.0" sigma="0.09" lo="0.10000000000000009" hi="1.9" start="1.0"/>
+    <dial name="upmu_stop_bkg_horiz_highp" block="sk" experiments="SK" nominal="1.0" sigma="0.036" lo="0.64" hi="1.3599999999999999" start="1.0"/>
+    <dial name="upmu_nonshow_bkg_horiz" block="sk" experiments="SK" nominal="1.0" sigma="0.013" lo="0.87" hi="1.13" start="1.0"/>
+    <dial name="updown_escale_sk1" block="sk" experiments="SK" nominal="0.0" sigma="0.006" lo="-0.06" hi="0.06" start="0.00017385931870668255"/>
+    <dial name="updown_escale_sk2" block="sk" experiments="SK" nominal="0.0" sigma="0.006" lo="-0.06" hi="0.06" start="0.0007467030785345092"/>
+    <dial name="updown_escale_sk3" block="sk" experiments="SK" nominal="0.0" sigma="0.013" lo="-0.13" hi="0.13" start="8.97804314554748e-05"/>
+    <dial name="updown_escale_sk45" block="sk" experiments="SK" nominal="0.0" sigma="0.005" lo="-0.05" hi="0.05" start="0.002313087715938883"/>
+    <dial name="xsec_ccqe_shape" block="sk" experiments="SK" nominal="1.0" sigma="0.0001" lo="1.0" hi="1.0" pinned="true" start="1.0"/>
+    <dial name="nmig_subgev_nuebar_pinned" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.0" hi="1.3834044950684579" start="1.0672667747749613"/>
+    <dial name="nmig_multigev_nuebar_pinned" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.0" hi="1.8748460942131424" start="1.0884416092393483"/>
+    <dial name="decay_e_tagging_sk1" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="0.9691660012457611"/>
+    <dial name="decay_e_tagging_sk2" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="1.041337017627698"/>
+    <dial name="decay_e_tagging_sk3" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="0.9817398312961994"/>
+    <dial name="decay_e_tagging_sk45" block="sk" experiments="SK" nominal="1.0" sigma="0.1" lo="0.01" hi="2.0" start="1.0412111087979499"/>
+    <dial name="elike_ringcount_lowp_sk13" block="sk" experiments="SK" nominal="1.0" sigma="0.04" lo="0.6" hi="1.4" start="1.0"/>
+    <dial name="fcpc_separation" block="sk" experiments="SK" nominal="1.0" sigma="0.01" lo="0.9" hi="1.1" start="1.0"/>
+    <dial name="upmu_norm" block="sk" experiments="SK" nominal="1.0" sigma="0.05" lo="1.0" hi="1.0" pinned="true" start="1.0"/>
+  </dials>
+  <reference ordering="NO" cell="24,22,13" chi2="1736.7531902984288" tol="0.002" tol_rebuilt="0.1" note="published NO best fit"/>
+  <reference ordering="IO" cell="17,22,12" chi2="1747.7833678727918" tol="0.002" tol_rebuilt="0.1" note="published IO best fit"/>
+</binned_scan>

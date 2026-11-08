@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  KM3NeT/ORCA6 alone (public release): Delta chi^2 lattice scan of record.
+
+  Engine     900-bin response matrix of the released MC; oscillation tensors are
+             averaged over 5 log-uniform sub-energies per true-energy bin (avg5);
+             the 430 bins with MC support are fitted; static muon background.
+  Protocol   every lattice node fitted from nominal (cold): L-BFGS-B, then up to 2
+             restarts, stopping at the first that gains less than 0.001.
+  Parameters bounds nominal +- 5 sigma, lower bound 0.01 for positive nominals;
+             E_shift is not released by KM3NeT and stays at nominal.
+-->
+<binned_scan name="ORCA" experiments="ORCA">
+  <inputs>
+    <input key="orca_response" path="${PYNU_WORK}/orca/orca_response_flat900.npz" md5="febf4f2b139f214b0e8a559afce2f68c"/>
+    <input key="orca_aux" path="${PYNU_WORK}/orca/orca_aux.npz"/>
+    <input key="orca_fluxq" path="${PYNU_WORK}/fluxq/fluxq_orca.npz"/>
+    <input key="orca_tensors" path="${PYNU_WORK}/tensors/orca/{ordering}"/>
+  </inputs>
+  <lattice dm31_min="0.0016" dm31_max="0.003" n_dm31="41" s23_min="0.3" s23_max="0.7" n_s23="41" n_dcp="20" dm21="7.41e-05" sin2theta13="0.022"/>
+  <region ordering="NO" i_dm31="all" i_s23="all" dcp_nodes="all"/>
+  <region ordering="IO" i_dm31="all" i_s23="all" dcp_nodes="all"/>
+  <fit ftol="1e-05" gtol="1e-05" maxiter="200" npolish="2" polish_min_gain="0.001" warm_carry="false"/>
+  <arm name="ORCA"/>
+  <dials>
+    <dial name="normalization_below1GeV" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25"/>
+    <dial name="normalization_above1GeV" nominal="1.0" sigma="0.15" lo="0.25" hi="1.75"/>
+    <dial name="tilt" nominal="0.0" sigma="0.1" lo="-0.5" hi="0.5"/>
+    <dial name="nunubar_ratio" nominal="1.0" sigma="0.05" lo="1.0" hi="1.0" pinned="true"/>
+    <dial name="flavor_ratio" nominal="1.0" sigma="0.02" lo="1.0" hi="1.0" pinned="true"/>
+    <dial name="zenith_up" nominal="0.0" sigma="0.01" lo="-0.05" hi="0.05"/>
+    <dial name="zenith_down" nominal="0.0" sigma="0.01" lo="-0.05" hi="0.05"/>
+    <dial name="solar_activity" nominal="0.0" sigma="0.15" lo="-0.75" hi="0.75"/>
+    <dial name="kpi_ratio" nominal="0.0" sigma="0.1" lo="-0.5" hi="0.5"/>
+    <dial name="flux_horizvert" nominal="0.0" sigma="0.03" lo="-0.15" hi="0.15"/>
+    <dial name="flux_nuebar_subgev" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25"/>
+    <dial name="flux_nuebar_mid" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25"/>
+    <dial name="flux_nuebar_high" nominal="1.0" sigma="0.08" lo="0.6" hi="1.4"/>
+    <dial name="flux_flavor_subgev" nominal="1.0" sigma="0.02" lo="0.9" hi="1.1"/>
+    <dial name="flux_flavor_mid" nominal="1.0" sigma="0.03" lo="0.85" hi="1.15"/>
+    <dial name="flux_flavor_high" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25"/>
+    <dial name="flux_numubar_subgev" nominal="1.0" sigma="0.02" lo="0.9" hi="1.1"/>
+    <dial name="flux_numubar_mid" nominal="1.0" sigma="0.06" lo="0.7" hi="1.3"/>
+    <dial name="flux_numubar_high" nominal="1.0" sigma="0.15" lo="0.25" hi="1.75"/>
+    <dial name="XSecNuTau" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25"/>
+    <dial name="NCoverCC" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0"/>
+    <dial name="NCHad" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="AxialMass" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="f_all" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0"/>
+    <dial name="f_HPT" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0"/>
+    <dial name="f_Shower" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0"/>
+    <dial name="f_tauCC" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0"/>
+    <dial name="f_NC" nominal="1.0" sigma="0.2" lo="1.0" hi="1.0" pinned="true"/>
+    <dial name="f_HE" nominal="1.0" sigma="0.5" lo="0.01" hi="3.5"/>
+    <dial name="E_shift" nominal="1.0" sigma="0.1" lo="1.0" hi="1.0" pinned="true"/>
+  </dials>
+  <reference ordering="NO" cell="15,22,17" chi2="507.8482355896389" tol="0.0001" tol_rebuilt="0.1" note="published NO best fit"/>
+  <reference ordering="IO" cell="26,22,7" chi2="508.33511197694185" tol="0.0001" tol_rebuilt="0.1" note="published IO best fit"/>
+</binned_scan>

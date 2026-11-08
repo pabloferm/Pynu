@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  IceCube-DeepCore alone (8-year public release): Delta chi^2 lattice scan of record.
+
+  Engine     response matrix of the released MC with an interaction-mode class axis,
+             detector hypersurfaces interpolated in |Delta m^2_31|, static muon
+             background; bins with more than 0.01 observed events are fitted.
+  Protocol   every lattice node fitted from nominal (cold): L-BFGS-B, then up to 2
+             restarts, stopping at the first that gains less than 0.001.
+  Parameters bounds nominal +- 5 sigma, lower bound 0.01 for positive nominals.
+-->
+<binned_scan name="IC" experiments="IC">
+  <inputs>
+    <input key="ic_response" path="${PYNU_WORK}/ic/ic_response_modeaxis_L3.npz" md5="1b2008a9918a8b1541eeb3fd245921fd"/>
+    <input key="ic_aux" path="${PYNU_WORK}/ic/ic_aux.npz"/>
+    <input key="ic_fluxq" path="${PYNU_WORK}/fluxq/fluxq_ic.npz"/>
+    <input key="ic_tensors" path="${PYNU_WORK}/tensors/ic/{ordering}"/>
+  </inputs>
+  <lattice dm31_min="0.0016" dm31_max="0.003" n_dm31="41" s23_min="0.3" s23_max="0.7" n_s23="41" n_dcp="20" dm21="7.41e-05" sin2theta13="0.022"/>
+  <region ordering="NO" i_dm31="all" i_s23="all" dcp_nodes="all"/>
+  <region ordering="IO" i_dm31="all" i_s23="all" dcp_nodes="all"/>
+  <fit ftol="1e-08" gtol="1e-05" maxiter="2000" npolish="2" polish_min_gain="0.001" warm_carry="false"/>
+  <arm name="IC"/>
+  <dials>
+    <dial name="normalization_below1GeV" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25"/>
+    <dial name="normalization_above1GeV" nominal="1.0" sigma="0.15" lo="0.25" hi="1.75"/>
+    <dial name="tilt" nominal="0.0" sigma="0.1" lo="-0.5" hi="0.5"/>
+    <dial name="nunubar_ratio" nominal="1.0" sigma="0.05" lo="1.0" hi="1.0" pinned="true"/>
+    <dial name="flavor_ratio" nominal="1.0" sigma="0.02" lo="1.0" hi="1.0" pinned="true"/>
+    <dial name="zenith_up" nominal="0.0" sigma="0.01" lo="-0.05" hi="0.05"/>
+    <dial name="zenith_down" nominal="0.0" sigma="0.01" lo="-0.05" hi="0.05"/>
+    <dial name="solar_activity" nominal="0.0" sigma="0.15" lo="-0.75" hi="0.75"/>
+    <dial name="kpi_ratio" nominal="0.0" sigma="0.1" lo="-0.5" hi="0.5"/>
+    <dial name="flux_horizvert" nominal="0.0" sigma="0.03" lo="-0.15" hi="0.15"/>
+    <dial name="flux_nuebar_subgev" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25"/>
+    <dial name="flux_nuebar_mid" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25"/>
+    <dial name="flux_nuebar_high" nominal="1.0" sigma="0.08" lo="0.6" hi="1.4"/>
+    <dial name="flux_flavor_subgev" nominal="1.0" sigma="0.02" lo="0.9" hi="1.1"/>
+    <dial name="flux_flavor_mid" nominal="1.0" sigma="0.03" lo="0.85" hi="1.15"/>
+    <dial name="flux_flavor_high" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25"/>
+    <dial name="flux_numubar_subgev" nominal="1.0" sigma="0.02" lo="0.9" hi="1.1"/>
+    <dial name="flux_numubar_mid" nominal="1.0" sigma="0.06" lo="0.7" hi="1.3"/>
+    <dial name="flux_numubar_high" nominal="1.0" sigma="0.15" lo="0.25" hi="1.75"/>
+    <dial name="XSecNuTau" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25"/>
+    <dial name="NCoverCC" nominal="1.0" sigma="0.2" lo="0.01" hi="2.0"/>
+    <dial name="NCHad" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="AxialMass" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="DIS" nominal="1.0" sigma="0.05" lo="0.75" hi="1.25"/>
+    <dial name="CCQE" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="CCQENuBarNu" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="CCQEMuE" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="CC1PiProduction" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="CC1Pi_NuBarNuE" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="CC1Pi_NuBarNuMu" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="xsec_ccqe_shape" nominal="1.0" sigma="0.2" lo="1.0" hi="1.0" pinned="true"/>
+    <dial name="xsec_ccqe_shape_subgev" nominal="0.0" sigma="0.4" lo="-2.0" hi="2.0"/>
+    <dial name="xsec_ccqe_multigev_nue" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25"/>
+    <dial name="xsec_ccqe_multigev_numu" nominal="1.0" sigma="0.25" lo="0.01" hi="2.25"/>
+    <dial name="dom_eff" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="hole_ice_p0" nominal="0.1" sigma="0.1" lo="0.01" hi="0.6"/>
+    <dial name="hole_ice_p1" nominal="-0.05" sigma="0.1" lo="-0.55" hi="0.45"/>
+    <dial name="bulk_ice_abs" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="bulk_ice_scatter" nominal="1.0" sigma="0.1" lo="0.5" hi="1.5"/>
+    <dial name="xsec_ccqe_shape_multigev" nominal="0.0" sigma="0.2" lo="-1.0" hi="1.0"/>
+  </dials>
+  <reference ordering="NO" cell="25,21,17" chi2="208.08794643065673" tol="0.0005" tol_rebuilt="0.1" note="published NO best fit"/>
+  <reference ordering="IO" cell="15,20,6" chi2="209.78757765437436" tol="0.0005" tol_rebuilt="0.1" note="published IO best fit"/>
+</binned_scan>
